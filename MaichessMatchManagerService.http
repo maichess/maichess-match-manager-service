@@ -1,0 +1,11 @@
+@MaichessMatchManagerService_HostAddress = http://localhost:5027
+
+GET {{MaichessMatchManagerService_HostAddress}}/todos/
+Accept: application/json
+
+###
+
+GET {{MaichessMatchManagerService_HostAddress}}/todos/1
+Accept: application/json
+
+###
