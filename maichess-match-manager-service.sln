@@ -1,6 +1,5 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaichessMatchManagerService", "MaichessMatchManagerService.csproj", "{162DDA7E-7FD2-4047-8E05-E2B8E37C3E04}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaichessMatchManagerService", "MaichessMatchManagerService\MaichessMatchManagerService.csproj", "{162DDA7E-7FD2-4047-8E05-E2B8E37C3E04}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
