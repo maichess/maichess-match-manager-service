@@ -7,7 +7,7 @@ internal sealed class MatchRepository
 {
     private readonly IMongoCollection<MatchDocument> collection;
 
-    internal MatchRepository(IMongoDatabase db)
+    public MatchRepository(IMongoDatabase db)
     {
         collection = db.GetCollection<MatchDocument>("matches");
     }
