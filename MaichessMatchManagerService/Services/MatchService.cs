@@ -125,6 +125,107 @@ internal sealed partial class MatchService(
         return match;
     }
 
+    internal async Task OfferDrawAsync(string matchId, string userId, CancellationToken ct)
+    {
+        MatchDocument match = await GetMatchAsync(matchId, ct);
+
+        if (match.Status != "ongoing")
+        {
+            throw new MatchAlreadyEndedException();
+        }
+
+        bool isWhite = match.White.UserId == userId;
+        bool isBlack = match.Black.UserId == userId;
+
+        if (!isWhite && !isBlack)
+        {
+            throw new NotParticipantException();
+        }
+
+        PlayerDocument opponent = isWhite ? match.Black : match.White;
+        if (opponent.IsBot)
+        {
+            throw new NotParticipantException();
+        }
+
+        if (match.PendingDrawOffererUserId is not null)
+        {
+            throw new DrawOfferAlreadyPendingException();
+        }
+
+        match.PendingDrawOffererUserId = userId;
+        await repository.ReplaceAsync(match, ct);
+
+        PlayerDocument offerer = isWhite ? match.White : match.Black;
+        broadcaster.Broadcast(matchId, new DrawOfferedNotification(offerer));
+    }
+
+    internal async Task<MatchDocument> AcceptDrawAsync(string matchId, string userId, CancellationToken ct)
+    {
+        MatchDocument match = await GetMatchAsync(matchId, ct);
+
+        if (match.Status != "ongoing")
+        {
+            throw new MatchAlreadyEndedException();
+        }
+
+        bool isWhite = match.White.UserId == userId;
+        bool isBlack = match.Black.UserId == userId;
+
+        if (!isWhite && !isBlack)
+        {
+            throw new NotParticipantException();
+        }
+
+        if (match.PendingDrawOffererUserId is null)
+        {
+            throw new NoDrawOfferPendingException();
+        }
+
+        if (match.PendingDrawOffererUserId == userId)
+        {
+            throw new NotDrawRecipientException();
+        }
+
+        match.Status = "draw";
+        match.PendingDrawOffererUserId = null;
+
+        await repository.ReplaceAsync(match, ct);
+
+        BroadcastMatchEnded(matchId, "draw", "draw_agreement");
+
+        return match;
+    }
+
+    internal async Task DeclineDrawAsync(string matchId, string userId, CancellationToken ct)
+    {
+        MatchDocument match = await GetMatchAsync(matchId, ct);
+
+        if (match.Status != "ongoing")
+        {
+            throw new MatchAlreadyEndedException();
+        }
+
+        bool isWhite = match.White.UserId == userId;
+        bool isBlack = match.Black.UserId == userId;
+
+        if (!isWhite && !isBlack)
+        {
+            throw new NotParticipantException();
+        }
+
+        if (match.PendingDrawOffererUserId is null)
+        {
+            throw new NoDrawOfferPendingException();
+        }
+
+        match.PendingDrawOffererUserId = null;
+        await repository.ReplaceAsync(match, ct);
+
+        PlayerDocument decliner = isWhite ? match.White : match.Black;
+        broadcaster.Broadcast(matchId, new DrawDeclinedNotification(decliner));
+    }
+
     internal async Task<MatchDocument> ResignMatchAsync(
         string matchId,
         string userId,
@@ -223,7 +324,10 @@ internal sealed partial class MatchService(
         {
             GameResult.WhiteWon => "white_won",
             GameResult.BlackWon => "black_won",
-            GameResult.Stalemate or GameResult.Draw => "draw",
+            GameResult.Stalemate
+                or GameResult.FiftyMoveRule
+                or GameResult.ThreefoldRepetition
+                or GameResult.InsufficientMaterial => "draw",
             _ => "ongoing",
         };
     }
@@ -232,7 +336,9 @@ internal sealed partial class MatchService(
     {
         GameResult.WhiteWon or GameResult.BlackWon => "checkmate",
         GameResult.Stalemate => "stalemate",
-        GameResult.Draw => "draw_agreement",
+        GameResult.FiftyMoveRule => "fifty_move_rule",
+        GameResult.ThreefoldRepetition => "threefold_repetition",
+        GameResult.InsufficientMaterial => "insufficient_material",
         _ => "checkmate",
     };
 

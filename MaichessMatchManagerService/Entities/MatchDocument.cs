@@ -29,4 +29,7 @@ internal sealed class MatchDocument
 
     // Timestamp of when the last move was made; used to compute elapsed clock time.
     public DateTimeOffset LastMoveAt { get; set; }
+
+    // UserId of the player who offered a draw, or null when no offer is pending.
+    public string? PendingDrawOffererUserId { get; set; }
 }

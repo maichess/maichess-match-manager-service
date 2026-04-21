@@ -3,6 +3,8 @@ using Maichess.MatchManager.V1;
 using MaichessMatchManagerService.Entities;
 using MaichessMatchManagerService.Events;
 using MaichessMatchManagerService.Services;
+using ProtoDrawDeclinedEvent = Maichess.MatchManager.V1.DrawDeclinedEvent;
+using ProtoDrawOfferedEvent = Maichess.MatchManager.V1.DrawOfferedEvent;
 using ProtoMatch = Maichess.MatchManager.V1.Match;
 using ProtoMatchEndedEvent = Maichess.MatchManager.V1.MatchEndedEvent;
 using ProtoMatchEvent = Maichess.MatchManager.V1.MatchEvent;
@@ -233,6 +235,14 @@ internal sealed class MatchesGrpcService(
                     Reason = ToProtoEndReason(e.Reason),
                 },
             },
+            DrawOfferedNotification o => new ProtoMatchEvent
+            {
+                DrawOffered = new ProtoDrawOfferedEvent { Player = ToProtoPlayer(o.Player) },
+            },
+            DrawDeclinedNotification d => new ProtoMatchEvent
+            {
+                DrawDeclined = new ProtoDrawDeclinedEvent { Player = ToProtoPlayer(d.Player) },
+            },
             _ => throw new InvalidOperationException($"Unknown notification type: {notification.GetType().Name}"),
         };
 
@@ -243,6 +253,9 @@ internal sealed class MatchesGrpcService(
         "stalemate" => EndReason.Stalemate,
         "timeout" => EndReason.Timeout,
         "draw_agreement" => EndReason.DrawAgreement,
+        "fifty_move_rule" => EndReason.FiftyMoveRule,
+        "threefold_repetition" => EndReason.ThreefoldRepetition,
+        "insufficient_material" => EndReason.InsufficientMaterial,
         _ => EndReason.Unspecified,
     };
 }
