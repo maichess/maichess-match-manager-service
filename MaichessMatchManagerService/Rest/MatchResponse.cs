@@ -1,0 +1,15 @@
+using System.Text.Json.Serialization;
+
+namespace MaichessMatchManagerService.Rest;
+
+internal sealed record MatchResponse(
+    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("white")] PlayerResponse White,
+    [property: JsonPropertyName("black")] PlayerResponse Black,
+    [property: JsonPropertyName("current_fen")] string CurrentFen,
+    [property: JsonPropertyName("status")] string Status,
+    [property: JsonPropertyName("moves")] IReadOnlyList<string> Moves,
+    [property: JsonPropertyName("time_control")] string TimeControl,
+    [property: JsonPropertyName("white_time_ms")] long WhiteTimeMs,
+    [property: JsonPropertyName("black_time_ms")] long BlackTimeMs,
+    [property: JsonPropertyName("analyzable")] bool Analyzable);

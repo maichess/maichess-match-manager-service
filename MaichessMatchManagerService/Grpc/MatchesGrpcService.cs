@@ -4,9 +4,9 @@ using MaichessMatchManagerService.Entities;
 using MaichessMatchManagerService.Events;
 using MaichessMatchManagerService.Services;
 using ProtoMatch = Maichess.MatchManager.V1.Match;
+using ProtoMatchEndedEvent = Maichess.MatchManager.V1.MatchEndedEvent;
 using ProtoMatchEvent = Maichess.MatchManager.V1.MatchEvent;
 using ProtoMoveMadeEvent = Maichess.MatchManager.V1.MoveMadeEvent;
-using ProtoMatchEndedEvent = Maichess.MatchManager.V1.MatchEndedEvent;
 
 namespace MaichessMatchManagerService.Grpc;
 
@@ -59,7 +59,7 @@ internal sealed class MatchesGrpcService(
         {
             throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
         }
-        catch (NotParticipantException or NotYourTurnException)
+        catch (Exception ex) when (ex is NotParticipantException or NotYourTurnException)
         {
             throw new RpcException(new Status(StatusCode.PermissionDenied, "Forbidden"));
         }
@@ -164,10 +164,10 @@ internal sealed class MatchesGrpcService(
 
     private static string ToTimeControlString(TimeControl tc) => tc switch
     {
-        TimeControl.TimeControlBullet => "bullet",
-        TimeControl.TimeControlBlitz => "blitz",
-        TimeControl.TimeControlRapid => "rapid",
-        TimeControl.TimeControlClassical => "classical",
+        TimeControl.Bullet => "bullet",
+        TimeControl.Blitz => "blitz",
+        TimeControl.Rapid => "rapid",
+        TimeControl.Classical => "classical",
         _ => "blitz",
     };
 
@@ -195,19 +195,19 @@ internal sealed class MatchesGrpcService(
 
     private static MatchStatus ToProtoStatus(string status) => status switch
     {
-        "white_won" => MatchStatus.MatchStatusWhiteWon,
-        "black_won" => MatchStatus.MatchStatusBlackWon,
-        "draw" => MatchStatus.MatchStatusDraw,
-        _ => MatchStatus.MatchStatusOngoing,
+        "white_won" => MatchStatus.WhiteWon,
+        "black_won" => MatchStatus.BlackWon,
+        "draw" => MatchStatus.Draw,
+        _ => MatchStatus.Ongoing,
     };
 
     private static TimeControl ToProtoTimeControl(string tc) => tc switch
     {
-        "bullet" => TimeControl.TimeControlBullet,
-        "blitz" => TimeControl.TimeControlBlitz,
-        "rapid" => TimeControl.TimeControlRapid,
-        "classical" => TimeControl.TimeControlClassical,
-        _ => TimeControl.TimeControlBlitz,
+        "bullet" => TimeControl.Bullet,
+        "blitz" => TimeControl.Blitz,
+        "rapid" => TimeControl.Rapid,
+        "classical" => TimeControl.Classical,
+        _ => TimeControl.Blitz,
     };
 
     private static ProtoMatchEvent ToProtoEvent(MatchNotification notification) =>
@@ -238,11 +238,11 @@ internal sealed class MatchesGrpcService(
 
     private static EndReason ToProtoEndReason(string reason) => reason switch
     {
-        "checkmate" => EndReason.EndReasonCheckmate,
-        "resignation" => EndReason.EndReasonResignation,
-        "stalemate" => EndReason.EndReasonStalemate,
-        "timeout" => EndReason.EndReasonTimeout,
-        "draw_agreement" => EndReason.EndReasonDrawAgreement,
-        _ => EndReason.EndReasonUnspecified,
+        "checkmate" => EndReason.Checkmate,
+        "resignation" => EndReason.Resignation,
+        "stalemate" => EndReason.Stalemate,
+        "timeout" => EndReason.Timeout,
+        "draw_agreement" => EndReason.DrawAgreement,
+        _ => EndReason.Unspecified,
     };
 }

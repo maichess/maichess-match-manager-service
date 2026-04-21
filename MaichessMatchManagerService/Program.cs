@@ -19,9 +19,8 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 string mongoConnectionString = builder.Configuration.GetConnectionString("MongoDB")
     ?? throw new InvalidOperationException("ConnectionStrings:MongoDB is not configured");
 
-MongoClient mongoClient = new(mongoConnectionString);
-IMongoDatabase mongoDatabase = mongoClient.GetDatabase("maichess");
-builder.Services.AddSingleton(mongoDatabase);
+builder.Services.AddSingleton(_ => new MongoClient(mongoConnectionString));
+builder.Services.AddSingleton(sp => sp.GetRequiredService<MongoClient>().GetDatabase("maichess"));
 builder.Services.AddSingleton<MatchRepository>();
 
 // gRPC clients (long-lived singletons — channels and clients are thread-safe)

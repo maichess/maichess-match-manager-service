@@ -6,7 +6,7 @@ using MaichessMatchManagerService.Events;
 
 namespace MaichessMatchManagerService.Services;
 
-internal sealed class MatchService(
+internal sealed partial class MatchService(
     MatchRepository repository,
     Moves.MovesClient moveValidatorClient,
     Bots.BotsClient engineClient,
@@ -14,6 +14,9 @@ internal sealed class MatchService(
     ILogger<MatchService> logger)
 {
     private const string InitialFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+    internal static bool IsAnalyzable(MatchDocument match) =>
+        match.White.IsBot || match.Black.IsBot || match.Status != "ongoing";
 
     internal async Task<MatchDocument> CreateMatchAsync(
         PlayerDocument white,
@@ -196,8 +199,57 @@ internal sealed class MatchService(
         return (fen, move, isCurrent);
     }
 
-    internal static bool IsAnalyzable(MatchDocument match) =>
-        match.White.IsBot || match.Black.IsBot || match.Status != "ongoing";
+    [LoggerMessage(Level = LogLevel.Error, Message = "Bot move failed for match {matchId}")]
+    private static partial void LogBotMoveFailed(ILogger logger, Exception ex, string matchId);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Engine returned invalid move {move} for match {matchId}: {reason}")]
+    private static partial void LogEngineInvalidMove(ILogger logger, string move, string matchId, string reason);
+
+    private static void ApplyGameResult(MatchDocument match, GameResult gameResult)
+    {
+        if (match.WhiteTimeMs <= 0)
+        {
+            match.Status = "black_won";
+            return;
+        }
+
+        if (match.BlackTimeMs <= 0)
+        {
+            match.Status = "white_won";
+            return;
+        }
+
+        match.Status = gameResult switch
+        {
+            GameResult.WhiteWon => "white_won",
+            GameResult.BlackWon => "black_won",
+            GameResult.Stalemate or GameResult.Draw => "draw",
+            _ => "ongoing",
+        };
+    }
+
+    private static string GameResultToEndReason(GameResult gameResult) => gameResult switch
+    {
+        GameResult.WhiteWon or GameResult.BlackWon => "checkmate",
+        GameResult.Stalemate => "stalemate",
+        GameResult.Draw => "draw_agreement",
+        _ => "checkmate",
+    };
+
+    private static char GetActiveColor(string fen)
+    {
+        string[] parts = fen.Split(' ');
+        return parts.Length >= 2 ? parts[1][0] : 'w';
+    }
+
+    private static long TimeControlToMs(string timeControl) => timeControl switch
+    {
+        "bullet" => 180_000L,
+        "blitz" => 300_000L,
+        "rapid" => 600_000L,
+        "classical" => 1_800_000L,
+        _ => 300_000L,
+    };
 
     private void TriggerBotMoveIfNeeded(MatchDocument match)
     {
@@ -218,9 +270,11 @@ internal sealed class MatchService(
             {
                 await ProcessBotMoveAsync(matchId, botId, CancellationToken.None);
             }
+#pragma warning disable CA1031
             catch (Exception ex)
+#pragma warning restore CA1031
             {
-                logger.LogError(ex, "Bot move failed for match {MatchId}", matchId);
+                LogBotMoveFailed(logger, ex, matchId);
             }
         });
     }
@@ -246,9 +300,7 @@ internal sealed class MatchService(
 
         if (!validation.Valid)
         {
-            logger.LogWarning(
-                "Engine returned invalid move {Move} for match {MatchId}: {Reason}",
-                bestMove.Move, matchId, validation.Reason);
+            LogEngineInvalidMove(logger, bestMove.Move, matchId, validation.Reason);
             return;
         }
 
@@ -276,9 +328,15 @@ internal sealed class MatchService(
         PlayerDocument botPlayer = botIsWhite ? match.White : match.Black;
         int moveIndex = match.Moves.Count;
 
-        broadcaster.Broadcast(matchId, new MoveMadeNotification(
-            bestMove.Move, validation.ResultingFen, moveIndex, botPlayer,
-            match.WhiteTimeMs, match.BlackTimeMs));
+        broadcaster.Broadcast(
+            matchId,
+            new MoveMadeNotification(
+                bestMove.Move,
+                validation.ResultingFen,
+                moveIndex,
+                botPlayer,
+                match.WhiteTimeMs,
+                match.BlackTimeMs));
 
         if (match.Status != "ongoing")
         {
@@ -293,50 +351,4 @@ internal sealed class MatchService(
         broadcaster.Broadcast(matchId, new MatchEndedNotification(status, reason));
         broadcaster.Complete(matchId);
     }
-
-    private static void ApplyGameResult(MatchDocument match, GameResult gameResult)
-    {
-        if (match.WhiteTimeMs <= 0)
-        {
-            match.Status = "black_won";
-            return;
-        }
-
-        if (match.BlackTimeMs <= 0)
-        {
-            match.Status = "white_won";
-            return;
-        }
-
-        match.Status = gameResult switch
-        {
-            GameResult.GameResultWhiteWon => "white_won",
-            GameResult.GameResultBlackWon => "black_won",
-            GameResult.GameResultStalemate or GameResult.GameResultDraw => "draw",
-            _ => "ongoing",
-        };
-    }
-
-    private static string GameResultToEndReason(GameResult gameResult) => gameResult switch
-    {
-        GameResult.GameResultWhiteWon or GameResult.GameResultBlackWon => "checkmate",
-        GameResult.GameResultStalemate => "stalemate",
-        GameResult.GameResultDraw => "draw_agreement",
-        _ => "checkmate",
-    };
-
-    private static char GetActiveColor(string fen)
-    {
-        string[] parts = fen.Split(' ');
-        return parts.Length >= 2 ? parts[1][0] : 'w';
-    }
-
-    private static long TimeControlToMs(string timeControl) => timeControl switch
-    {
-        "bullet" => 180_000L,
-        "blitz" => 300_000L,
-        "rapid" => 600_000L,
-        "classical" => 1_800_000L,
-        _ => 300_000L,
-    };
 }

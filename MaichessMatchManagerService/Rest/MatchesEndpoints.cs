@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -13,7 +14,7 @@ namespace MaichessMatchManagerService.Rest;
 
 internal static class MatchesEndpoints
 {
-    private static readonly JsonSerializerOptions _sseJsonOptions = new()
+    private static readonly JsonSerializerOptions SseJsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -150,7 +151,7 @@ internal static class MatchesEndpoints
         {
             return Results.Conflict();
         }
-        catch (NotParticipantException or NotYourTurnException)
+        catch (Exception ex) when (ex is NotParticipantException or NotYourTurnException)
         {
             return Results.Forbid();
         }
@@ -245,25 +246,21 @@ internal static class MatchesEndpoints
     private static (string EventType, string Data) SerializeNotification(MatchNotification notification) =>
         notification switch
         {
-            MoveMadeNotification m => ("move_made", JsonSerializer.Serialize(
-                new SseMoveMadeData(
-                    m.Move,
-                    m.ResultingFen,
-                    m.Index,
-                    m.Player.UserId is not null
-                        ? new SsePlayerRef(m.Player.UserId, null)
-                        : new SsePlayerRef(null, m.Player.BotId),
-                    m.WhiteTimeMs,
-                    m.BlackTimeMs),
-                _sseJsonOptions)),
-
+            MoveMadeNotification m => SerializeMoveMade(m),
             MatchEndedNotification e => ("match_ended", JsonSerializer.Serialize(
-                new SseMatchEndedData(e.Status, e.Reason),
-                _sseJsonOptions)),
-
+                new SseMatchEndedData(e.Status, e.Reason), SseJsonOptions)),
             _ => throw new InvalidOperationException(
                 $"Unknown notification type: {notification.GetType().Name}"),
         };
+
+    private static (string EventType, string Data) SerializeMoveMade(MoveMadeNotification m)
+    {
+        SsePlayerRef player = m.Player.UserId is not null
+            ? new SsePlayerRef(m.Player.UserId, null)
+            : new SsePlayerRef(null, m.Player.BotId);
+        SseMoveMadeData data = new(m.Move, m.ResultingFen, m.Index, player, m.WhiteTimeMs, m.BlackTimeMs);
+        return ("move_made", JsonSerializer.Serialize(data, SseJsonOptions));
+    }
 
     private static async Task<MatchResponse> ToMatchResponseAsync(
         MatchDocument match,
@@ -308,64 +305,11 @@ internal static class MatchesEndpoints
         return new PlayerResponse(null, null, player.BotId, botName);
     }
 
-    private static bool TryGetUserId(ClaimsPrincipal principal, out string? userId)
+    private static bool TryGetUserId(
+        ClaimsPrincipal principal,
+        [NotNullWhen(true)] out string? userId)
     {
         userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
         return userId is not null;
     }
 }
-
-// Response records
-
-internal sealed record MatchResponse(
-    [property: JsonPropertyName("id")] string Id,
-    [property: JsonPropertyName("white")] PlayerResponse White,
-    [property: JsonPropertyName("black")] PlayerResponse Black,
-    [property: JsonPropertyName("current_fen")] string CurrentFen,
-    [property: JsonPropertyName("status")] string Status,
-    [property: JsonPropertyName("moves")] IReadOnlyList<string> Moves,
-    [property: JsonPropertyName("time_control")] string TimeControl,
-    [property: JsonPropertyName("white_time_ms")] long WhiteTimeMs,
-    [property: JsonPropertyName("black_time_ms")] long BlackTimeMs,
-    [property: JsonPropertyName("analyzable")] bool Analyzable);
-
-internal sealed record PlayerResponse(
-    [property: JsonPropertyName("user_id"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    string? UserId,
-    [property: JsonPropertyName("username"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    string? Username,
-    [property: JsonPropertyName("bot_id"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    string? BotId,
-    [property: JsonPropertyName("name"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    string? Name);
-
-internal sealed record PositionResponse(
-    [property: JsonPropertyName("index")] int Index,
-    [property: JsonPropertyName("fen")] string Fen,
-    [property: JsonPropertyName("move")] string Move,
-    [property: JsonPropertyName("is_current")] bool IsCurrent);
-
-internal sealed record LegalMovesResponse(
-    [property: JsonPropertyName("moves")] IReadOnlyList<string> Moves);
-
-internal sealed record SubmitMoveRequest(
-    [property: JsonPropertyName("move")] string Move);
-
-internal sealed record ErrorResponse(
-    [property: JsonPropertyName("error")] string Error);
-
-// SSE-specific serialization records
-
-internal sealed record SseMoveMadeData(
-    string Move,
-    string ResultingFen,
-    int Index,
-    SsePlayerRef Player,
-    long WhiteTimeMs,
-    long BlackTimeMs);
-
-internal sealed record SseMatchEndedData(string Status, string Reason);
-
-internal sealed record SsePlayerRef(
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? UserId,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? BotId);
