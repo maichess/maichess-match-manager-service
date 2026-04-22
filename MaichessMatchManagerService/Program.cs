@@ -21,7 +21,7 @@ string mongoConnectionString = builder.Configuration.GetConnectionString("MongoD
 
 builder.Services.AddSingleton(_ => new MongoClient(mongoConnectionString));
 builder.Services.AddSingleton(sp => sp.GetRequiredService<MongoClient>().GetDatabase("maichess"));
-builder.Services.AddSingleton<MatchRepository>();
+builder.Services.AddSingleton<IMatchRepository, MatchRepository>();
 
 // gRPC clients (long-lived singletons — channels and clients are thread-safe)
 string userServiceUrl = builder.Configuration["Services:UserService"]

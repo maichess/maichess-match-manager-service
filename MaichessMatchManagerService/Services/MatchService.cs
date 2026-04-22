@@ -7,7 +7,7 @@ using MaichessMatchManagerService.Events;
 namespace MaichessMatchManagerService.Services;
 
 internal sealed partial class MatchService(
-    MatchRepository repository,
+    IMatchRepository repository,
     Moves.MovesClient moveValidatorClient,
     Bots.BotsClient engineClient,
     MatchEventBroadcaster broadcaster,

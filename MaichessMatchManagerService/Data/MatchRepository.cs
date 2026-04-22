@@ -3,7 +3,7 @@ using MongoDB.Driver;
 
 namespace MaichessMatchManagerService.Data;
 
-internal sealed class MatchRepository
+internal sealed class MatchRepository : IMatchRepository
 {
     private readonly IMongoCollection<MatchDocument> collection;
 
@@ -12,12 +12,12 @@ internal sealed class MatchRepository
         collection = db.GetCollection<MatchDocument>("matches");
     }
 
-    internal async Task InsertAsync(MatchDocument match, CancellationToken ct) =>
+    public async Task InsertAsync(MatchDocument match, CancellationToken ct) =>
         await collection.InsertOneAsync(match, cancellationToken: ct);
 
-    internal async Task<MatchDocument?> GetByIdAsync(string id, CancellationToken ct) =>
+    public async Task<MatchDocument?> GetByIdAsync(string id, CancellationToken ct) =>
         await collection.Find(m => m.Id == id).FirstOrDefaultAsync(ct);
 
-    internal async Task ReplaceAsync(MatchDocument match, CancellationToken ct) =>
+    public async Task ReplaceAsync(MatchDocument match, CancellationToken ct) =>
         await collection.ReplaceOneAsync(m => m.Id == match.Id, match, cancellationToken: ct);
 }
