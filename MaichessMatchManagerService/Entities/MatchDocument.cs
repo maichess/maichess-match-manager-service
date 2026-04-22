@@ -21,6 +21,11 @@ internal sealed class MatchDocument
     // Always has Moves.Count + 1 entries.
     public List<string> FenHistory { get; set; } = [];
 
+    // Opaque list owned by the move validator. Passed to ValidateMoveRequest and
+    // replaced with ValidateMoveResponse.PositionHistory on each valid move.
+    // Cleared when the game ends. Never modified by match manager logic.
+    public List<string> PositionHistory { get; set; } = [];
+
     public required string TimeControl { get; set; }
 
     public long WhiteTimeMs { get; set; }

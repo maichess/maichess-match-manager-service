@@ -76,9 +76,9 @@ internal sealed partial class MatchService(
             throw new NotYourTurnException();
         }
 
-        ValidateMoveResponse validation = await moveValidatorClient.ValidateMoveAsync(
-            new ValidateMoveRequest { Fen = match.CurrentFen, Move = move },
-            cancellationToken: ct);
+        ValidateMoveRequest validateRequest = new() { Fen = match.CurrentFen, Move = move };
+        validateRequest.PositionHistory.AddRange(match.PositionHistory);
+        ValidateMoveResponse validation = await moveValidatorClient.ValidateMoveAsync(validateRequest, cancellationToken: ct);
 
         if (!validation.Valid)
         {
@@ -100,9 +100,14 @@ internal sealed partial class MatchService(
         match.CurrentFen = validation.ResultingFen;
         match.Moves.Add(move);
         match.FenHistory.Add(validation.ResultingFen);
+        match.PositionHistory = [.. validation.PositionHistory];
         match.LastMoveAt = now;
 
         ApplyGameResult(match, validation.GameResult);
+        if (match.Status != "ongoing")
+        {
+            match.PositionHistory = [];
+        }
 
         await repository.ReplaceAsync(match, ct);
 
@@ -401,9 +406,9 @@ internal sealed partial class MatchService(
             new GetBestMoveRequest { Fen = match.CurrentFen, BotId = botId, TimeLimitMs = (uint)remainingMs },
             cancellationToken: ct);
 
-        ValidateMoveResponse validation = await moveValidatorClient.ValidateMoveAsync(
-            new ValidateMoveRequest { Fen = match.CurrentFen, Move = bestMove.Move },
-            cancellationToken: ct);
+        ValidateMoveRequest validateRequest = new() { Fen = match.CurrentFen, Move = bestMove.Move };
+        validateRequest.PositionHistory.AddRange(match.PositionHistory);
+        ValidateMoveResponse validation = await moveValidatorClient.ValidateMoveAsync(validateRequest, cancellationToken: ct);
 
         if (!validation.Valid)
         {
@@ -426,9 +431,14 @@ internal sealed partial class MatchService(
         match.CurrentFen = validation.ResultingFen;
         match.Moves.Add(bestMove.Move);
         match.FenHistory.Add(validation.ResultingFen);
+        match.PositionHistory = [.. validation.PositionHistory];
         match.LastMoveAt = now;
 
         ApplyGameResult(match, validation.GameResult);
+        if (match.Status != "ongoing")
+        {
+            match.PositionHistory = [];
+        }
 
         await repository.ReplaceAsync(match, ct);
 
