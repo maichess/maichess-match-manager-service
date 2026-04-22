@@ -396,8 +396,9 @@ internal sealed partial class MatchService(
 
         bool botIsWhite = GetActiveColor(match.CurrentFen) == 'w';
 
+        long remainingMs = botIsWhite ? match.WhiteTimeMs : match.BlackTimeMs;
         GetBestMoveResponse bestMove = await engineClient.GetBestMoveAsync(
-            new GetBestMoveRequest { Fen = match.CurrentFen, BotId = botId },
+            new GetBestMoveRequest { Fen = match.CurrentFen, BotId = botId, TimeLimitMs = (uint)remainingMs },
             cancellationToken: ct);
 
         ValidateMoveResponse validation = await moveValidatorClient.ValidateMoveAsync(
