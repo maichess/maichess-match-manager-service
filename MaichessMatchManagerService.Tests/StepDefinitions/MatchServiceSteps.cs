@@ -209,6 +209,10 @@ internal sealed class MatchServiceSteps(MatchServiceContext context)
     public void ThenNoDrawOfferIsPending(string matchId) =>
         Assert.Null(context.CurrentMatch!.PendingDrawOffererUserId);
 
+    [Then(@"the draw offer is from ""([^""]*)"" on match ""([^""]*)""")]
+    public void ThenTheDrawOfferIsFrom(string userId, string matchId) =>
+        Assert.Equal(userId, context.CurrentMatch!.PendingDrawOffererUserId);
+
     // ── Position Then ────────────────────────────────────────────────────────
 
     [Then(@"the position FEN is ""([^""]*)""")]

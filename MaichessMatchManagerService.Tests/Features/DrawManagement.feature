@@ -32,3 +32,16 @@ Feature: Draw Management
     Given "white-1" has a pending draw offer on match "match-1"
     When "black-1" declines draw on match "match-1"
     Then no draw offer is pending on match "match-1"
+
+  Scenario: White successfully offers a draw
+    When "white-1" offers a draw on match "match-1"
+    Then the draw offer is from "white-1" on match "match-1"
+
+  Scenario: Black successfully offers a draw
+    When "black-1" offers a draw on match "match-1"
+    Then the draw offer is from "black-1" on match "match-1"
+
+  Scenario: White declines a draw offered by black
+    Given "black-1" has a pending draw offer on match "match-1"
+    When "white-1" declines draw on match "match-1"
+    Then no draw offer is pending on match "match-1"

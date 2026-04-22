@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using MaichessMatchManagerService.Entities;
 using MongoDB.Driver;
 
 namespace MaichessMatchManagerService.Data;
 
+[ExcludeFromCodeCoverage]
 internal sealed class MatchRepository : IMatchRepository
 {
     private readonly IMongoCollection<MatchDocument> collection;

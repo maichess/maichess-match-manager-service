@@ -32,6 +32,8 @@ internal sealed class MatchServiceContext
 
     internal bool? LastIsAnalyzable { get; set; }
 
+    internal IReadOnlyList<string>? LastLegalMovesResult { get; set; }
+
     internal MatchServiceContext()
     {
         MatchService = new MatchService(
@@ -83,6 +85,38 @@ internal sealed class MatchServiceContext
         MoveValidator
             .ValidateMoveAsync(
                 Arg.Any<ValidateMoveRequest>(),
+                Arg.Any<Metadata>(),
+                Arg.Any<DateTime?>(),
+                Arg.Any<CancellationToken>())
+            .Returns(GrpcHelper.GrpcCall(response));
+    }
+
+    internal void SetupMoveValidatorAcceptsWithGameResult(string move, string resultingFen, GameResult gameResult)
+    {
+        ValidateMoveResponse response = new()
+        {
+            Valid = true,
+            ResultingFen = resultingFen,
+            GameResult = gameResult,
+        };
+
+        MoveValidator
+            .ValidateMoveAsync(
+                Arg.Any<ValidateMoveRequest>(),
+                Arg.Any<Metadata>(),
+                Arg.Any<DateTime?>(),
+                Arg.Any<CancellationToken>())
+            .Returns(GrpcHelper.GrpcCall(response));
+    }
+
+    internal void SetupLegalMovesResponse(IEnumerable<string> moves)
+    {
+        GetLegalMovesResponse response = new();
+        response.Moves.AddRange(moves);
+
+        MoveValidator
+            .GetLegalMovesAsync(
+                Arg.Any<GetLegalMovesRequest>(),
                 Arg.Any<Metadata>(),
                 Arg.Any<DateTime?>(),
                 Arg.Any<CancellationToken>())

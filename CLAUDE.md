@@ -59,6 +59,19 @@ MaichessMatchManagerService/
 - Validate inputs at REST/gRPC boundaries. Trust internal data after that.
 - No comments unless explaining a non-obvious algorithm or constraint.
 
+## Testing Requirements
+
+- 100% coverage (line, branch, method) on all included code is mandatory. Run `dotnet test MaichessMatchManagerService.Tests/MaichessMatchManagerService.Tests.csproj -p:CollectCoverage=true "-p:Include=[MaichessMatchManagerService]*"` to verify.
+- Test framework: Reqnroll BDD (feature files + step definitions) for MatchService business logic; plain xUnit `[Fact]` tests for MatchEventBroadcaster and MatchesGrpcService.
+- Write or update tests alongside every code change.
+- Excluded from coverage (marked with `[ExcludeFromCodeCoverage]`):
+  - `MatchesEndpoints` class (REST adapter layer)
+  - `MatchRepository` class (requires MongoDB)
+  - `TriggerBotMoveIfNeeded` + `ProcessBotMoveAsync` (fire-and-forget)
+  - Compiler-generated logging partials (`LogBotMoveFailed`, `LogEngineInvalidMove`)
+  - All REST DTO record types (`ErrorResponse`, `MatchResponse`, etc.)
+- Coverlet is configured in the test `.csproj` to exclude `Program.cs`, `*.g.cs`, and `*.generated.cs`.
+
 ## Entity Framework Rules
 
 N/A — this service uses MongoDB, not EF Core.

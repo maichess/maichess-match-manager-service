@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MaichessMatchManagerService.Rest;
 
+[ExcludeFromCodeCoverage]
 internal static class MatchesEndpoints
 {
     private static readonly JsonSerializerOptions SseJsonOptions = new()

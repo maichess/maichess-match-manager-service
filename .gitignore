@@ -6,3 +6,4 @@ riderModule.iml
 .idea
 .env
 MaichessMatchManagerService/Load-Env.ps1
+/MaichessMatchManagerService.Tests/TestResults

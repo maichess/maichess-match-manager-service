@@ -300,6 +300,102 @@ namespace MaichessMatchManagerService.Tests.Features
             await this.ScenarioCleanupAsync();
         }
         
+        [Xunit.SkippableFactAttribute(DisplayName="White successfully offers a draw")]
+        [Xunit.TraitAttribute("FeatureTitle", "Draw Management")]
+        [Xunit.TraitAttribute("Description", "White successfully offers a draw")]
+        public async System.Threading.Tasks.Task WhiteSuccessfullyOffersADraw()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("White successfully offers a draw", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 36
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 5
+  await this.FeatureBackgroundAsync();
+#line hidden
+#line 37
+    await testRunner.WhenAsync("\"white-1\" offers a draw on match \"match-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 38
+    await testRunner.ThenAsync("the draw offer is from \"white-1\" on match \"match-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Black successfully offers a draw")]
+        [Xunit.TraitAttribute("FeatureTitle", "Draw Management")]
+        [Xunit.TraitAttribute("Description", "Black successfully offers a draw")]
+        public async System.Threading.Tasks.Task BlackSuccessfullyOffersADraw()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Black successfully offers a draw", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 40
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 5
+  await this.FeatureBackgroundAsync();
+#line hidden
+#line 41
+    await testRunner.WhenAsync("\"black-1\" offers a draw on match \"match-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 42
+    await testRunner.ThenAsync("the draw offer is from \"black-1\" on match \"match-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="White declines a draw offered by black")]
+        [Xunit.TraitAttribute("FeatureTitle", "Draw Management")]
+        [Xunit.TraitAttribute("Description", "White declines a draw offered by black")]
+        public async System.Threading.Tasks.Task WhiteDeclinesADrawOfferedByBlack()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("White declines a draw offered by black", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 44
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 5
+  await this.FeatureBackgroundAsync();
+#line hidden
+#line 45
+    await testRunner.GivenAsync("\"black-1\" has a pending draw offer on match \"match-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 46
+    await testRunner.WhenAsync("\"white-1\" declines draw on match \"match-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 47
+    await testRunner.ThenAsync("no draw offer is pending on match \"match-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
         [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
         [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
         public class FixtureData : object, Xunit.IAsyncLifetime

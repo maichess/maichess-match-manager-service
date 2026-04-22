@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Maichess.Engine.V1;
 using Maichess.MoveValidator.V1;
 using MaichessMatchManagerService.Data;
@@ -305,9 +306,11 @@ internal sealed partial class MatchService(
         return (fen, move, isCurrent);
     }
 
+    [ExcludeFromCodeCoverage]
     [LoggerMessage(Level = LogLevel.Error, Message = "Bot move failed for match {matchId}")]
     private static partial void LogBotMoveFailed(ILogger logger, Exception ex, string matchId);
 
+    [ExcludeFromCodeCoverage]
     [LoggerMessage(Level = LogLevel.Warning, Message = "Engine returned invalid move {move} for match {matchId}: {reason}")]
     private static partial void LogEngineInvalidMove(ILogger logger, string move, string matchId, string reason);
 
@@ -337,6 +340,7 @@ internal sealed partial class MatchService(
         };
     }
 
+    // The default arm is a defensive fallback for future GameResult values — unreachable with current proto.
     private static string GameResultToEndReason(GameResult gameResult) => gameResult switch
     {
         GameResult.WhiteWon or GameResult.BlackWon => "checkmate",
@@ -362,6 +366,7 @@ internal sealed partial class MatchService(
         _ => 300_000L,
     };
 
+    [ExcludeFromCodeCoverage]
     private void TriggerBotMoveIfNeeded(MatchDocument match)
     {
         bool newTurnIsWhite = GetActiveColor(match.CurrentFen) == 'w';
@@ -390,6 +395,7 @@ internal sealed partial class MatchService(
         });
     }
 
+    [ExcludeFromCodeCoverage]
     private async Task ProcessBotMoveAsync(string matchId, string botId, CancellationToken ct)
     {
         MatchDocument? match = await repository.GetByIdAsync(matchId, ct);

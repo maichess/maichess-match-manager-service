@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace MaichessMatchManagerService.Rest;
 
+[ExcludeFromCodeCoverage]
 internal sealed record MatchResponse(
     [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("white")] PlayerResponse White,

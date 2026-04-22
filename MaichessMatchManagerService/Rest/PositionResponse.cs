@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace MaichessMatchManagerService.Rest;
 
+[ExcludeFromCodeCoverage]
 internal sealed record PositionResponse(
     [property: JsonPropertyName("index")] int Index,
     [property: JsonPropertyName("fen")] string Fen,
