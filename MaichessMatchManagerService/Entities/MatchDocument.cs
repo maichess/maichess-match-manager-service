@@ -1,10 +1,7 @@
-using MongoDB.Bson.Serialization.Attributes;
-
 namespace MaichessMatchManagerService.Entities;
 
 internal sealed class MatchDocument
 {
-    [BsonId]
     public required string Id { get; set; }
 
     public required PlayerDocument White { get; set; }

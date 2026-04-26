@@ -5,7 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <InvariantGlobalization>true</InvariantGlobalization>
-        <!-- PublishAot removed: MongoDB.Driver and gRPC are incompatible with NativeAOT -->
+        <!-- PublishAot removed: gRPC is incompatible with NativeAOT -->
 
         <!-- Treat all warnings as errors so linting issues break the build -->
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -20,10 +20,9 @@
     <ItemGroup>
         <PackageReference Include="DotNetEnv" Version="3.1.1" />
         <PackageReference Include="Grpc.AspNetCore" Version="2.76.0" />
-        <PackageReference Include="Maichess.PlatformProtos" Version="0.2.5" />
+        <PackageReference Include="Maichess.PlatformProtos" Version="0.2.10" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.1" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
-        <PackageReference Include="MongoDB.Driver" Version="3.1.0" />
         <!-- StyleCop for naming, ordering, and documentation rules -->
         <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" />
     </ItemGroup>

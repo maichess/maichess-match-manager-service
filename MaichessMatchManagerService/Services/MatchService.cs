@@ -25,22 +25,21 @@ internal sealed partial class MatchService(
         CancellationToken ct)
     {
         long initialTimeMs = TimeControlToMs(timeControl);
-        MatchDocument match = new()
-        {
-            Id = Guid.NewGuid().ToString(),
-            White = white,
-            Black = black,
-            CurrentFen = InitialFen,
-            Status = "ongoing",
-            TimeControl = timeControl,
-            WhiteTimeMs = initialTimeMs,
-            BlackTimeMs = initialTimeMs,
-            LastMoveAt = DateTimeOffset.UtcNow,
-            FenHistory = [InitialFen],
-        };
-
-        await repository.InsertAsync(match, ct);
-        return match;
+        return await repository.InsertAsync(
+            new MatchDocument
+            {
+                Id = string.Empty,
+                White = white,
+                Black = black,
+                CurrentFen = InitialFen,
+                Status = "ongoing",
+                TimeControl = timeControl,
+                WhiteTimeMs = initialTimeMs,
+                BlackTimeMs = initialTimeMs,
+                LastMoveAt = DateTimeOffset.UtcNow,
+                FenHistory = [InitialFen],
+            },
+            ct);
     }
 
     internal async Task<MatchDocument> GetMatchAsync(string matchId, CancellationToken ct)

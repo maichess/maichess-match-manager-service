@@ -1,5 +1,6 @@
 using System.Text;
 using Grpc.Net.Client;
+using Maichess.Database.V1;
 using Maichess.Engine.V1;
 using Maichess.MoveValidator.V1;
 using Maichess.User.V1;
@@ -10,17 +11,16 @@ using MaichessMatchManagerService.Rest;
 using MaichessMatchManagerService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using MongoDB.Driver;
 
 DotNetEnv.Env.Load();
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// MongoDB
-string mongoConnectionString = builder.Configuration.GetConnectionString("MongoDB")
-    ?? throw new InvalidOperationException("ConnectionStrings:MongoDB is not configured");
+// Database service client
+string dbServiceUrl = builder.Configuration["Services:DatabaseService"]
+    ?? throw new InvalidOperationException("Services:DatabaseService is not configured");
 
-builder.Services.AddSingleton(_ => new MongoClient(mongoConnectionString));
-builder.Services.AddSingleton(sp => sp.GetRequiredService<MongoClient>().GetDatabase("maichess"));
+builder.Services.AddSingleton(
+    new Database.DatabaseClient(GrpcChannel.ForAddress(dbServiceUrl)));
 builder.Services.AddSingleton<MatchRepository>();
 
 // gRPC clients (long-lived singletons — channels and clients are thread-safe)

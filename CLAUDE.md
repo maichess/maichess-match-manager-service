@@ -14,7 +14,7 @@ Implement against these contracts exactly. Document any blocker in `CONTRACT_NOT
 ## Stack
 
 - **Runtime:** ASP.NET (net10.0), C#, nullable enabled
-- **Database:** MongoDB via `MongoDB.Driver`
+- **Database:** match-db database service via `Database.DatabaseClient` gRPC (`Services:DatabaseService`)
 - **RPC:** gRPC server + gRPC clients (stubs from `Maichess.PlatformProtos`)
 - **Real-time:** Server-Sent Events (SSE) via `System.Threading.Channels`
 
@@ -61,4 +61,4 @@ MaichessMatchManagerService/
 
 ## Entity Framework Rules
 
-N/A — this service uses MongoDB, not EF Core.
+N/A — this service delegates all persistence to the database service via gRPC.
