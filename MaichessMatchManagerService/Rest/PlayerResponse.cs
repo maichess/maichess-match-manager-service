@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace MaichessMatchManagerService.Rest;
 
+[ExcludeFromCodeCoverage]
 internal sealed record PlayerResponse(
     [property: JsonPropertyName("user_id"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     string? UserId,

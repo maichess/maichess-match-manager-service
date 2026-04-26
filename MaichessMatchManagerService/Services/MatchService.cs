@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Maichess.Engine.V1;
 using Maichess.MoveValidator.V1;
 using MaichessMatchManagerService.Data;
@@ -7,7 +8,7 @@ using MaichessMatchManagerService.Events;
 namespace MaichessMatchManagerService.Services;
 
 internal sealed partial class MatchService(
-    MatchRepository repository,
+    IMatchRepository repository,
     Moves.MovesClient moveValidatorClient,
     Bots.BotsClient engineClient,
     MatchEventBroadcaster broadcaster,
@@ -75,9 +76,9 @@ internal sealed partial class MatchService(
             throw new NotYourTurnException();
         }
 
-        ValidateMoveResponse validation = await moveValidatorClient.ValidateMoveAsync(
-            new ValidateMoveRequest { Fen = match.CurrentFen, Move = move },
-            cancellationToken: ct);
+        ValidateMoveRequest validateRequest = new() { Fen = match.CurrentFen, Move = move };
+        validateRequest.PositionHistory.AddRange(match.PositionHistory);
+        ValidateMoveResponse validation = await moveValidatorClient.ValidateMoveAsync(validateRequest, cancellationToken: ct);
 
         if (!validation.Valid)
         {
@@ -99,9 +100,14 @@ internal sealed partial class MatchService(
         match.CurrentFen = validation.ResultingFen;
         match.Moves.Add(move);
         match.FenHistory.Add(validation.ResultingFen);
+        match.PositionHistory = [.. validation.PositionHistory];
         match.LastMoveAt = now;
 
         ApplyGameResult(match, validation.GameResult);
+        if (match.Status != "ongoing")
+        {
+            match.PositionHistory = [];
+        }
 
         await repository.ReplaceAsync(match, ct);
 
@@ -122,6 +128,107 @@ internal sealed partial class MatchService(
         TriggerBotMoveIfNeeded(match);
 
         return match;
+    }
+
+    internal async Task OfferDrawAsync(string matchId, string userId, CancellationToken ct)
+    {
+        MatchDocument match = await GetMatchAsync(matchId, ct);
+
+        if (match.Status != "ongoing")
+        {
+            throw new MatchAlreadyEndedException();
+        }
+
+        bool isWhite = match.White.UserId == userId;
+        bool isBlack = match.Black.UserId == userId;
+
+        if (!isWhite && !isBlack)
+        {
+            throw new NotParticipantException();
+        }
+
+        PlayerDocument opponent = isWhite ? match.Black : match.White;
+        if (opponent.IsBot)
+        {
+            throw new NotParticipantException();
+        }
+
+        if (match.PendingDrawOffererUserId is not null)
+        {
+            throw new DrawOfferAlreadyPendingException();
+        }
+
+        match.PendingDrawOffererUserId = userId;
+        await repository.ReplaceAsync(match, ct);
+
+        PlayerDocument offerer = isWhite ? match.White : match.Black;
+        broadcaster.Broadcast(matchId, new DrawOfferedNotification(offerer));
+    }
+
+    internal async Task<MatchDocument> AcceptDrawAsync(string matchId, string userId, CancellationToken ct)
+    {
+        MatchDocument match = await GetMatchAsync(matchId, ct);
+
+        if (match.Status != "ongoing")
+        {
+            throw new MatchAlreadyEndedException();
+        }
+
+        bool isWhite = match.White.UserId == userId;
+        bool isBlack = match.Black.UserId == userId;
+
+        if (!isWhite && !isBlack)
+        {
+            throw new NotParticipantException();
+        }
+
+        if (match.PendingDrawOffererUserId is null)
+        {
+            throw new NoDrawOfferPendingException();
+        }
+
+        if (match.PendingDrawOffererUserId == userId)
+        {
+            throw new NotDrawRecipientException();
+        }
+
+        match.Status = "draw";
+        match.PendingDrawOffererUserId = null;
+
+        await repository.ReplaceAsync(match, ct);
+
+        BroadcastMatchEnded(matchId, "draw", "draw_agreement");
+
+        return match;
+    }
+
+    internal async Task DeclineDrawAsync(string matchId, string userId, CancellationToken ct)
+    {
+        MatchDocument match = await GetMatchAsync(matchId, ct);
+
+        if (match.Status != "ongoing")
+        {
+            throw new MatchAlreadyEndedException();
+        }
+
+        bool isWhite = match.White.UserId == userId;
+        bool isBlack = match.Black.UserId == userId;
+
+        if (!isWhite && !isBlack)
+        {
+            throw new NotParticipantException();
+        }
+
+        if (match.PendingDrawOffererUserId is null)
+        {
+            throw new NoDrawOfferPendingException();
+        }
+
+        match.PendingDrawOffererUserId = null;
+        await repository.ReplaceAsync(match, ct);
+
+        PlayerDocument decliner = isWhite ? match.White : match.Black;
+        broadcaster.Broadcast(matchId, new DrawDeclinedNotification(decliner));
     }
 
     internal async Task<MatchDocument> ResignMatchAsync(
@@ -198,9 +305,11 @@ internal sealed partial class MatchService(
         return (fen, move, isCurrent);
     }
 
+    [ExcludeFromCodeCoverage]
     [LoggerMessage(Level = LogLevel.Error, Message = "Bot move failed for match {matchId}")]
     private static partial void LogBotMoveFailed(ILogger logger, Exception ex, string matchId);
 
+    [ExcludeFromCodeCoverage]
     [LoggerMessage(Level = LogLevel.Warning, Message = "Engine returned invalid move {move} for match {matchId}: {reason}")]
     private static partial void LogEngineInvalidMove(ILogger logger, string move, string matchId, string reason);
 
@@ -222,16 +331,22 @@ internal sealed partial class MatchService(
         {
             GameResult.WhiteWon => "white_won",
             GameResult.BlackWon => "black_won",
-            GameResult.Stalemate or GameResult.Draw => "draw",
+            GameResult.Stalemate
+                or GameResult.FiftyMoveRule
+                or GameResult.ThreefoldRepetition
+                or GameResult.InsufficientMaterial => "draw",
             _ => "ongoing",
         };
     }
 
+    // The default arm is a defensive fallback for future GameResult values — unreachable with current proto.
     private static string GameResultToEndReason(GameResult gameResult) => gameResult switch
     {
         GameResult.WhiteWon or GameResult.BlackWon => "checkmate",
         GameResult.Stalemate => "stalemate",
-        GameResult.Draw => "draw_agreement",
+        GameResult.FiftyMoveRule => "fifty_move_rule",
+        GameResult.ThreefoldRepetition => "threefold_repetition",
+        GameResult.InsufficientMaterial => "insufficient_material",
         _ => "checkmate",
     };
 
@@ -250,6 +365,7 @@ internal sealed partial class MatchService(
         _ => 300_000L,
     };
 
+    [ExcludeFromCodeCoverage]
     private void TriggerBotMoveIfNeeded(MatchDocument match)
     {
         bool newTurnIsWhite = GetActiveColor(match.CurrentFen) == 'w';
@@ -278,6 +394,7 @@ internal sealed partial class MatchService(
         });
     }
 
+    [ExcludeFromCodeCoverage]
     private async Task ProcessBotMoveAsync(string matchId, string botId, CancellationToken ct)
     {
         MatchDocument? match = await repository.GetByIdAsync(matchId, ct);
@@ -289,13 +406,14 @@ internal sealed partial class MatchService(
 
         bool botIsWhite = GetActiveColor(match.CurrentFen) == 'w';
 
+        long remainingMs = botIsWhite ? match.WhiteTimeMs : match.BlackTimeMs;
         GetBestMoveResponse bestMove = await engineClient.GetBestMoveAsync(
-            new GetBestMoveRequest { Fen = match.CurrentFen, BotId = botId },
+            new GetBestMoveRequest { Fen = match.CurrentFen, BotId = botId, TimeLimitMs = (uint)remainingMs },
             cancellationToken: ct);
 
-        ValidateMoveResponse validation = await moveValidatorClient.ValidateMoveAsync(
-            new ValidateMoveRequest { Fen = match.CurrentFen, Move = bestMove.Move },
-            cancellationToken: ct);
+        ValidateMoveRequest validateRequest = new() { Fen = match.CurrentFen, Move = bestMove.Move };
+        validateRequest.PositionHistory.AddRange(match.PositionHistory);
+        ValidateMoveResponse validation = await moveValidatorClient.ValidateMoveAsync(validateRequest, cancellationToken: ct);
 
         if (!validation.Valid)
         {
@@ -318,9 +436,14 @@ internal sealed partial class MatchService(
         match.CurrentFen = validation.ResultingFen;
         match.Moves.Add(bestMove.Move);
         match.FenHistory.Add(validation.ResultingFen);
+        match.PositionHistory = [.. validation.PositionHistory];
         match.LastMoveAt = now;
 
         ApplyGameResult(match, validation.GameResult);
+        if (match.Status != "ongoing")
+        {
+            match.PositionHistory = [];
+        }
 
         await repository.ReplaceAsync(match, ct);
 

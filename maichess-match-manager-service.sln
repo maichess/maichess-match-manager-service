@@ -1,6 +1,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaichessMatchManagerService", "MaichessMatchManagerService\MaichessMatchManagerService.csproj", "{162DDA7E-7FD2-4047-8E05-E2B8E37C3E04}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaichessMatchManagerService.Tests", "MaichessMatchManagerService.Tests\MaichessMatchManagerService.Tests.csproj", "{A3B4C5D6-E7F8-9012-ABCD-EF1234567890}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -11,5 +13,9 @@ Global
 		{162DDA7E-7FD2-4047-8E05-E2B8E37C3E04}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{162DDA7E-7FD2-4047-8E05-E2B8E37C3E04}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{162DDA7E-7FD2-4047-8E05-E2B8E37C3E04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3B4C5D6-E7F8-9012-ABCD-EF1234567890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3B4C5D6-E7F8-9012-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3B4C5D6-E7F8-9012-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3B4C5D6-E7F8-9012-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

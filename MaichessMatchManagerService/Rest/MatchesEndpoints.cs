@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MaichessMatchManagerService.Rest;
 
+[ExcludeFromCodeCoverage]
 internal static class MatchesEndpoints
 {
     private static readonly JsonSerializerOptions SseJsonOptions = new()
@@ -29,6 +30,9 @@ internal static class MatchesEndpoints
         group.MapGet("/{id}/legal-moves", GetLegalMoves);
         group.MapPost("/{id}/moves", PostMove);
         group.MapPost("/{id}/resign", PostResign);
+        group.MapPost("/{id}/draw-offer", OfferDraw);
+        group.MapDelete("/{id}/draw-offer", DeclineDraw);
+        group.MapPost("/{id}/draw-offer/accept", AcceptDraw);
         group.MapGet("/{id}/events", GetEvents);
 
         return routes;
@@ -194,6 +198,103 @@ internal static class MatchesEndpoints
         }
     }
 
+    private static async Task<IResult> OfferDraw(
+        string id,
+        ClaimsPrincipal principal,
+        MatchService matchService,
+        CancellationToken ct)
+    {
+        if (!TryGetUserId(principal, out string? userId))
+        {
+            return Results.Unauthorized();
+        }
+
+        try
+        {
+            await matchService.OfferDrawAsync(id, userId, ct);
+            return Results.Ok();
+        }
+        catch (MatchNotFoundException)
+        {
+            return Results.NotFound();
+        }
+        catch (MatchAlreadyEndedException)
+        {
+            return Results.Conflict();
+        }
+        catch (NotParticipantException)
+        {
+            return Results.Forbid();
+        }
+        catch (DrawOfferAlreadyPendingException)
+        {
+            return Results.Conflict();
+        }
+    }
+
+    private static async Task<IResult> AcceptDraw(
+        string id,
+        ClaimsPrincipal principal,
+        MatchService matchService,
+        Users.UsersClient usersClient,
+        Bots.BotsClient botsClient,
+        CancellationToken ct)
+    {
+        if (!TryGetUserId(principal, out string? userId))
+        {
+            return Results.Unauthorized();
+        }
+
+        try
+        {
+            MatchDocument match = await matchService.AcceptDrawAsync(id, userId, ct);
+            MatchResponse response = await ToMatchResponseAsync(match, usersClient, botsClient, ct);
+            return Results.Ok(response);
+        }
+        catch (MatchNotFoundException)
+        {
+            return Results.NotFound();
+        }
+        catch (Exception ex) when (ex is MatchAlreadyEndedException or NoDrawOfferPendingException)
+        {
+            return Results.Conflict();
+        }
+        catch (Exception ex) when (ex is NotParticipantException or NotDrawRecipientException)
+        {
+            return Results.Forbid();
+        }
+    }
+
+    private static async Task<IResult> DeclineDraw(
+        string id,
+        ClaimsPrincipal principal,
+        MatchService matchService,
+        CancellationToken ct)
+    {
+        if (!TryGetUserId(principal, out string? userId))
+        {
+            return Results.Unauthorized();
+        }
+
+        try
+        {
+            await matchService.DeclineDrawAsync(id, userId, ct);
+            return Results.Ok();
+        }
+        catch (MatchNotFoundException)
+        {
+            return Results.NotFound();
+        }
+        catch (Exception ex) when (ex is MatchAlreadyEndedException or NoDrawOfferPendingException)
+        {
+            return Results.Conflict();
+        }
+        catch (NotParticipantException)
+        {
+            return Results.Forbid();
+        }
+    }
+
     private static async Task GetEvents(
         string id,
         ClaimsPrincipal principal,
@@ -249,18 +350,24 @@ internal static class MatchesEndpoints
             MoveMadeNotification m => SerializeMoveMade(m),
             MatchEndedNotification e => ("match_ended", JsonSerializer.Serialize(
                 new SseMatchEndedData(e.Status, e.Reason), SseJsonOptions)),
+            DrawOfferedNotification o => ("draw_offered", JsonSerializer.Serialize(
+                new SseDrawOfferedData(ToSsePlayerRef(o.Player)), SseJsonOptions)),
+            DrawDeclinedNotification d => ("draw_declined", JsonSerializer.Serialize(
+                new SseDrawDeclinedData(ToSsePlayerRef(d.Player)), SseJsonOptions)),
             _ => throw new InvalidOperationException(
                 $"Unknown notification type: {notification.GetType().Name}"),
         };
 
     private static (string EventType, string Data) SerializeMoveMade(MoveMadeNotification m)
     {
-        SsePlayerRef player = m.Player.UserId is not null
-            ? new SsePlayerRef(m.Player.UserId, null)
-            : new SsePlayerRef(null, m.Player.BotId);
-        SseMoveMadeData data = new(m.Move, m.ResultingFen, m.Index, player, m.WhiteTimeMs, m.BlackTimeMs);
+        SseMoveMadeData data = new(m.Move, m.ResultingFen, m.Index, ToSsePlayerRef(m.Player), m.WhiteTimeMs, m.BlackTimeMs);
         return ("move_made", JsonSerializer.Serialize(data, SseJsonOptions));
     }
+
+    private static SsePlayerRef ToSsePlayerRef(PlayerDocument player) =>
+        player.UserId is not null
+            ? new SsePlayerRef(player.UserId, null)
+            : new SsePlayerRef(null, player.BotId);
 
     private static async Task<MatchResponse> ToMatchResponseAsync(
         MatchDocument match,

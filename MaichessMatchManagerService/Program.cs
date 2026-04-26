@@ -21,7 +21,7 @@ string dbServiceUrl = builder.Configuration["Services:DatabaseService"]
 
 builder.Services.AddSingleton(
     new Database.DatabaseClient(GrpcChannel.ForAddress(dbServiceUrl)));
-builder.Services.AddSingleton<MatchRepository>();
+builder.Services.AddSingleton<IMatchRepository, MatchRepository>();
 
 // gRPC clients (long-lived singletons — channels and clients are thread-safe)
 string userServiceUrl = builder.Configuration["Services:UserService"]

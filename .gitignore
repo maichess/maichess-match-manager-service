@@ -5,3 +5,5 @@ riderModule.iml
 /_ReSharper.Caches/
 .idea
 .env
+MaichessMatchManagerService/Load-Env.ps1
+/MaichessMatchManagerService.Tests/TestResults

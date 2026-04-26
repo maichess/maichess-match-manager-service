@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -6,11 +7,12 @@ using MaichessMatchManagerService.Entities;
 
 namespace MaichessMatchManagerService.Data;
 
-internal sealed class MatchRepository(Database.DatabaseClient db)
+[ExcludeFromCodeCoverage]
+internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchRepository
 {
     private const string Collection = "matches";
 
-    internal async Task<MatchDocument> InsertAsync(MatchDocument match, CancellationToken ct)
+    public async Task<MatchDocument> InsertAsync(MatchDocument match, CancellationToken ct)
     {
         InsertResponse response = await db.InsertAsync(
             new InsertRequest { Collection = Collection, Record = ToStruct(match) },
@@ -18,7 +20,7 @@ internal sealed class MatchRepository(Database.DatabaseClient db)
         return FromStruct(response.Record);
     }
 
-    internal async Task<MatchDocument?> GetByIdAsync(string id, CancellationToken ct)
+    public async Task<MatchDocument?> GetByIdAsync(string id, CancellationToken ct)
     {
         try
         {
@@ -33,7 +35,7 @@ internal sealed class MatchRepository(Database.DatabaseClient db)
         }
     }
 
-    internal async Task ReplaceAsync(MatchDocument match, CancellationToken ct)
+    public async Task ReplaceAsync(MatchDocument match, CancellationToken ct)
     {
         Struct fields = ToStruct(match);
         fields.Fields.Remove("id");
@@ -63,6 +65,9 @@ internal sealed class MatchRepository(Database.DatabaseClient db)
             match.LastMoveAt.ToString("O", CultureInfo.InvariantCulture));
         s.Fields["moves"] = Value.ForList(match.Moves.Select(Value.ForString).ToArray());
         s.Fields["fen_history"] = Value.ForList(match.FenHistory.Select(Value.ForString).ToArray());
+        s.Fields["position_history"] = Value.ForList(match.PositionHistory.Select(Value.ForString).ToArray());
+        s.Fields["pending_draw_offerer_user_id"] = match.PendingDrawOffererUserId is not null
+            ? Value.ForString(match.PendingDrawOffererUserId) : Value.ForNull();
         return s;
     }
 
@@ -90,6 +95,10 @@ internal sealed class MatchRepository(Database.DatabaseClient db)
                 s.Fields["last_move_at"].StringValue, CultureInfo.InvariantCulture),
             Moves = [.. s.Fields["moves"].ListValue.Values.Select(v => v.StringValue)],
             FenHistory = [.. s.Fields["fen_history"].ListValue.Values.Select(v => v.StringValue)],
+            PositionHistory = s.Fields.TryGetValue("position_history", out Value? ph)
+                ? [.. ph.ListValue.Values.Select(v => v.StringValue)]
+                : [],
+            PendingDrawOffererUserId = StringOrNull(s, "pending_draw_offerer_user_id"),
         };
     }
 
