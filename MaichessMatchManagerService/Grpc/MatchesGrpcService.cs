@@ -1,20 +1,12 @@
 using Grpc.Core;
 using Maichess.MatchManager.V1;
 using MaichessMatchManagerService.Entities;
-using MaichessMatchManagerService.Events;
 using MaichessMatchManagerService.Services;
-using ProtoDrawDeclinedEvent = Maichess.MatchManager.V1.DrawDeclinedEvent;
-using ProtoDrawOfferedEvent = Maichess.MatchManager.V1.DrawOfferedEvent;
 using ProtoMatch = Maichess.MatchManager.V1.Match;
-using ProtoMatchEndedEvent = Maichess.MatchManager.V1.MatchEndedEvent;
-using ProtoMatchEvent = Maichess.MatchManager.V1.MatchEvent;
-using ProtoMoveMadeEvent = Maichess.MatchManager.V1.MoveMadeEvent;
 
 namespace MaichessMatchManagerService.Grpc;
 
-internal sealed class MatchesGrpcService(
-    MatchService matchService,
-    MatchEventBroadcaster broadcaster) : Matches.MatchesBase
+internal sealed class MatchesGrpcService(MatchService matchService) : Matches.MatchesBase
 {
     public override async Task<CreateMatchResponse> CreateMatch(
         CreateMatchRequest request, ServerCallContext context)
@@ -91,38 +83,6 @@ internal sealed class MatchesGrpcService(
         catch (NotParticipantException)
         {
             throw new RpcException(new Status(StatusCode.PermissionDenied, "Forbidden"));
-        }
-    }
-
-    public override async Task StreamMatch(
-        StreamMatchRequest request,
-        IServerStreamWriter<ProtoMatchEvent> responseStream,
-        ServerCallContext context)
-    {
-        try
-        {
-            _ = await matchService.GetMatchAsync(request.MatchId, context.CancellationToken);
-        }
-        catch (MatchNotFoundException ex)
-        {
-            throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
-        }
-
-        (Guid subscriptionId, System.Threading.Channels.Channel<MatchNotification> channel) =
-            broadcaster.Subscribe(request.MatchId);
-
-        try
-        {
-            await foreach (MatchNotification notification in
-                channel.Reader.ReadAllAsync(context.CancellationToken))
-            {
-                ProtoMatchEvent protoEvent = ToProtoEvent(notification);
-                await responseStream.WriteAsync(protoEvent, context.CancellationToken);
-            }
-        }
-        finally
-        {
-            broadcaster.Unsubscribe(request.MatchId, subscriptionId);
         }
     }
 
@@ -210,52 +170,5 @@ internal sealed class MatchesGrpcService(
         "rapid" => TimeControl.Rapid,
         "classical" => TimeControl.Classical,
         _ => TimeControl.Blitz,
-    };
-
-    private static ProtoMatchEvent ToProtoEvent(MatchNotification notification) =>
-        notification switch
-        {
-            MoveMadeNotification m => new ProtoMatchEvent
-            {
-                MoveMade = new ProtoMoveMadeEvent
-                {
-                    Move = m.Move,
-                    ResultingFen = m.ResultingFen,
-                    Index = m.Index,
-                    Player = ToProtoPlayer(m.Player),
-                    WhiteTimeMs = m.WhiteTimeMs,
-                    BlackTimeMs = m.BlackTimeMs,
-                },
-            },
-            MatchEndedNotification e => new ProtoMatchEvent
-            {
-                MatchEnded = new ProtoMatchEndedEvent
-                {
-                    Status = ToProtoStatus(e.Status),
-                    Reason = ToProtoEndReason(e.Reason),
-                },
-            },
-            DrawOfferedNotification o => new ProtoMatchEvent
-            {
-                DrawOffered = new ProtoDrawOfferedEvent { Player = ToProtoPlayer(o.Player) },
-            },
-            DrawDeclinedNotification d => new ProtoMatchEvent
-            {
-                DrawDeclined = new ProtoDrawDeclinedEvent { Player = ToProtoPlayer(d.Player) },
-            },
-            _ => throw new InvalidOperationException($"Unknown notification type: {notification.GetType().Name}"),
-        };
-
-    private static EndReason ToProtoEndReason(string reason) => reason switch
-    {
-        "checkmate" => EndReason.Checkmate,
-        "resignation" => EndReason.Resignation,
-        "stalemate" => EndReason.Stalemate,
-        "timeout" => EndReason.Timeout,
-        "draw_agreement" => EndReason.DrawAgreement,
-        "fifty_move_rule" => EndReason.FiftyMoveRule,
-        "threefold_repetition" => EndReason.ThreefoldRepetition,
-        "insufficient_material" => EndReason.InsufficientMaterial,
-        _ => EndReason.Unspecified,
     };
 }

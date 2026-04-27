@@ -1,5 +1,4 @@
 using MaichessMatchManagerService.Entities;
-using MaichessMatchManagerService.Events;
 using MaichessMatchManagerService.Grpc;
 
 namespace MaichessMatchManagerService.Tests.Support;
@@ -12,11 +11,9 @@ internal sealed class GrpcServiceContext
 
     internal TestServerCallContext CallContext { get; } = TestServerCallContext.Create();
 
-    internal MatchEventBroadcaster Broadcaster => ServiceContext.Broadcaster;
-
     internal GrpcServiceContext()
     {
-        Service = new MatchesGrpcService(ServiceContext.MatchService, ServiceContext.Broadcaster);
+        Service = new MatchesGrpcService(ServiceContext.MatchService);
     }
 
     internal void SetupMatch(MatchDocument match) => ServiceContext.SetupMatch(match);

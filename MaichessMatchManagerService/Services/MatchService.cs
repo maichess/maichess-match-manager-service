@@ -11,7 +11,7 @@ internal sealed partial class MatchService(
     IMatchRepository repository,
     Moves.MovesClient moveValidatorClient,
     Bots.BotsClient engineClient,
-    MatchEventBroadcaster broadcaster,
+    SocketNotifier socketNotifier,
     ILogger<MatchService> logger)
 {
     private const string InitialFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -114,14 +114,13 @@ internal sealed partial class MatchService(
         PlayerDocument mover = isWhite ? match.White : match.Black;
         int moveIndex = match.Moves.Count;
 
-        broadcaster.Broadcast(matchId, new MoveMadeNotification(
-            move, validation.ResultingFen, moveIndex, mover, match.WhiteTimeMs, match.BlackTimeMs));
+        socketNotifier.BroadcastMoveMade(match, move, validation.ResultingFen, moveIndex, mover, match.WhiteTimeMs, match.BlackTimeMs);
 
         if (match.Status != "ongoing")
         {
             bool isTimeout = match.WhiteTimeMs <= 0 || match.BlackTimeMs <= 0;
             string endReason = isTimeout ? "timeout" : GameResultToEndReason(validation.GameResult);
-            BroadcastMatchEnded(matchId, match.Status, endReason);
+            socketNotifier.BroadcastMatchEnded(match, match.Status, endReason);
             return match;
         }
 
@@ -162,7 +161,7 @@ internal sealed partial class MatchService(
         await repository.ReplaceAsync(match, ct);
 
         PlayerDocument offerer = isWhite ? match.White : match.Black;
-        broadcaster.Broadcast(matchId, new DrawOfferedNotification(offerer));
+        socketNotifier.BroadcastDrawOffered(match, offerer);
     }
 
     internal async Task<MatchDocument> AcceptDrawAsync(string matchId, string userId, CancellationToken ct)
@@ -197,7 +196,7 @@ internal sealed partial class MatchService(
 
         await repository.ReplaceAsync(match, ct);
 
-        BroadcastMatchEnded(matchId, "draw", "draw_agreement");
+        socketNotifier.BroadcastMatchEnded(match, "draw", "draw_agreement");
 
         return match;
     }
@@ -228,7 +227,7 @@ internal sealed partial class MatchService(
         await repository.ReplaceAsync(match, ct);
 
         PlayerDocument decliner = isWhite ? match.White : match.Black;
-        broadcaster.Broadcast(matchId, new DrawDeclinedNotification(decliner));
+        socketNotifier.BroadcastDrawDeclined(match, decliner);
     }
 
     internal async Task<MatchDocument> ResignMatchAsync(
@@ -255,7 +254,7 @@ internal sealed partial class MatchService(
 
         await repository.ReplaceAsync(match, ct);
 
-        BroadcastMatchEnded(matchId, match.Status, "resignation");
+        socketNotifier.BroadcastMatchEnded(match, match.Status, "resignation");
 
         return match;
     }
@@ -450,27 +449,13 @@ internal sealed partial class MatchService(
         PlayerDocument botPlayer = botIsWhite ? match.White : match.Black;
         int moveIndex = match.Moves.Count;
 
-        broadcaster.Broadcast(
-            matchId,
-            new MoveMadeNotification(
-                bestMove.Move,
-                validation.ResultingFen,
-                moveIndex,
-                botPlayer,
-                match.WhiteTimeMs,
-                match.BlackTimeMs));
+        socketNotifier.BroadcastMoveMade(match, bestMove.Move, validation.ResultingFen, moveIndex, botPlayer, match.WhiteTimeMs, match.BlackTimeMs);
 
         if (match.Status != "ongoing")
         {
             bool isTimeout = match.WhiteTimeMs <= 0 || match.BlackTimeMs <= 0;
             string endReason = isTimeout ? "timeout" : GameResultToEndReason(validation.GameResult);
-            BroadcastMatchEnded(matchId, match.Status, endReason);
+            socketNotifier.BroadcastMatchEnded(match, match.Status, endReason);
         }
-    }
-
-    private void BroadcastMatchEnded(string matchId, string status, string reason)
-    {
-        broadcaster.Broadcast(matchId, new MatchEndedNotification(status, reason));
-        broadcaster.Complete(matchId);
     }
 }

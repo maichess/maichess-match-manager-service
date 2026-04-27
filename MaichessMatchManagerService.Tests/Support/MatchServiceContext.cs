@@ -8,6 +8,8 @@ using MaichessMatchManagerService.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 
+using SocketSvc = Socket.V1.Socket;
+
 namespace MaichessMatchManagerService.Tests.Support;
 
 internal sealed class MatchServiceContext
@@ -18,7 +20,8 @@ internal sealed class MatchServiceContext
 
     internal Bots.BotsClient Engine { get; } = Substitute.For<Bots.BotsClient>();
 
-    internal MatchEventBroadcaster Broadcaster { get; } = new MatchEventBroadcaster();
+    internal SocketNotifier SocketNotifier { get; } =
+        new SocketNotifier(Substitute.For<SocketSvc.SocketClient>(), NullLogger<SocketNotifier>.Instance);
 
     internal MatchService MatchService { get; }
 
@@ -40,7 +43,7 @@ internal sealed class MatchServiceContext
             Repository,
             MoveValidator,
             Engine,
-            Broadcaster,
+            SocketNotifier,
             NullLogger<MatchService>.Instance);
 
         Repository.InsertAsync(Arg.Any<MatchDocument>(), Arg.Any<CancellationToken>())

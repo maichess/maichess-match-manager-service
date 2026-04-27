@@ -1,12 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading.Channels;
 using Maichess.Engine.V1;
 using Maichess.User.V1;
 using MaichessMatchManagerService.Entities;
-using MaichessMatchManagerService.Events;
 using MaichessMatchManagerService.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,12 +11,6 @@ namespace MaichessMatchManagerService.Rest;
 [ExcludeFromCodeCoverage]
 internal static class MatchesEndpoints
 {
-    private static readonly JsonSerializerOptions SseJsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    };
-
     internal static IEndpointRouteBuilder MapMatchesEndpoints(this IEndpointRouteBuilder routes)
     {
         RouteGroupBuilder group = routes.MapGroup("/matches").RequireAuthorization();
@@ -33,7 +23,6 @@ internal static class MatchesEndpoints
         group.MapPost("/{id}/draw-offer", OfferDraw);
         group.MapDelete("/{id}/draw-offer", DeclineDraw);
         group.MapPost("/{id}/draw-offer/accept", AcceptDraw);
-        group.MapGet("/{id}/events", GetEvents);
 
         return routes;
     }
@@ -295,80 +284,6 @@ internal static class MatchesEndpoints
         }
     }
 
-    private static async Task GetEvents(
-        string id,
-        ClaimsPrincipal principal,
-        MatchService matchService,
-        MatchEventBroadcaster broadcaster,
-        HttpResponse response,
-        CancellationToken ct)
-    {
-        if (!TryGetUserId(principal, out _))
-        {
-            response.StatusCode = StatusCodes.Status401Unauthorized;
-            return;
-        }
-
-        try
-        {
-            await matchService.GetMatchAsync(id, ct);
-        }
-        catch (MatchNotFoundException)
-        {
-            response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
-
-        response.Headers.Append("Content-Type", "text/event-stream");
-        response.Headers.Append("Cache-Control", "no-cache");
-        response.Headers.Append("Connection", "keep-alive");
-
-        (Guid subscriptionId, Channel<MatchNotification> channel) = broadcaster.Subscribe(id);
-
-        try
-        {
-            await foreach (MatchNotification notification in channel.Reader.ReadAllAsync(ct))
-            {
-                (string eventType, string data) = SerializeNotification(notification);
-                await response.WriteAsync($"event: {eventType}\ndata: {data}\n\n", ct);
-                await response.Body.FlushAsync(ct);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // Client disconnected — normal SSE teardown.
-        }
-        finally
-        {
-            broadcaster.Unsubscribe(id, subscriptionId);
-        }
-    }
-
-    private static (string EventType, string Data) SerializeNotification(MatchNotification notification) =>
-        notification switch
-        {
-            MoveMadeNotification m => SerializeMoveMade(m),
-            MatchEndedNotification e => ("match_ended", JsonSerializer.Serialize(
-                new SseMatchEndedData(e.Status, e.Reason), SseJsonOptions)),
-            DrawOfferedNotification o => ("draw_offered", JsonSerializer.Serialize(
-                new SseDrawOfferedData(ToSsePlayerRef(o.Player)), SseJsonOptions)),
-            DrawDeclinedNotification d => ("draw_declined", JsonSerializer.Serialize(
-                new SseDrawDeclinedData(ToSsePlayerRef(d.Player)), SseJsonOptions)),
-            _ => throw new InvalidOperationException(
-                $"Unknown notification type: {notification.GetType().Name}"),
-        };
-
-    private static (string EventType, string Data) SerializeMoveMade(MoveMadeNotification m)
-    {
-        SseMoveMadeData data = new(m.Move, m.ResultingFen, m.Index, ToSsePlayerRef(m.Player), m.WhiteTimeMs, m.BlackTimeMs);
-        return ("move_made", JsonSerializer.Serialize(data, SseJsonOptions));
-    }
-
-    private static SsePlayerRef ToSsePlayerRef(PlayerDocument player) =>
-        player.UserId is not null
-            ? new SsePlayerRef(player.UserId, null)
-            : new SsePlayerRef(null, player.BotId);
-
     private static async Task<MatchResponse> ToMatchResponseAsync(
         MatchDocument match,
         Users.UsersClient usersClient,
@@ -400,8 +315,8 @@ internal static class MatchesEndpoints
     {
         if (player.UserId is not null)
         {
-            GetUserResponse userResponse = await usersClient.GetUserAsync(
-                new GetUserRequest { UserId = player.UserId },
+            Maichess.User.V1.GetUserResponse userResponse = await usersClient.GetUserAsync(
+                new Maichess.User.V1.GetUserRequest { UserId = player.UserId },
                 cancellationToken: ct);
             return new PlayerResponse(player.UserId, userResponse.User.Username, null, null);
         }
@@ -414,7 +329,7 @@ internal static class MatchesEndpoints
 
     private static bool TryGetUserId(
         ClaimsPrincipal principal,
-        [NotNullWhen(true)] out string? userId)
+        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? userId)
     {
         userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
         return userId is not null;
