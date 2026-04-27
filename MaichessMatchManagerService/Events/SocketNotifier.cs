@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 using MaichessMatchManagerService.Entities;
 
 using SocketSvc = Socket.V1.Socket;
@@ -9,6 +10,21 @@ namespace MaichessMatchManagerService.Events;
 [ExcludeFromCodeCoverage]
 internal sealed class SocketNotifier(SocketSvc.SocketClient client, ILogger<SocketNotifier> logger)
 {
+    private static Struct PlayerStruct(PlayerDocument player)
+    {
+        Struct s = new();
+        if (player.UserId is not null)
+        {
+            s.Fields["user_id"] = Value.ForString(player.UserId);
+        }
+        else if (player.BotId is not null)
+        {
+            s.Fields["bot_id"] = Value.ForString(player.BotId);
+        }
+
+        return s;
+    }
+
     internal void BroadcastMoveMade(
         MatchDocument match,
         string move,
@@ -54,16 +70,22 @@ internal sealed class SocketNotifier(SocketSvc.SocketClient client, ILogger<Sock
         FireAndForget(match, "draw_declined", payload);
     }
 
-    private void FireAndForget(MatchDocument match, string @event, Struct payload)
-    {
+    private void FireAndForget(MatchDocument match, string @event, Struct payload) =>
         _ = Task.Run(() => EmitToParticipantsAsync(match, @event, payload));
-    }
 
     private async Task EmitToParticipantsAsync(MatchDocument match, string @event, Struct payload)
     {
         List<Task> tasks = [];
-        if (match.White.UserId is not null) tasks.Add(EmitAsync(match.White.UserId, @event, payload));
-        if (match.Black.UserId is not null) tasks.Add(EmitAsync(match.Black.UserId, @event, payload));
+        if (match.White.UserId is not null)
+        {
+            tasks.Add(EmitAsync(match.White.UserId, @event, payload));
+        }
+
+        if (match.Black.UserId is not null)
+        {
+            tasks.Add(EmitAsync(match.Black.UserId, @event, payload));
+        }
+
         await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
@@ -78,24 +100,9 @@ internal sealed class SocketNotifier(SocketSvc.SocketClient client, ILogger<Sock
                 Payload = payload,
             }).ConfigureAwait(false);
         }
-        catch (Exception ex)
+        catch (RpcException ex)
         {
             logger.LogWarning(ex, "Failed to emit socket event {Event} to user {UserId}", @event, userId);
         }
-    }
-
-    private static Struct PlayerStruct(PlayerDocument player)
-    {
-        Struct s = new();
-        if (player.UserId is not null)
-        {
-            s.Fields["user_id"] = Value.ForString(player.UserId);
-        }
-        else if (player.BotId is not null)
-        {
-            s.Fields["bot_id"] = Value.ForString(player.BotId);
-        }
-
-        return s;
     }
 }
