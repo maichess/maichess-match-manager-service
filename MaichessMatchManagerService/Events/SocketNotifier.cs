@@ -10,21 +10,6 @@ namespace MaichessMatchManagerService.Events;
 [ExcludeFromCodeCoverage]
 internal sealed class SocketNotifier(SocketSvc.SocketClient client, ILogger<SocketNotifier> logger)
 {
-    private static Struct PlayerStruct(PlayerDocument player)
-    {
-        Struct s = new();
-        if (player.UserId is not null)
-        {
-            s.Fields["user_id"] = Value.ForString(player.UserId);
-        }
-        else if (player.BotId is not null)
-        {
-            s.Fields["bot_id"] = Value.ForString(player.BotId);
-        }
-
-        return s;
-    }
-
     internal void BroadcastMoveMade(
         MatchDocument match,
         string move,
@@ -68,6 +53,21 @@ internal sealed class SocketNotifier(SocketSvc.SocketClient client, ILogger<Sock
         payload.Fields["match_id"] = Value.ForString(match.Id);
         payload.Fields["player"] = Value.ForStruct(PlayerStruct(decliner));
         FireAndForget(match, "draw_declined", payload);
+    }
+
+    private static Struct PlayerStruct(PlayerDocument player)
+    {
+        Struct s = new();
+        if (player.UserId is not null)
+        {
+            s.Fields["user_id"] = Value.ForString(player.UserId);
+        }
+        else if (player.BotId is not null)
+        {
+            s.Fields["bot_id"] = Value.ForString(player.BotId);
+        }
+
+        return s;
     }
 
     private void FireAndForget(MatchDocument match, string @event, Struct payload) =>
