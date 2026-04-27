@@ -11,6 +11,8 @@ using MaichessMatchManagerService.Rest;
 using MaichessMatchManagerService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 using SocketSvc = Socket.V1.Socket;
 
@@ -82,6 +84,16 @@ builder.Services
 builder.Services.AddAuthorization();
 builder.Services.AddGrpc();
 builder.Services.AddOpenApi();
+
+string otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT")
+    ?? "http://otel-collector:4317";
+
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r => r.AddService("match-manager-service"))
+    .WithTracing(t => t
+        .AddAspNetCoreInstrumentation()
+        .AddGrpcClientInstrumentation()
+        .AddOtlpExporter(o => o.Endpoint = new Uri(otlpEndpoint)));
 
 WebApplication app = builder.Build();
 

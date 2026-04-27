@@ -27,7 +27,7 @@ namespace MaichessMatchManagerService.Tests.Features
         private static string[] featureTags = ((string[])(null));
         
         private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Draw Management", ("  Players can negotiate a draw. Only the non-offering player can accept or declin" +
-                "e.\r\n  Bots cannot participate in draw negotiations."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+                "e.\n  Bots cannot participate in draw negotiations."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         

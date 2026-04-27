@@ -26,9 +26,9 @@ namespace MaichessMatchManagerService.Tests.Features
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Is Analyzable", ("  The IsAnalyzable predicate controls whether position history can be accessed.\r\n" +
-                "  Matches against bots are always analyzable (learning tool). Ended matches are\r" +
-                "\n  analyzable for replay. Ongoing human-vs-human matches are not."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Is Analyzable", ("  The IsAnalyzable predicate controls whether position history can be accessed.\n " +
+                " Matches against bots are always analyzable (learning tool). Ended matches are\n " +
+                " analyzable for replay. Ongoing human-vs-human matches are not."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
