@@ -44,6 +44,16 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
             cancellationToken: ct);
     }
 
+    public async Task<IReadOnlyList<MatchDocument>> FindOngoingAsync(CancellationToken ct)
+    {
+        Struct filter = new();
+        filter.Fields["status"] = Value.ForString("ongoing");
+        ListResponse response = await db.ListAsync(
+            new ListRequest { Collection = Collection, Filter = filter },
+            cancellationToken: ct);
+        return [.. response.Records.Select(FromStruct)];
+    }
+
     private static Struct ToStruct(MatchDocument match)
     {
         Struct s = new();

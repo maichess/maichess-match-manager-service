@@ -304,6 +304,7 @@ internal static class MatchesEndpoints
             match.TimeControl,
             match.WhiteTimeMs,
             match.BlackTimeMs,
+            match.LastMoveAt.ToUnixTimeMilliseconds(),
             analyzable);
     }
 

@@ -49,6 +49,7 @@ builder.Services.AddSingleton(
 // Application services
 builder.Services.AddSingleton<SocketNotifier>();
 builder.Services.AddSingleton<MatchService>();
+builder.Services.AddHostedService<TimeoutWatchdog>();
 
 // JWT authentication
 string jwtKey = builder.Configuration["Jwt:Key"]

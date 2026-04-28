@@ -280,6 +280,39 @@ internal sealed partial class MatchService(
         return [.. moves];
     }
 
+    internal async Task EnforceTimeoutsAsync(CancellationToken ct)
+    {
+        IReadOnlyList<MatchDocument> ongoingMatches = await repository.FindOngoingAsync(ct);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+
+        foreach (MatchDocument match in ongoingMatches)
+        {
+            char activeColor = GetActiveColor(match.CurrentFen);
+            long remainingMs = activeColor == 'w' ? match.WhiteTimeMs : match.BlackTimeMs;
+            long elapsed = (long)(now - match.LastMoveAt).TotalMilliseconds;
+
+            if (elapsed < remainingMs)
+            {
+                continue;
+            }
+
+            if (activeColor == 'w')
+            {
+                match.WhiteTimeMs = 0;
+                match.Status = "black_won";
+            }
+            else
+            {
+                match.BlackTimeMs = 0;
+                match.Status = "white_won";
+            }
+
+            match.PositionHistory = [];
+            await repository.ReplaceAsync(match, ct);
+            socketNotifier.BroadcastMatchEnded(match, match.Status, "timeout");
+        }
+    }
+
     internal async Task<(string Fen, string Move, bool IsCurrent)> GetPositionAsync(
         string matchId,
         int index,

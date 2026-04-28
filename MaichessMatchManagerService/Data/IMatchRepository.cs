@@ -9,4 +9,6 @@ internal interface IMatchRepository
     Task<MatchDocument?> GetByIdAsync(string id, CancellationToken ct);
 
     Task ReplaceAsync(MatchDocument match, CancellationToken ct);
+
+    Task<IReadOnlyList<MatchDocument>> FindOngoingAsync(CancellationToken ct);
 }

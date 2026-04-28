@@ -112,6 +112,12 @@ internal sealed class MatchServiceContext
             .Returns(GrpcHelper.GrpcCall(response));
     }
 
+    internal void SetupOngoingMatches(IEnumerable<MatchDocument> matches)
+    {
+        Repository.FindOngoingAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<MatchDocument>>([.. matches]));
+    }
+
     internal void SetupLegalMovesResponse(IEnumerable<string> moves)
     {
         GetLegalMovesResponse response = new();

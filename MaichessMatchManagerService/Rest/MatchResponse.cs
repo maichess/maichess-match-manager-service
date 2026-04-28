@@ -14,4 +14,5 @@ internal sealed record MatchResponse(
     [property: JsonPropertyName("time_control")] string TimeControl,
     [property: JsonPropertyName("white_time_ms")] long WhiteTimeMs,
     [property: JsonPropertyName("black_time_ms")] long BlackTimeMs,
+    [property: JsonPropertyName("last_move_at_ms")] long LastMoveAtMs,
     [property: JsonPropertyName("analyzable")] bool Analyzable);
