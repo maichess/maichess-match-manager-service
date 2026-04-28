@@ -29,7 +29,7 @@
     <ItemGroup>
         <PackageReference Include="DotNetEnv" Version="3.1.1" />
         <PackageReference Include="Grpc.AspNetCore" Version="2.76.0" />
-        <PackageReference Include="Maichess.PlatformProtos" Version="0.2.11" />
+        <PackageReference Include="Maichess.PlatformProtos" Version="0.2.12" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.1" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
         <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
