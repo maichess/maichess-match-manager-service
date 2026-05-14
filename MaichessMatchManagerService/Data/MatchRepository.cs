@@ -4,6 +4,7 @@ using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Maichess.Database.V1;
 using MaichessMatchManagerService.Entities;
+using MaichessMatchManagerService.Services;
 
 namespace MaichessMatchManagerService.Data;
 
@@ -54,6 +55,40 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
         return [.. response.Records.Select(FromStruct)];
     }
 
+    public async Task<(IReadOnlyList<MatchDocument> Matches, int Total)> ListAsync(
+        string status,
+        string? category,
+        int page,
+        int pageSize,
+        CancellationToken ct)
+    {
+        Struct filter = new();
+        filter.Fields["status"] = Value.ForString(status);
+        if (!string.IsNullOrEmpty(category))
+        {
+            filter.Fields["time_format_category"] = Value.ForString(category);
+        }
+
+        int offset = (page - 1) * pageSize;
+
+        ListResponse listResponse = await db.ListAsync(
+            new ListRequest
+            {
+                Collection = Collection,
+                Filter = filter,
+                Limit = pageSize,
+                Offset = offset,
+            },
+            cancellationToken: ct);
+
+        CountResponse countResponse = await db.CountAsync(
+            new CountRequest { Collection = Collection, Filter = filter },
+            cancellationToken: ct);
+
+        IReadOnlyList<MatchDocument> matches = [.. listResponse.Records.Select(FromStruct)];
+        return (matches, (int)countResponse.Count);
+    }
+
     private static Struct ToStruct(MatchDocument match)
     {
         Struct s = new();
@@ -68,7 +103,10 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
             ? Value.ForString(match.Black.BotId) : Value.ForNull();
         s.Fields["current_fen"] = Value.ForString(match.CurrentFen);
         s.Fields["status"] = Value.ForString(match.Status);
-        s.Fields["time_control"] = Value.ForString(match.TimeControl);
+        s.Fields["time_format_id"] = Value.ForString(match.TimeFormat.Id);
+        s.Fields["time_format_base_ms"] = Value.ForNumber(match.TimeFormat.BaseMs);
+        s.Fields["time_format_increment_ms"] = Value.ForNumber(match.TimeFormat.IncrementMs);
+        s.Fields["time_format_category"] = Value.ForString(match.TimeFormat.Category);
         s.Fields["white_time_ms"] = Value.ForNumber(match.WhiteTimeMs);
         s.Fields["black_time_ms"] = Value.ForNumber(match.BlackTimeMs);
         s.Fields["last_move_at"] = Value.ForString(
@@ -83,6 +121,7 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
 
     private static MatchDocument FromStruct(Struct s)
     {
+        TimeFormatDocument timeFormat = ReadTimeFormat(s);
         return new MatchDocument
         {
             Id = s.Fields["id"].StringValue,
@@ -98,7 +137,7 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
             },
             CurrentFen = s.Fields["current_fen"].StringValue,
             Status = s.Fields["status"].StringValue,
-            TimeControl = s.Fields["time_control"].StringValue,
+            TimeFormat = timeFormat,
             WhiteTimeMs = (long)s.Fields["white_time_ms"].NumberValue,
             BlackTimeMs = (long)s.Fields["black_time_ms"].NumberValue,
             LastMoveAt = DateTimeOffset.Parse(
@@ -110,6 +149,37 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
                 : [],
             PendingDrawOffererUserId = StringOrNull(s, "pending_draw_offerer_user_id"),
         };
+    }
+
+    private static TimeFormatDocument ReadTimeFormat(Struct s)
+    {
+        // Forward-compatible read: prefer the new flat fields; fall back to the
+        // legacy `time_control` string for matches written before v0.3.2.
+        if (s.Fields.TryGetValue("time_format_id", out Value? idVal) &&
+            idVal.KindCase == Value.KindOneofCase.StringValue)
+        {
+            return new TimeFormatDocument
+            {
+                Id = idVal.StringValue,
+                BaseMs = (long)s.Fields["time_format_base_ms"].NumberValue,
+                IncrementMs = (long)s.Fields["time_format_increment_ms"].NumberValue,
+                Category = s.Fields["time_format_category"].StringValue,
+            };
+        }
+
+        string legacyCategory = s.Fields.TryGetValue("time_control", out Value? tcVal) &&
+            tcVal.KindCase == Value.KindOneofCase.StringValue
+                ? tcVal.StringValue
+                : "blitz";
+
+        return TimeFormatRegistry.Resolve(legacyCategory switch
+        {
+            "bullet" => "3+0",
+            "blitz" => "5+0",
+            "rapid" => "10+0",
+            "classical" => "30+0",
+            _ => "5+0",
+        });
     }
 
     private static string? StringOrNull(Struct s, string key) =>

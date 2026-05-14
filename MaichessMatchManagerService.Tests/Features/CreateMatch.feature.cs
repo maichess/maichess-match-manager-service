@@ -276,6 +276,74 @@ namespace MaichessMatchManagerService.Tests.Features
             await this.ScenarioCleanupAsync();
         }
         
+        [Xunit.SkippableFactAttribute(DisplayName="Creating a match with a \"3+2\" format records the increment")]
+        [Xunit.TraitAttribute("FeatureTitle", "Create Match")]
+        [Xunit.TraitAttribute("Description", "Creating a match with a \"3+2\" format records the increment")]
+        public async System.Threading.Tasks.Task CreatingAMatchWithA32FormatRecordsTheIncrement()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Creating a match with a \"3+2\" format records the increment", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 33
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 34
+    await testRunner.WhenAsync("a match is created between white \"white-1\" and black \"black-1\" with format \"3+2\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 35
+    await testRunner.ThenAsync("the created match has WhiteTimeMs 180000", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 36
+    await testRunner.AndAsync("the created match has time format \"3+2\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 37
+    await testRunner.AndAsync("the created match has IncrementMs 2000", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Creating a match with the \"10+5\" format records the rapid category")]
+        [Xunit.TraitAttribute("FeatureTitle", "Create Match")]
+        [Xunit.TraitAttribute("Description", "Creating a match with the \"10+5\" format records the rapid category")]
+        public async System.Threading.Tasks.Task CreatingAMatchWithThe105FormatRecordsTheRapidCategory()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Creating a match with the \"10+5\" format records the rapid category", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 39
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 40
+    await testRunner.WhenAsync("a match is created between white \"white-1\" and black \"black-1\" with format \"10+5\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 41
+    await testRunner.ThenAsync("the created match has WhiteTimeMs 600000", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 42
+    await testRunner.AndAsync("the created match has time format \"10+5\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 43
+    await testRunner.AndAsync("the created match has IncrementMs 5000", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
         [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
         [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
         public class FixtureData : object, Xunit.IAsyncLifetime

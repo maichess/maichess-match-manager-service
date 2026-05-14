@@ -15,6 +15,8 @@ internal sealed partial class MatchService(
     ILogger<MatchService> logger)
 {
     private const string InitialFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    private const int DefaultPageSize = 20;
+    private const int MaxPageSize = 100;
 
     internal static bool IsAnalyzable(MatchDocument match) =>
         match.White.IsBot || match.Black.IsBot || match.Status != "ongoing";
@@ -22,11 +24,10 @@ internal sealed partial class MatchService(
     internal async Task<MatchDocument> CreateMatchAsync(
         PlayerDocument white,
         PlayerDocument black,
-        string timeControl,
+        TimeFormatDocument timeFormat,
         CancellationToken ct)
     {
-        long initialTimeMs = TimeControlToMs(timeControl);
-        return await repository.InsertAsync(
+        MatchDocument created = await repository.InsertAsync(
             new MatchDocument
             {
                 Id = string.Empty,
@@ -34,19 +35,37 @@ internal sealed partial class MatchService(
                 Black = black,
                 CurrentFen = InitialFen,
                 Status = "ongoing",
-                TimeControl = timeControl,
-                WhiteTimeMs = initialTimeMs,
-                BlackTimeMs = initialTimeMs,
+                TimeFormat = timeFormat,
+                WhiteTimeMs = timeFormat.BaseMs,
+                BlackTimeMs = timeFormat.BaseMs,
                 LastMoveAt = DateTimeOffset.UtcNow,
                 FenHistory = [InitialFen],
             },
             ct);
+
+        // If white is a bot, kick off the first move so bot-vs-bot matches don't
+        // stall waiting for a human ply that will never come.
+        TriggerBotMoveIfNeeded(created);
+        return created;
     }
 
     internal async Task<MatchDocument> GetMatchAsync(string matchId, CancellationToken ct)
     {
         MatchDocument? match = await repository.GetByIdAsync(matchId, ct);
         return match ?? throw new MatchNotFoundException(matchId);
+    }
+
+    internal async Task<(IReadOnlyList<MatchDocument> Matches, int Total)> ListMatchesAsync(
+        string status,
+        string? category,
+        int page,
+        int pageSize,
+        CancellationToken ct)
+    {
+        int normalizedPage = page < 1 ? 1 : page;
+        int normalizedSize = pageSize <= 0 ? DefaultPageSize : Math.Min(pageSize, MaxPageSize);
+        string? normalizedCategory = string.IsNullOrEmpty(category) ? null : category;
+        return await repository.ListAsync(status, normalizedCategory, normalizedPage, normalizedSize, ct);
     }
 
     internal async Task<MatchDocument> MakeMoveAsync(
@@ -107,6 +126,10 @@ internal sealed partial class MatchService(
         if (match.Status != "ongoing")
         {
             match.PositionHistory = [];
+        }
+        else
+        {
+            ApplyIncrement(match, isWhite);
         }
 
         await repository.ReplaceAsync(match, ct);
@@ -371,6 +394,27 @@ internal sealed partial class MatchService(
         };
     }
 
+    // Increment is credited to the side that just moved, only when the match is
+    // still ongoing — a move that ends the game (mate, time forfeit, etc.)
+    // does not earn the bonus.
+    private static void ApplyIncrement(MatchDocument match, bool isWhite)
+    {
+        long increment = match.TimeFormat.IncrementMs;
+        if (increment <= 0)
+        {
+            return;
+        }
+
+        if (isWhite)
+        {
+            match.WhiteTimeMs += increment;
+        }
+        else
+        {
+            match.BlackTimeMs += increment;
+        }
+    }
+
     // The default arm is a defensive fallback for future GameResult values — unreachable with current proto.
     private static string GameResultToEndReason(GameResult gameResult) => gameResult switch
     {
@@ -387,15 +431,6 @@ internal sealed partial class MatchService(
         string[] parts = fen.Split(' ');
         return parts.Length >= 2 ? parts[1][0] : 'w';
     }
-
-    private static long TimeControlToMs(string timeControl) => timeControl switch
-    {
-        "bullet" => 180_000L,
-        "blitz" => 300_000L,
-        "rapid" => 600_000L,
-        "classical" => 1_800_000L,
-        _ => 300_000L,
-    };
 
     [ExcludeFromCodeCoverage]
     private void TriggerBotMoveIfNeeded(MatchDocument match)
@@ -476,6 +511,10 @@ internal sealed partial class MatchService(
         {
             match.PositionHistory = [];
         }
+        else
+        {
+            ApplyIncrement(match, botIsWhite);
+        }
 
         await repository.ReplaceAsync(match, ct);
 
@@ -489,6 +528,10 @@ internal sealed partial class MatchService(
             bool isTimeout = match.WhiteTimeMs <= 0 || match.BlackTimeMs <= 0;
             string endReason = isTimeout ? "timeout" : GameResultToEndReason(validation.GameResult);
             socketNotifier.BroadcastMatchEnded(match, match.Status, endReason);
+            return;
         }
+
+        // Continue the chain when the opponent is also a bot (bot-vs-bot games).
+        TriggerBotMoveIfNeeded(match);
     }
 }

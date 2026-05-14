@@ -23,7 +23,7 @@ internal sealed class MatchDocument
     // Cleared when the game ends. Never modified by match manager logic.
     public List<string> PositionHistory { get; set; } = [];
 
-    public required string TimeControl { get; set; }
+    public required TimeFormatDocument TimeFormat { get; set; }
 
     public long WhiteTimeMs { get; set; }
 

@@ -23,4 +23,7 @@ internal sealed class GrpcServiceContext
 
     internal void SetupMoveValidatorRejects(string reason) =>
         ServiceContext.SetupMoveValidatorRejects(reason);
+
+    internal void SetupListMatches(IEnumerable<MatchDocument> matches, int total) =>
+        ServiceContext.SetupListMatches(matches, total);
 }

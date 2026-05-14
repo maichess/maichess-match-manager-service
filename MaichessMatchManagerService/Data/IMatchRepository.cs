@@ -11,4 +11,11 @@ internal interface IMatchRepository
     Task ReplaceAsync(MatchDocument match, CancellationToken ct);
 
     Task<IReadOnlyList<MatchDocument>> FindOngoingAsync(CancellationToken ct);
+
+    Task<(IReadOnlyList<MatchDocument> Matches, int Total)> ListAsync(
+        string status,
+        string? category,
+        int page,
+        int pageSize,
+        CancellationToken ct);
 }

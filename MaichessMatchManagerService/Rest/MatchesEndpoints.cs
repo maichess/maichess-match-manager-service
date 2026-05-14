@@ -11,10 +11,13 @@ namespace MaichessMatchManagerService.Rest;
 [ExcludeFromCodeCoverage]
 internal static class MatchesEndpoints
 {
+    private static readonly string[] KnownCategories = ["bullet", "blitz", "rapid", "classical"];
+
     internal static IEndpointRouteBuilder MapMatchesEndpoints(this IEndpointRouteBuilder routes)
     {
         RouteGroupBuilder group = routes.MapGroup("/matches").RequireAuthorization();
 
+        group.MapGet(string.Empty, ListMatches);
         group.MapGet("/{id}", GetMatch);
         group.MapGet("/{id}/positions/{index}", GetPosition);
         group.MapGet("/{id}/legal-moves", GetLegalMoves);
@@ -25,6 +28,48 @@ internal static class MatchesEndpoints
         group.MapPost("/{id}/draw-offer/accept", AcceptDraw);
 
         return routes;
+    }
+
+    private static async Task<IResult> ListMatches(
+        [FromQuery] string? status,
+        [FromQuery] string? category,
+        [FromQuery] int page,
+        [FromQuery] int page_size,
+        ClaimsPrincipal principal,
+        MatchService matchService,
+        Users.UsersClient usersClient,
+        Bots.BotsClient botsClient,
+        CancellationToken ct)
+    {
+        if (!TryGetUserId(principal, out _))
+        {
+            return Results.Unauthorized();
+        }
+
+        string normalizedStatus = status ?? "ongoing";
+        if (normalizedStatus != "ongoing")
+        {
+            return Results.BadRequest(new ErrorResponse("unsupported status"));
+        }
+
+        if (!string.IsNullOrEmpty(category) && !KnownCategories.Contains(category))
+        {
+            return Results.BadRequest(new ErrorResponse("unsupported category"));
+        }
+
+        (IReadOnlyList<MatchDocument> matches, int total) = await matchService.ListMatchesAsync(
+            normalizedStatus, category, page, page_size, ct);
+
+        int normalizedPage = page < 1 ? 1 : page;
+        int normalizedSize = page_size <= 0 ? 20 : Math.Min(page_size, 100);
+
+        List<MatchSummaryResponse> summaries = [];
+        foreach (MatchDocument match in matches)
+        {
+            summaries.Add(await ToMatchSummaryAsync(match, usersClient, botsClient, ct));
+        }
+
+        return Results.Ok(new MatchListResponse(summaries, total, normalizedPage, normalizedSize));
     }
 
     private static async Task<IResult> GetMatch(
@@ -50,8 +95,11 @@ internal static class MatchesEndpoints
             return Results.NotFound();
         }
 
+        // Watch mode: anyone authenticated may view an ongoing match.
+        // Finished matches between two humans remain private to the participants.
         bool isParticipant = match.White.UserId == userId || match.Black.UserId == userId;
-        if (!isParticipant && match.Status == "ongoing")
+        bool involvesBot = match.White.IsBot || match.Black.IsBot;
+        if (!isParticipant && match.Status != "ongoing" && !involvesBot)
         {
             return Results.Forbid();
         }
@@ -301,12 +349,36 @@ internal static class MatchesEndpoints
             match.CurrentFen,
             match.Status,
             match.Moves,
-            match.TimeControl,
+            ToTimeFormatResponse(match.TimeFormat),
             match.WhiteTimeMs,
             match.BlackTimeMs,
             match.LastMoveAt.ToUnixTimeMilliseconds(),
             analyzable);
     }
+
+    private static async Task<MatchSummaryResponse> ToMatchSummaryAsync(
+        MatchDocument match,
+        Users.UsersClient usersClient,
+        Bots.BotsClient botsClient,
+        CancellationToken ct)
+    {
+        PlayerResponse white = await ToPlayerResponseAsync(match.White, usersClient, botsClient, ct);
+        PlayerResponse black = await ToPlayerResponseAsync(match.Black, usersClient, botsClient, ct);
+
+        return new MatchSummaryResponse(
+            match.Id,
+            white,
+            black,
+            match.Status,
+            ToTimeFormatResponse(match.TimeFormat),
+            match.WhiteTimeMs,
+            match.BlackTimeMs,
+            match.LastMoveAt.ToUnixTimeMilliseconds(),
+            match.Moves.Count);
+    }
+
+    private static TimeFormatResponse ToTimeFormatResponse(TimeFormatDocument tf) =>
+        new(tf.Id, tf.BaseMs, tf.IncrementMs, tf.Category);
 
     private static async Task<PlayerResponse> ToPlayerResponseAsync(
         PlayerDocument player,

@@ -37,6 +37,8 @@ internal sealed class MatchServiceContext
 
     internal IReadOnlyList<string>? LastLegalMovesResult { get; set; }
 
+    internal (IReadOnlyList<MatchDocument> Matches, int Total)? LastListResult { get; set; }
+
     internal MatchServiceContext()
     {
         MatchService = new MatchService(
@@ -118,6 +120,17 @@ internal sealed class MatchServiceContext
             .Returns(Task.FromResult<IReadOnlyList<MatchDocument>>([.. matches]));
     }
 
+    internal void SetupListMatches(IEnumerable<MatchDocument> matches, int total)
+    {
+        Repository.ListAsync(
+                Arg.Any<string>(),
+                Arg.Any<string?>(),
+                Arg.Any<int>(),
+                Arg.Any<int>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<(IReadOnlyList<MatchDocument> Matches, int Total)>(([.. matches], total)));
+    }
+
     internal void SetupLegalMovesResponse(IEnumerable<string> moves)
     {
         GetLegalMovesResponse response = new();
@@ -132,21 +145,24 @@ internal sealed class MatchServiceContext
             .Returns(GrpcHelper.GrpcCall(response));
     }
 
+    internal static TimeFormatDocument TimeFormatForCategoryName(string name) => name switch
+    {
+        "bullet" => TimeFormatRegistry.Resolve("3+0"),
+        "blitz" => TimeFormatRegistry.Resolve("5+0"),
+        "rapid" => TimeFormatRegistry.Resolve("10+0"),
+        "classical" => TimeFormatRegistry.Resolve("30+0"),
+        _ when TimeFormatRegistry.IsKnown(name) => TimeFormatRegistry.Resolve(name),
+        _ => TimeFormatRegistry.Default,
+    };
+
     internal static MatchDocument BuildHumanMatch(
         string matchId,
         string whiteUserId,
         string blackUserId,
         string status = "ongoing",
-        string timeControl = "blitz")
+        string timeFormatCategory = "blitz")
     {
-        long timeMs = timeControl switch
-        {
-            "bullet" => 180_000L,
-            "blitz" => 300_000L,
-            "rapid" => 600_000L,
-            "classical" => 1_800_000L,
-            _ => 300_000L,
-        };
+        TimeFormatDocument tf = TimeFormatForCategoryName(timeFormatCategory);
 
         return new MatchDocument
         {
@@ -155,9 +171,9 @@ internal sealed class MatchServiceContext
             Black = new PlayerDocument { UserId = blackUserId },
             CurrentFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
             Status = status,
-            TimeControl = timeControl,
-            WhiteTimeMs = timeMs,
-            BlackTimeMs = timeMs,
+            TimeFormat = tf,
+            WhiteTimeMs = tf.BaseMs,
+            BlackTimeMs = tf.BaseMs,
             LastMoveAt = DateTimeOffset.UtcNow,
             FenHistory = ["rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"],
         };

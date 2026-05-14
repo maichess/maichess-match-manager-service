@@ -27,7 +27,7 @@ internal sealed class SocketNotifier(SocketSvc.SocketClient client, ILogger<Sock
         payload.Fields["player"] = Value.ForStruct(PlayerStruct(mover));
         payload.Fields["white_time_ms"] = Value.ForNumber(whiteTimeMs);
         payload.Fields["black_time_ms"] = Value.ForNumber(blackTimeMs);
-        FireAndForget(match, "move_made", payload);
+        FireAndForget(match.Id, "move_made", payload);
     }
 
     internal void BroadcastMatchEnded(MatchDocument match, string status, string reason)
@@ -36,7 +36,7 @@ internal sealed class SocketNotifier(SocketSvc.SocketClient client, ILogger<Sock
         payload.Fields["match_id"] = Value.ForString(match.Id);
         payload.Fields["status"] = Value.ForString(status);
         payload.Fields["reason"] = Value.ForString(reason);
-        FireAndForget(match, "match_ended", payload);
+        FireAndForget(match.Id, "match_ended", payload);
     }
 
     internal void BroadcastDrawOffered(MatchDocument match, PlayerDocument offerer)
@@ -44,7 +44,7 @@ internal sealed class SocketNotifier(SocketSvc.SocketClient client, ILogger<Sock
         Struct payload = new();
         payload.Fields["match_id"] = Value.ForString(match.Id);
         payload.Fields["player"] = Value.ForStruct(PlayerStruct(offerer));
-        FireAndForget(match, "draw_offered", payload);
+        FireAndForget(match.Id, "draw_offered", payload);
     }
 
     internal void BroadcastDrawDeclined(MatchDocument match, PlayerDocument decliner)
@@ -52,7 +52,7 @@ internal sealed class SocketNotifier(SocketSvc.SocketClient client, ILogger<Sock
         Struct payload = new();
         payload.Fields["match_id"] = Value.ForString(match.Id);
         payload.Fields["player"] = Value.ForStruct(PlayerStruct(decliner));
-        FireAndForget(match, "draw_declined", payload);
+        FireAndForget(match.Id, "draw_declined", payload);
     }
 
     private static Struct PlayerStruct(PlayerDocument player)
@@ -70,39 +70,23 @@ internal sealed class SocketNotifier(SocketSvc.SocketClient client, ILogger<Sock
         return s;
     }
 
-    private void FireAndForget(MatchDocument match, string @event, Struct payload) =>
-        _ = Task.Run(() => EmitToParticipantsAsync(match, @event, payload));
+    private void FireAndForget(string matchId, string @event, Struct payload) =>
+        _ = Task.Run(() => BroadcastAsync(matchId, @event, payload));
 
-    private async Task EmitToParticipantsAsync(MatchDocument match, string @event, Struct payload)
-    {
-        List<Task> tasks = [];
-        if (match.White.UserId is not null)
-        {
-            tasks.Add(EmitAsync(match.White.UserId, @event, payload));
-        }
-
-        if (match.Black.UserId is not null)
-        {
-            tasks.Add(EmitAsync(match.Black.UserId, @event, payload));
-        }
-
-        await Task.WhenAll(tasks).ConfigureAwait(false);
-    }
-
-    private async Task EmitAsync(string userId, string @event, Struct payload)
+    private async Task BroadcastAsync(string matchId, string @event, Struct payload)
     {
         try
         {
-            await client.EmitEventAsync(new Socket.V1.EmitEventRequest
+            await client.BroadcastMatchEventAsync(new Socket.V1.BroadcastMatchEventRequest
             {
-                UserId = userId,
+                MatchId = matchId,
                 Event = @event,
                 Payload = payload,
             }).ConfigureAwait(false);
         }
         catch (RpcException ex)
         {
-            logger.LogWarning(ex, "Failed to emit socket event {Event} to user {UserId}", @event, userId);
+            logger.LogWarning(ex, "Failed to broadcast socket event {Event} for match {MatchId}", @event, matchId);
         }
     }
 }

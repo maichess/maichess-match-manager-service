@@ -34,20 +34,16 @@ MaichessMatchManagerService/
 ## Key Design Decisions
 
 - **Clock tracking:** `LastMoveAt` stored in MongoDB; elapsed time is subtracted from the active player's clock on each move. Server is the source of truth.
+- **Increment:** When a `TimeFormat` defines a non-zero increment, the mover's clock is credited `increment_ms` after each move that leaves the game ongoing. Game-ending moves do not earn the increment.
 - **FEN history:** Stored as `FenHistory` array in MongoDB alongside `Moves`. `FenHistory[N]` is the board position after the N-th move; `FenHistory[0]` is the starting position. Used by `GET /matches/{id}/positions/{index}`.
-- **Bot moves:** Triggered via a fire-and-forget `Task.Run` after the human ply is confirmed. The bot move is delivered to clients via SSE.
+- **Bot moves:** Triggered via a fire-and-forget `Task.Run` after every ply. Used both to drive bot replies to human moves and to chain bot-vs-bot games (the first bot move is also queued at match creation time).
 - **Username resolution:** Resolved on demand per request via gRPC to User service. No caching.
 - **Bot name resolution:** Resolved on demand via `Engine.ListBots` per request. No caching.
-- **SSE broadcasting:** `MatchEventBroadcaster` singleton holds a `Channel<MatchNotification>` per active match. REST SSE handler and gRPC `StreamMatch` both subscribe to it.
+- **Socket broadcasting:** `SocketNotifier` calls `Socket.BroadcastMatchEvent` over gRPC; the socket service fan-outs to every client subscribed to the `match:<id>` room (participants and Watch spectators alike).
 
-## Time Controls (initial clock values)
+## Time Formats
 
-| Control   | Initial ms |
-|-----------|-----------|
-| bullet    | 180 000   |
-| blitz     | 300 000   |
-| rapid     | 600 000   |
-| classical | 1 800 000 |
+Match clock rules are described by a `TimeFormat` value object: `{ id, base_ms, increment_ms, category }`. The canonical preset list lives in `Services/TimeFormatRegistry.cs` and is mirrored by Match Maker's `GET /time-formats` endpoint. Documents written by this service store the format as four flat fields (`time_format_id`, `time_format_base_ms`, `time_format_increment_ms`, `time_format_category`) so the equality-only Database filter can paginate matches by category.
 
 ## Code Style
 

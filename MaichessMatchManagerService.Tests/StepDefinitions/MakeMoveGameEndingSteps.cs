@@ -41,4 +41,20 @@ internal sealed class MakeMoveGameEndingSteps(MatchServiceContext context)
     [Then(@"the returned match BlackTimeMs is less than (.*)")]
     public void ThenTheReturnedMatchBlackTimeMsIsLessThan(long expectedMax) =>
         Assert.True(context.LastMatchResult!.BlackTimeMs < expectedMax);
+
+    [Then(@"the returned match BlackTimeMs is at least (.*)")]
+    public void ThenTheReturnedMatchBlackTimeMsIsAtLeast(long expectedMin) =>
+        Assert.True(
+            context.LastMatchResult!.BlackTimeMs >= expectedMin,
+            $"Expected BlackTimeMs >= {expectedMin}, actual {context.LastMatchResult!.BlackTimeMs}");
+
+    [Then(@"the returned match WhiteTimeMs is less than (.*)")]
+    public void ThenTheReturnedMatchWhiteTimeMsIsLessThan(long expectedMax) =>
+        Assert.True(context.LastMatchResult!.WhiteTimeMs < expectedMax);
+
+    [Then(@"the returned match WhiteTimeMs is at least (.*)")]
+    public void ThenTheReturnedMatchWhiteTimeMsIsAtLeast(long expectedMin) =>
+        Assert.True(
+            context.LastMatchResult!.WhiteTimeMs >= expectedMin,
+            $"Expected WhiteTimeMs >= {expectedMin}, actual {context.LastMatchResult!.WhiteTimeMs}");
 }

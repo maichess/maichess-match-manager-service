@@ -11,10 +11,10 @@ internal sealed class MatchServiceSteps(MatchServiceContext context)
 {
     // ── Shared Given ─────────────────────────────────────────────────────────
 
-    [Given(@"an ongoing blitz match ""([^""]*)"" between white ""([^""]*)"" and black ""([^""]*)""")]
-    public void GivenAnOngoingBlitzMatch(string matchId, string whiteId, string blackId)
+    [Given(@"an ongoing (\S+) match ""([^""]*)"" between white ""([^""]*)"" and black ""([^""]*)""")]
+    public void GivenAnOngoingMatch(string timeFormat, string matchId, string whiteId, string blackId)
     {
-        MatchDocument match = MatchServiceContext.BuildHumanMatch(matchId, whiteId, blackId);
+        MatchDocument match = MatchServiceContext.BuildHumanMatch(matchId, whiteId, blackId, "ongoing", timeFormat);
         context.SetupMatch(match);
     }
 

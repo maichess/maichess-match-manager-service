@@ -13,10 +13,10 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
     {
         PlayerDocument white = ToPlayerDocument(request.White);
         PlayerDocument black = ToPlayerDocument(request.Black);
-        string timeControl = ToTimeControlString(request.TimeControl);
+        TimeFormatDocument timeFormat = ToTimeFormatDocument(request.TimeFormat);
 
         MatchDocument match = await matchService.CreateMatchAsync(
-            white, black, timeControl, context.CancellationToken);
+            white, black, timeFormat, context.CancellationToken);
 
         return new CreateMatchResponse { Match = ToProtoMatch(match) };
     }
@@ -34,6 +34,27 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
         {
             throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
         }
+    }
+
+    public override async Task<ListMatchesResponse> ListMatches(
+        ListMatchesRequest request, ServerCallContext context)
+    {
+        string status = ToStatusString(request.Status);
+        (IReadOnlyList<MatchDocument> matches, int total) = await matchService.ListMatchesAsync(
+            status,
+            request.Category,
+            request.Page,
+            request.PageSize,
+            context.CancellationToken);
+
+        ListMatchesResponse response = new()
+        {
+            Total = total,
+            Page = request.Page < 1 ? 1 : request.Page,
+            PageSize = request.PageSize <= 0 ? 20 : Math.Min(request.PageSize, 100),
+        };
+        response.Matches.AddRange(matches.Select(ToProtoMatch));
+        return response;
     }
 
     public override async Task<MakeMoveResponse> MakeMove(
@@ -124,13 +145,31 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
             _ => throw new RpcException(new Status(StatusCode.InvalidArgument, "player identity is required")),
         };
 
-    private static string ToTimeControlString(TimeControl tc) => tc switch
+    private static TimeFormatDocument ToTimeFormatDocument(TimeFormat tf)
     {
-        TimeControl.Bullet => "bullet",
-        TimeControl.Blitz => "blitz",
-        TimeControl.Rapid => "rapid",
-        TimeControl.Classical => "classical",
-        _ => "blitz",
+        if (tf is null || string.IsNullOrEmpty(tf.Id))
+        {
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "time_format is required"));
+        }
+
+        // The registry is the source of truth for known presets — callers can't
+        // tune base/increment by passing a known id with custom values. For an
+        // unknown id we trust whatever the caller supplied (with safe defaults).
+        return TimeFormatRegistry.IsKnown(tf.Id)
+            ? TimeFormatRegistry.Resolve(tf.Id)
+            : new TimeFormatDocument
+            {
+                Id = tf.Id,
+                BaseMs = tf.BaseMs > 0 ? tf.BaseMs : TimeFormatRegistry.Default.BaseMs,
+                IncrementMs = tf.IncrementMs,
+                Category = string.IsNullOrEmpty(tf.Category) ? TimeFormatRegistry.Default.Category : tf.Category,
+            };
+    }
+
+    private static string ToStatusString(MatchStatusFilter filter) => filter switch
+    {
+        MatchStatusFilter.Ongoing => "ongoing",
+        _ => "ongoing",
     };
 
     private static ProtoMatch ToProtoMatch(MatchDocument match)
@@ -142,7 +181,7 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
             Black = ToProtoPlayer(match.Black),
             CurrentFen = match.CurrentFen,
             Status = ToProtoStatus(match.Status),
-            TimeControl = ToProtoTimeControl(match.TimeControl),
+            TimeFormat = ToProtoTimeFormat(match.TimeFormat),
             WhiteTimeMs = match.WhiteTimeMs,
             BlackTimeMs = match.BlackTimeMs,
         };
@@ -163,12 +202,11 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
         _ => MatchStatus.Ongoing,
     };
 
-    private static TimeControl ToProtoTimeControl(string tc) => tc switch
+    private static TimeFormat ToProtoTimeFormat(TimeFormatDocument tf) => new()
     {
-        "bullet" => TimeControl.Bullet,
-        "blitz" => TimeControl.Blitz,
-        "rapid" => TimeControl.Rapid,
-        "classical" => TimeControl.Classical,
-        _ => TimeControl.Blitz,
+        Id = tf.Id,
+        BaseMs = tf.BaseMs,
+        IncrementMs = tf.IncrementMs,
+        Category = tf.Category,
     };
 }

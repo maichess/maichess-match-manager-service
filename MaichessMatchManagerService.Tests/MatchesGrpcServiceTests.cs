@@ -12,6 +12,38 @@ public sealed class MatchesGrpcServiceTests
     private const string InitialFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     private const string BlackToMoveFen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
 
+    private static TimeFormat BlitzFormat() => new()
+    {
+        Id = "5+0",
+        BaseMs = 300_000,
+        IncrementMs = 0,
+        Category = "blitz",
+    };
+
+    private static TimeFormat BulletFormat() => new()
+    {
+        Id = "1+0",
+        BaseMs = 60_000,
+        IncrementMs = 0,
+        Category = "bullet",
+    };
+
+    private static TimeFormat RapidFormat() => new()
+    {
+        Id = "10+0",
+        BaseMs = 600_000,
+        IncrementMs = 0,
+        Category = "rapid",
+    };
+
+    private static TimeFormat ClassicalFormat() => new()
+    {
+        Id = "30+0",
+        BaseMs = 1_800_000,
+        IncrementMs = 0,
+        Category = "classical",
+    };
+
     // ── CreateMatch ──────────────────────────────────────────────────────────
 
     [Fact]
@@ -24,7 +56,7 @@ public sealed class MatchesGrpcServiceTests
             {
                 White = new Player { UserId = "white-1" },
                 Black = new Player { UserId = "black-1" },
-                TimeControl = TimeControl.Blitz,
+                TimeFormat = BlitzFormat(),
             },
             ctx.CallContext);
 
@@ -43,7 +75,7 @@ public sealed class MatchesGrpcServiceTests
             {
                 White = new Player { BotId = "bot-1" },
                 Black = new Player { UserId = "black-1" },
-                TimeControl = TimeControl.Blitz,
+                TimeFormat = BlitzFormat(),
             },
             ctx.CallContext);
 
@@ -59,9 +91,9 @@ public sealed class MatchesGrpcServiceTests
             ctx.Service.CreateMatch(
                 new CreateMatchRequest
                 {
-                    White = new Player(), // no identity
+                    White = new Player(),
                     Black = new Player { UserId = "black-1" },
-                    TimeControl = TimeControl.Blitz,
+                    TimeFormat = BlitzFormat(),
                 },
                 ctx.CallContext));
 
@@ -69,25 +101,24 @@ public sealed class MatchesGrpcServiceTests
     }
 
     [Fact]
-    public async Task CreateMatch_BulletTimeControl_SetsCorrectTimeMs()
+    public async Task CreateMatch_WithoutTimeFormat_ThrowsRpcExceptionInvalidArgument()
     {
         GrpcServiceContext ctx = new();
 
-        CreateMatchResponse response = await ctx.Service.CreateMatch(
-            new CreateMatchRequest
-            {
-                White = new Player { UserId = "w" },
-                Black = new Player { UserId = "b" },
-                TimeControl = TimeControl.Bullet,
-            },
-            ctx.CallContext);
+        RpcException ex = await Assert.ThrowsAsync<RpcException>(() =>
+            ctx.Service.CreateMatch(
+                new CreateMatchRequest
+                {
+                    White = new Player { UserId = "w" },
+                    Black = new Player { UserId = "b" },
+                },
+                ctx.CallContext));
 
-        Assert.Equal(180_000L, response.Match.WhiteTimeMs);
-        Assert.Equal(TimeControl.Bullet, response.Match.TimeControl);
+        Assert.Equal(StatusCode.InvalidArgument, ex.StatusCode);
     }
 
     [Fact]
-    public async Task CreateMatch_RapidTimeControl_SetsCorrectTimeMs()
+    public async Task CreateMatch_BulletTimeFormat_SetsCorrectBaseMs()
     {
         GrpcServiceContext ctx = new();
 
@@ -96,16 +127,35 @@ public sealed class MatchesGrpcServiceTests
             {
                 White = new Player { UserId = "w" },
                 Black = new Player { UserId = "b" },
-                TimeControl = TimeControl.Rapid,
+                TimeFormat = BulletFormat(),
+            },
+            ctx.CallContext);
+
+        Assert.Equal(60_000L, response.Match.WhiteTimeMs);
+        Assert.Equal("1+0", response.Match.TimeFormat.Id);
+        Assert.Equal("bullet", response.Match.TimeFormat.Category);
+    }
+
+    [Fact]
+    public async Task CreateMatch_RapidTimeFormat_SetsCorrectBaseMs()
+    {
+        GrpcServiceContext ctx = new();
+
+        CreateMatchResponse response = await ctx.Service.CreateMatch(
+            new CreateMatchRequest
+            {
+                White = new Player { UserId = "w" },
+                Black = new Player { UserId = "b" },
+                TimeFormat = RapidFormat(),
             },
             ctx.CallContext);
 
         Assert.Equal(600_000L, response.Match.WhiteTimeMs);
-        Assert.Equal(TimeControl.Rapid, response.Match.TimeControl);
+        Assert.Equal("10+0", response.Match.TimeFormat.Id);
     }
 
     [Fact]
-    public async Task CreateMatch_ClassicalTimeControl_SetsCorrectTimeMs()
+    public async Task CreateMatch_ClassicalTimeFormat_SetsCorrectBaseMs()
     {
         GrpcServiceContext ctx = new();
 
@@ -114,16 +164,16 @@ public sealed class MatchesGrpcServiceTests
             {
                 White = new Player { UserId = "w" },
                 Black = new Player { UserId = "b" },
-                TimeControl = TimeControl.Classical,
+                TimeFormat = ClassicalFormat(),
             },
             ctx.CallContext);
 
         Assert.Equal(1_800_000L, response.Match.WhiteTimeMs);
-        Assert.Equal(TimeControl.Classical, response.Match.TimeControl);
+        Assert.Equal("classical", response.Match.TimeFormat.Category);
     }
 
     [Fact]
-    public async Task CreateMatch_UnknownTimeControl_DefaultsToBlitz()
+    public async Task CreateMatch_TimeFormatWithIncrement_PersistsIncrement()
     {
         GrpcServiceContext ctx = new();
 
@@ -132,12 +182,82 @@ public sealed class MatchesGrpcServiceTests
             {
                 White = new Player { UserId = "w" },
                 Black = new Player { UserId = "b" },
-                TimeControl = (TimeControl)999,
+                TimeFormat = new TimeFormat
+                {
+                    Id = "3+2",
+                    BaseMs = 180_000,
+                    IncrementMs = 2_000,
+                    Category = "blitz",
+                },
+            },
+            ctx.CallContext);
+
+        Assert.Equal(180_000L, response.Match.WhiteTimeMs);
+        Assert.Equal(2_000L, response.Match.TimeFormat.IncrementMs);
+        Assert.Equal("3+2", response.Match.TimeFormat.Id);
+    }
+
+    [Fact]
+    public async Task CreateMatch_UnknownTimeFormatId_UsesCallerValues()
+    {
+        GrpcServiceContext ctx = new();
+
+        CreateMatchResponse response = await ctx.Service.CreateMatch(
+            new CreateMatchRequest
+            {
+                White = new Player { UserId = "w" },
+                Black = new Player { UserId = "b" },
+                TimeFormat = new TimeFormat
+                {
+                    Id = "custom-format",
+                    BaseMs = 240_000,
+                    IncrementMs = 4_000,
+                    Category = "blitz",
+                },
+            },
+            ctx.CallContext);
+
+        Assert.Equal(240_000L, response.Match.WhiteTimeMs);
+        Assert.Equal("custom-format", response.Match.TimeFormat.Id);
+        Assert.Equal(4_000L, response.Match.TimeFormat.IncrementMs);
+        Assert.Equal("blitz", response.Match.TimeFormat.Category);
+    }
+
+    [Fact]
+    public async Task CreateMatch_UnknownTimeFormatId_WithoutBaseFallsBackToDefault()
+    {
+        GrpcServiceContext ctx = new();
+
+        CreateMatchResponse response = await ctx.Service.CreateMatch(
+            new CreateMatchRequest
+            {
+                White = new Player { UserId = "w" },
+                Black = new Player { UserId = "b" },
+                TimeFormat = new TimeFormat { Id = "custom-format" },
             },
             ctx.CallContext);
 
         Assert.Equal(300_000L, response.Match.WhiteTimeMs);
-        Assert.Equal(TimeControl.Blitz, response.Match.TimeControl);
+        Assert.Equal("blitz", response.Match.TimeFormat.Category);
+    }
+
+    [Fact]
+    public async Task CreateMatch_TimeFormatWithIdOnly_ResolvesFromRegistry()
+    {
+        GrpcServiceContext ctx = new();
+
+        CreateMatchResponse response = await ctx.Service.CreateMatch(
+            new CreateMatchRequest
+            {
+                White = new Player { UserId = "w" },
+                Black = new Player { UserId = "b" },
+                TimeFormat = new TimeFormat { Id = "5+3" },
+            },
+            ctx.CallContext);
+
+        Assert.Equal(300_000L, response.Match.WhiteTimeMs);
+        Assert.Equal(3_000L, response.Match.TimeFormat.IncrementMs);
+        Assert.Equal("blitz", response.Match.TimeFormat.Category);
     }
 
     // ── GetMatch ─────────────────────────────────────────────────────────────
@@ -200,18 +320,18 @@ public sealed class MatchesGrpcServiceTests
     }
 
     [Fact]
-    public async Task GetMatch_MatchWithUnknownTimeControl_DefaultsToBlitzProtoTimeControl()
+    public async Task GetMatch_PreservesTimeFormatOnMatch()
     {
         GrpcServiceContext ctx = new();
-        MatchDocument match = MatchServiceContext.BuildHumanMatch("match-1", "w", "b");
-        match.TimeControl = "custom_unknown";
+        MatchDocument match = MatchServiceContext.BuildHumanMatch("match-1", "w", "b", "ongoing", "rapid");
         ctx.SetupMatch(match);
 
         GetMatchResponse response = await ctx.Service.GetMatch(
             new GetMatchRequest { MatchId = "match-1" },
             ctx.CallContext);
 
-        Assert.Equal(TimeControl.Blitz, response.Match.TimeControl);
+        Assert.Equal("10+0", response.Match.TimeFormat.Id);
+        Assert.Equal("rapid", response.Match.TimeFormat.Category);
     }
 
     [Fact]
@@ -225,6 +345,76 @@ public sealed class MatchesGrpcServiceTests
                 ctx.CallContext));
 
         Assert.Equal(StatusCode.NotFound, ex.StatusCode);
+    }
+
+    // ── ListMatches ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task ListMatches_ReturnsRepositoryResults()
+    {
+        GrpcServiceContext ctx = new();
+        MatchDocument match = MatchServiceContext.BuildHumanMatch("match-1", "white-1", "black-1");
+        ctx.SetupListMatches([match], total: 1);
+
+        ListMatchesResponse response = await ctx.Service.ListMatches(
+            new ListMatchesRequest
+            {
+                Status = MatchStatusFilter.Ongoing,
+                Category = "blitz",
+                Page = 1,
+                PageSize = 20,
+            },
+            ctx.CallContext);
+
+        Assert.Single(response.Matches);
+        Assert.Equal(1, response.Total);
+        Assert.Equal(20, response.PageSize);
+        Assert.Equal("match-1", response.Matches[0].Id);
+    }
+
+    [Fact]
+    public async Task ListMatches_DefaultsPageAndSizeWhenZero()
+    {
+        GrpcServiceContext ctx = new();
+        ctx.SetupListMatches([], total: 0);
+
+        ListMatchesResponse response = await ctx.Service.ListMatches(
+            new ListMatchesRequest { Status = MatchStatusFilter.Ongoing },
+            ctx.CallContext);
+
+        Assert.Equal(1, response.Page);
+        Assert.Equal(20, response.PageSize);
+    }
+
+    [Fact]
+    public async Task ListMatches_CapsPageSizeAt100()
+    {
+        GrpcServiceContext ctx = new();
+        ctx.SetupListMatches([], total: 0);
+
+        ListMatchesResponse response = await ctx.Service.ListMatches(
+            new ListMatchesRequest
+            {
+                Status = MatchStatusFilter.Ongoing,
+                Page = 1,
+                PageSize = 500,
+            },
+            ctx.CallContext);
+
+        Assert.Equal(100, response.PageSize);
+    }
+
+    [Fact]
+    public async Task ListMatches_UnspecifiedStatus_DefaultsToOngoing()
+    {
+        GrpcServiceContext ctx = new();
+        ctx.SetupListMatches([], total: 0);
+
+        ListMatchesResponse response = await ctx.Service.ListMatches(
+            new ListMatchesRequest { Status = MatchStatusFilter.Unspecified },
+            ctx.CallContext);
+
+        Assert.NotNull(response);
     }
 
     // ── MakeMove ─────────────────────────────────────────────────────────────
@@ -415,7 +605,6 @@ public sealed class MatchesGrpcServiceTests
     public async Task GetMatchPosition_AnalysisNotPermitted_ThrowsRpcExceptionPermissionDenied()
     {
         GrpcServiceContext ctx = new();
-        // Ongoing human vs human match is not analyzable.
         MatchDocument match = MatchServiceContext.BuildHumanMatch("match-1", "w", "b");
         ctx.SetupMatch(match);
 
@@ -441,5 +630,4 @@ public sealed class MatchesGrpcServiceTests
 
         Assert.Equal(StatusCode.InvalidArgument, ex.StatusCode);
     }
-
 }

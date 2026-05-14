@@ -29,3 +29,15 @@ Feature: Create Match
     When a blitz match is created between white "white-1" and black "black-1"
     Then the created match has status "ongoing"
     And the created match FenHistory starts with the initial FEN
+
+  Scenario: Creating a match with a "3+2" format records the increment
+    When a match is created between white "white-1" and black "black-1" with format "3+2"
+    Then the created match has WhiteTimeMs 180000
+    And the created match has time format "3+2"
+    And the created match has IncrementMs 2000
+
+  Scenario: Creating a match with the "10+5" format records the rapid category
+    When a match is created between white "white-1" and black "black-1" with format "10+5"
+    Then the created match has WhiteTimeMs 600000
+    And the created match has time format "10+5"
+    And the created match has IncrementMs 5000
