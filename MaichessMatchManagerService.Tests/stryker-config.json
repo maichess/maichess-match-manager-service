@@ -1,0 +1,32 @@
+{
+  "stryker-config": {
+    "project": "MaichessMatchManagerService.csproj",
+    "solution": "../maichess-match-manager-service.sln",
+    "test-projects": [
+      "MaichessMatchManagerService.Tests.csproj"
+    ],
+    "reporters": [
+      "progress",
+      "html"
+    ],
+    "mutation-level": "Standard",
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 0
+    },
+    "mutate": [
+      "!**/Program.cs",
+      "!**/*.g.cs",
+      "!**/*.generated.cs",
+      "!**/Rest/**/*Endpoints.cs",
+      "!**/Data/MatchRepository.cs"
+    ],
+    "ignore-methods": [
+      "*Log*",
+      "Console.Write*",
+      "TriggerBotMoveIfNeeded",
+      "ProcessBotMoveAsync"
+    ]
+  }
+}

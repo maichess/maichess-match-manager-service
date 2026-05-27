@@ -68,6 +68,16 @@ Match clock rules are described by a `TimeFormat` value object: `{ id, base_ms, 
   - All REST DTO record types (`ErrorResponse`, `MatchResponse`, etc.)
 - Coverlet is configured in the test `.csproj` to exclude `Program.cs`, `*.g.cs`, and `*.generated.cs`.
 
+### Mutation testing
+
+Stryker.NET is wired up as a local dotnet tool. Config lives in
+`MaichessMatchManagerService.Tests/stryker-config.json`; the same files
+excluded from coverage (REST endpoints, `MatchRepository`, fire-and-forget bot
+helpers) are also excluded from mutation. Run via `dotnet tool restore` then
+`dotnet stryker` inside the test project directory. See `README.md` for
+details. Mutation testing is not required to pass on every change, but use it
+when investigating whether tests genuinely exercise behaviour.
+
 ## Entity Framework Rules
 
 N/A — this service delegates all persistence to the database service via gRPC.
