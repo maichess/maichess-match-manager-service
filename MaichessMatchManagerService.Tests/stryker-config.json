@@ -20,7 +20,8 @@
       "!**/*.g.cs",
       "!**/*.generated.cs",
       "!**/Rest/**/*Endpoints.cs",
-      "!**/Data/MatchRepository.cs"
+      "!**/Data/MatchRepository.cs",
+      "!**/Services/*Exception.cs"
     ],
     "ignore-methods": [
       "*Log*",

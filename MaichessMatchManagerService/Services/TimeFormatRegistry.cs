@@ -21,6 +21,7 @@ internal static class TimeFormatRegistry
         new() { Id = "30+20", BaseMs = 1_800_000, IncrementMs = 20_000, Category = "classical" },
     ];
 
+    // Stryker disable once Linq: "5+0" is a hard-coded preset; First vs FirstOrDefault here is equivalent.
     internal static TimeFormatDocument Default => Presets.First(p => p.Id == "5+0");
 
     internal static TimeFormatDocument Resolve(string id) =>
