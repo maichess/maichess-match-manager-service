@@ -4,7 +4,7 @@ Instantiates chess matches, accepts move submissions, tracks game state, and str
 
 ## Contracts
 
-- **REST:** `maichess-api-contracts/api-contracts/rest/match-manager.md`
+- **REST:** `maichess-api-contracts/rest/match-manager.md`
 - **gRPC server:** `maichess-api-contracts/protos/match-manager-service/v1/matches.proto`
 - **gRPC clients:** `protos/move-validator-service/v1/moves.proto`, `protos/engine-service/v1/bots.proto`, `protos/user-service/v1/users.proto`
 - **Generated stubs:** `Maichess.PlatformProtos` NuGet package (see `maichess-api-contracts/dotnet/`)
