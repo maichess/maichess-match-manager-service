@@ -426,7 +426,8 @@ internal static class MatchesEndpoints
             match.Moves.Count,
             createdBy,
             match.Source,
-            match.ExternalProvider);
+            match.ExternalProvider,
+            match.ExternalRef);
     }
 
     private static TimeFormatResponse ToTimeFormatResponse(TimeFormatDocument tf) =>
@@ -444,6 +445,11 @@ internal static class MatchesEndpoints
                 new Maichess.User.V1.GetUserRequest { UserId = player.UserId },
                 cancellationToken: ct);
             return new PlayerResponse(player.UserId, userResponse.User.Username, null, null);
+        }
+
+        if (player.ExternalName is not null)
+        {
+            return new PlayerResponse(null, null, null, null, player.ExternalName);
         }
 
         ListBotsResponse bots = await botsClient.ListBotsAsync(new ListBotsRequest(), cancellationToken: ct);

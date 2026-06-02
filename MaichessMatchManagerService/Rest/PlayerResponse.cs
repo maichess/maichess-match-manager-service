@@ -12,4 +12,6 @@ internal sealed record PlayerResponse(
     [property: JsonPropertyName("bot_id"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     string? BotId,
     [property: JsonPropertyName("name"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    string? Name);
+    string? Name,
+    [property: JsonPropertyName("external_name"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? ExternalName = null);

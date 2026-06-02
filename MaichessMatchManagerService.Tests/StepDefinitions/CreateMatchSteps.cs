@@ -18,7 +18,7 @@ internal sealed class CreateMatchSteps(MatchServiceContext context)
         PlayerDocument black = new() { UserId = blackId };
         TimeFormatDocument tf = MatchServiceContext.TimeFormatForCategoryName(timeFormatCategory);
         context.LastMatchResult = await context.MatchService.CreateMatchAsync(
-            white, black, tf, null, null, CancellationToken.None);
+            white, black, tf, null, null, ct: CancellationToken.None);
     }
 
     [When(@"a match is created between white ""([^""]*)"" and black ""([^""]*)"" with format ""([^""]*)""")]
@@ -28,7 +28,7 @@ internal sealed class CreateMatchSteps(MatchServiceContext context)
         PlayerDocument black = new() { UserId = blackId };
         TimeFormatDocument tf = TimeFormatRegistry.Resolve(timeFormatId);
         context.LastMatchResult = await context.MatchService.CreateMatchAsync(
-            white, black, tf, null, null, CancellationToken.None);
+            white, black, tf, null, null, ct: CancellationToken.None);
     }
 
     [Then(@"the created match has WhiteTimeMs (.*)")]

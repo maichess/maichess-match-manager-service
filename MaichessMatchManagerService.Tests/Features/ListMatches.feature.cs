@@ -26,8 +26,8 @@ namespace MaichessMatchManagerService.Tests.Features
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "List Matches", ("  Listing matches drives the Watch feature: clients fetch a paginated\r\n  index of" +
-                " ongoing games filtered optionally by time-format category."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "List Matches", ("  Listing matches drives the Watch feature: clients fetch a paginated\n  index of " +
+                "ongoing games filtered optionally by time-format category."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         

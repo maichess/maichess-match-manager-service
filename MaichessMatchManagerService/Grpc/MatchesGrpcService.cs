@@ -16,16 +16,59 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
         TimeFormatDocument timeFormat = ToTimeFormatDocument(request.TimeFormat);
         PlayerDocument? createdBy = request.CreatedBy is null ? null : ToCreatedByDocument(request.CreatedBy);
 
+        string source = request.Source == MatchSource.External ? "external" : "native";
+        string externalProvider = request.ExternalProvider;
+        string externalRef = request.ExternalRef;
+
         try
         {
             MatchDocument match = await matchService.CreateMatchAsync(
-                white, black, timeFormat, createdBy, request.StartFen, context.CancellationToken);
+                white,
+                black,
+                timeFormat,
+                createdBy,
+                request.StartFen,
+                source,
+                externalProvider,
+                externalRef,
+                context.CancellationToken);
 
             return new CreateMatchResponse { Match = ToProtoMatch(match) };
         }
         catch (InvalidStartPositionException ex)
         {
             throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+        }
+    }
+
+    public override async Task<SyncExternalMatchResponse> SyncExternalMatch(
+        SyncExternalMatchRequest request, ServerCallContext context)
+    {
+        try
+        {
+            string status = ToStatusString(request.Status);
+            string endReason = ToEndReasonString(request.EndReason);
+
+            MatchDocument match = await matchService.SyncExternalMatchAsync(
+                request.MatchId,
+                request.CurrentFen,
+                request.Moves,
+                status,
+                request.WhiteTimeMs,
+                request.BlackTimeMs,
+                request.FinishedAtMs,
+                endReason,
+                context.CancellationToken);
+
+            return new SyncExternalMatchResponse { Match = ToProtoMatch(match) };
+        }
+        catch (MatchNotFoundException ex)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
         }
     }
 
@@ -171,6 +214,7 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
         {
             Player.IdentityOneofCase.UserId => new PlayerDocument { UserId = player.UserId },
             Player.IdentityOneofCase.BotId => new PlayerDocument { BotId = player.BotId },
+            Player.IdentityOneofCase.ExternalName => new PlayerDocument { ExternalName = player.ExternalName },
             _ => throw new RpcException(new Status(StatusCode.InvalidArgument, "player identity is required")),
         };
 
@@ -180,6 +224,7 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
         {
             Player.IdentityOneofCase.UserId => new PlayerDocument { UserId = player.UserId },
             Player.IdentityOneofCase.BotId => new PlayerDocument { BotId = player.BotId },
+            Player.IdentityOneofCase.ExternalName => new PlayerDocument { ExternalName = player.ExternalName },
             _ => null,
         };
 
@@ -216,6 +261,28 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
         _ => "ongoing",
     };
 
+    private static string ToStatusString(MatchStatus status) => status switch
+    {
+        MatchStatus.Ongoing => "ongoing",
+        MatchStatus.WhiteWon => "white_won",
+        MatchStatus.BlackWon => "black_won",
+        MatchStatus.Draw => "draw",
+        _ => "ongoing",
+    };
+
+    private static string ToEndReasonString(EndReason reason) => reason switch
+    {
+        EndReason.Checkmate => "checkmate",
+        EndReason.Resignation => "resignation",
+        EndReason.Stalemate => "stalemate",
+        EndReason.Timeout => "timeout",
+        EndReason.DrawAgreement => "draw_agreement",
+        EndReason.FiftyMoveRule => "fifty_move_rule",
+        EndReason.ThreefoldRepetition => "threefold_repetition",
+        EndReason.InsufficientMaterial => "insufficient_material",
+        _ => "checkmate",
+    };
+
     private static ProtoMatch ToProtoMatch(MatchDocument match)
     {
         ProtoMatch proto = new()
@@ -231,6 +298,7 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
             Source = ToProtoSource(match.Source),
             ExternalProvider = match.ExternalProvider,
             FinishedAtMs = match.FinishedAtMs,
+            ExternalRef = match.ExternalRef,
         };
         if (match.CreatedBy is not null)
         {
@@ -250,7 +318,9 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
     private static Player ToProtoPlayer(PlayerDocument player) =>
         player.UserId is not null
             ? new Player { UserId = player.UserId }
-            : new Player { BotId = player.BotId };
+            : player.ExternalName is not null
+                ? new Player { ExternalName = player.ExternalName }
+                : new Player { BotId = player.BotId };
 
     private static MatchStatus ToProtoStatus(string status) => status switch
     {

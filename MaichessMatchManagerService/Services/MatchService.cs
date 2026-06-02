@@ -45,9 +45,13 @@ internal sealed partial class MatchService(
         TimeFormatDocument timeFormat,
         PlayerDocument? createdBy,
         string? startFen,
-        CancellationToken ct)
+        string source = "native",
+        string externalProvider = "",
+        string externalRef = "",
+        CancellationToken ct = default)
     {
         string fen = NormalizeStartFen(startFen);
+        bool isExternal = source == "external";
 
         MatchDocument created = await repository.InsertAsync(
             new MatchDocument
@@ -63,14 +67,68 @@ internal sealed partial class MatchService(
                 LastMoveAt = DateTimeOffset.UtcNow,
                 FenHistory = [fen],
                 CreatedBy = createdBy ?? DeriveInitiator(white, black),
-                Source = "native",
+                Source = source,
+                ExternalProvider = externalProvider,
+                ExternalRef = externalRef,
             },
             ct);
 
-        // If white is a bot, kick off the first move so bot-vs-bot matches don't
-        // stall waiting for a human ply that will never come.
-        TriggerBotMoveIfNeeded(created);
+        if (!isExternal)
+        {
+            TriggerBotMoveIfNeeded(created);
+        }
+
         return created;
+    }
+
+    internal async Task<MatchDocument> SyncExternalMatchAsync(
+        string matchId,
+        string currentFen,
+        IReadOnlyList<string> moves,
+        string status,
+        long whiteTimeMs,
+        long blackTimeMs,
+        long finishedAtMs,
+        string endReason,
+        CancellationToken ct)
+    {
+        MatchDocument match = await GetMatchAsync(matchId, ct);
+
+        if (match.Source != "external")
+        {
+            throw new InvalidOperationException("SyncExternalMatch is only valid for external matches");
+        }
+
+        int previousMoveCount = match.Moves.Count;
+        string? lastNewMove = moves.Count > previousMoveCount ? moves[^1] : null;
+
+        match.CurrentFen = currentFen;
+        match.Moves = [.. moves];
+        match.WhiteTimeMs = whiteTimeMs;
+        match.BlackTimeMs = blackTimeMs;
+        match.Status = status;
+        match.LastMoveAt = DateTimeOffset.UtcNow;
+
+        if (status != "ongoing" && finishedAtMs > 0)
+        {
+            match.FinishedAtMs = finishedAtMs;
+        }
+
+        await repository.ReplaceAsync(match, ct);
+
+        if (lastNewMove is not null)
+        {
+            bool moverIsWhite = moves.Count % 2 == 1;
+            PlayerDocument mover = moverIsWhite ? match.White : match.Black;
+            socketNotifier.BroadcastMoveMade(match, lastNewMove, currentFen, moves.Count, mover, whiteTimeMs, blackTimeMs);
+        }
+
+        if (status != "ongoing")
+        {
+            socketNotifier.BroadcastMatchEnded(match, status, endReason);
+        }
+
+        return match;
     }
 
     internal async Task<MatchDocument> GetMatchAsync(string matchId, CancellationToken ct)

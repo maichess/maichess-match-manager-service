@@ -49,4 +49,8 @@ internal sealed class MatchDocument
 
     // Unix timestamp in milliseconds at which the match ended; 0 while ongoing.
     public long FinishedAtMs { get; set; }
+
+    // Opaque reference linking this match to a game on the external provider
+    // (e.g. tournament-server gameId). Empty for native matches.
+    public string ExternalRef { get; set; } = string.Empty;
 }

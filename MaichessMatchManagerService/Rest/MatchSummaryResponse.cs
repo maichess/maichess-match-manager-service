@@ -17,4 +17,5 @@ internal sealed record MatchSummaryResponse(
     [property: JsonPropertyName("move_count")] int MoveCount,
     [property: JsonPropertyName("created_by")] PlayerResponse? CreatedBy,
     [property: JsonPropertyName("source")] string Source,
-    [property: JsonPropertyName("external_provider")] string ExternalProvider);
+    [property: JsonPropertyName("external_provider")] string ExternalProvider,
+    [property: JsonPropertyName("external_ref")] string ExternalRef);

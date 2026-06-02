@@ -783,6 +783,109 @@ public sealed class MatchesGrpcServiceTests
         Assert.Equal(StatusCode.PermissionDenied, ex.StatusCode);
     }
 
+    // ── CreateMatch — external ──────────────────────────────────────────────
+
+    [Fact]
+    public async Task CreateMatch_External_SetsSourceAndProvider()
+    {
+        GrpcServiceContext ctx = new();
+
+        CreateMatchResponse response = await ctx.Service.CreateMatch(
+            new CreateMatchRequest
+            {
+                White = new Player { ExternalName = "Alice" },
+                Black = new Player { ExternalName = "Bob" },
+                TimeFormat = BlitzFormat(),
+                Source = MatchSource.External,
+                ExternalProvider = "tournament-server",
+                ExternalRef = "game-99",
+            },
+            ctx.CallContext);
+
+        Assert.Equal(MatchSource.External, response.Match.Source);
+        Assert.Equal("tournament-server", response.Match.ExternalProvider);
+        Assert.Equal("game-99", response.Match.ExternalRef);
+    }
+
+    [Fact]
+    public async Task CreateMatch_ExternalNamePlayer_MapsToProtoExternalName()
+    {
+        GrpcServiceContext ctx = new();
+
+        CreateMatchResponse response = await ctx.Service.CreateMatch(
+            new CreateMatchRequest
+            {
+                White = new Player { ExternalName = "Alice" },
+                Black = new Player { BotId = "bot-a" },
+                TimeFormat = BlitzFormat(),
+                Source = MatchSource.External,
+                ExternalProvider = "ts",
+            },
+            ctx.CallContext);
+
+        Assert.Equal("Alice", response.Match.White.ExternalName);
+        Assert.Equal("bot-a", response.Match.Black.BotId);
+    }
+
+    // ── SyncExternalMatch ───────────────────────────────────────────────────
+
+    [Fact]
+    public async Task SyncExternalMatch_UpdatesStateAndReturnsMatch()
+    {
+        GrpcServiceContext ctx = new();
+        MatchDocument match = MatchServiceContext.BuildMatch(
+            "ext-1",
+            new PlayerDocument { ExternalName = "Alice" },
+            new PlayerDocument { ExternalName = "Bob" });
+        match.Source = "external";
+        ctx.SetupMatch(match);
+
+        SyncExternalMatchResponse response = await ctx.Service.SyncExternalMatch(
+            new SyncExternalMatchRequest
+            {
+                MatchId = "ext-1",
+                CurrentFen = "fen-after-e4",
+                Moves = { "e2e4" },
+                Status = MatchStatus.Ongoing,
+                WhiteTimeMs = 290_000,
+                BlackTimeMs = 300_000,
+            },
+            ctx.CallContext);
+
+        Assert.Equal("ext-1", response.Match.Id);
+        Assert.Equal("fen-after-e4", response.Match.CurrentFen);
+        Assert.Single(response.Match.Moves);
+        Assert.Equal(290_000L, response.Match.WhiteTimeMs);
+    }
+
+    [Fact]
+    public async Task SyncExternalMatch_NotFound_ThrowsRpcExceptionNotFound()
+    {
+        GrpcServiceContext ctx = new();
+
+        RpcException ex = await Assert.ThrowsAsync<RpcException>(() =>
+            ctx.Service.SyncExternalMatch(
+                new SyncExternalMatchRequest { MatchId = "missing" },
+                ctx.CallContext));
+
+        Assert.Equal(StatusCode.NotFound, ex.StatusCode);
+    }
+
+    [Fact]
+    public async Task SyncExternalMatch_NativeMatch_ThrowsRpcExceptionFailedPrecondition()
+    {
+        GrpcServiceContext ctx = new();
+        MatchDocument match = MatchServiceContext.BuildHumanMatch("nat-1", "w", "b");
+        ctx.SetupMatch(match);
+
+        RpcException ex = await Assert.ThrowsAsync<RpcException>(() =>
+            ctx.Service.SyncExternalMatch(
+                new SyncExternalMatchRequest { MatchId = "nat-1" },
+                ctx.CallContext));
+
+        Assert.Equal(StatusCode.FailedPrecondition, ex.StatusCode);
+    }
+
     // ── GetMatchPosition ─────────────────────────────────────────────────────
 
     [Fact]

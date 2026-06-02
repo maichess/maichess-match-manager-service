@@ -18,7 +18,7 @@ internal sealed class CreatedBySteps(MatchServiceContext context)
             TimeFormatRegistry.Resolve("5+0"),
             null,
             null,
-            CancellationToken.None);
+            ct: CancellationToken.None);
     }
 
     [When(@"a match is created with white bot ""([^""]*)"" and black bot ""([^""]*)"" started by ""([^""]*)""")]
@@ -30,7 +30,7 @@ internal sealed class CreatedBySteps(MatchServiceContext context)
             TimeFormatRegistry.Resolve("5+0"),
             new PlayerDocument { UserId = starter },
             null,
-            CancellationToken.None);
+            ct: CancellationToken.None);
     }
 
     [Then(@"the match created_by user is ""([^""]*)""")]

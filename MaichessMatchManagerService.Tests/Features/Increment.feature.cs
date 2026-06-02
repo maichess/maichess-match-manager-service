@@ -26,9 +26,9 @@ namespace MaichessMatchManagerService.Tests.Features
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Time Format Increment", ("  When a time format defines an increment, the mover\'s clock is credited the\r\n  i" +
-                "ncrement after they play a move — but only when the move leaves the match\r\n  ong" +
-                "oing."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Time Format Increment", ("  When a time format defines an increment, the mover\'s clock is credited the\n  in" +
+                "crement after they play a move — but only when the move leaves the match\n  ongoi" +
+                "ng."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
