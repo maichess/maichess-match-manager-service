@@ -417,6 +417,166 @@ public sealed class MatchesGrpcServiceTests
         Assert.NotNull(response);
     }
 
+    [Fact]
+    public async Task CreateMatch_WithExplicitCreatedBy_StampsInitiatorAndNativeSource()
+    {
+        GrpcServiceContext ctx = new();
+
+        CreateMatchResponse response = await ctx.Service.CreateMatch(
+            new CreateMatchRequest
+            {
+                White = new Player { BotId = "bot-a" },
+                Black = new Player { BotId = "bot-b" },
+                TimeFormat = BlitzFormat(),
+                CreatedBy = new Player { UserId = "starter-1" },
+            },
+            ctx.CallContext);
+
+        Assert.Equal("starter-1", response.Match.CreatedBy.UserId);
+        Assert.Equal(MatchSource.Native, response.Match.Source);
+        Assert.Equal(0L, response.Match.FinishedAtMs);
+    }
+
+    [Fact]
+    public async Task CreateMatch_WithoutCreatedBy_DerivesFromHumanSide()
+    {
+        GrpcServiceContext ctx = new();
+
+        CreateMatchResponse response = await ctx.Service.CreateMatch(
+            new CreateMatchRequest
+            {
+                White = new Player { UserId = "white-1" },
+                Black = new Player { BotId = "bot-b" },
+                TimeFormat = BlitzFormat(),
+            },
+            ctx.CallContext);
+
+        Assert.Equal("white-1", response.Match.CreatedBy.UserId);
+    }
+
+    [Fact]
+    public async Task CreateMatch_WithBotCreatedBy_StampsBotInitiator()
+    {
+        GrpcServiceContext ctx = new();
+
+        CreateMatchResponse response = await ctx.Service.CreateMatch(
+            new CreateMatchRequest
+            {
+                White = new Player { UserId = "white-1" },
+                Black = new Player { UserId = "black-1" },
+                TimeFormat = BlitzFormat(),
+                CreatedBy = new Player { BotId = "watcher-bot" },
+            },
+            ctx.CallContext);
+
+        Assert.Equal("watcher-bot", response.Match.CreatedBy.BotId);
+    }
+
+    [Fact]
+    public async Task CreateMatch_WithIdentitylessCreatedBy_DerivesFromHumanSide()
+    {
+        GrpcServiceContext ctx = new();
+
+        CreateMatchResponse response = await ctx.Service.CreateMatch(
+            new CreateMatchRequest
+            {
+                White = new Player { UserId = "white-1" },
+                Black = new Player { BotId = "bot-b" },
+                TimeFormat = BlitzFormat(),
+                CreatedBy = new Player(),
+            },
+            ctx.CallContext);
+
+        Assert.Equal("white-1", response.Match.CreatedBy.UserId);
+    }
+
+    // ── ListUserMatches ────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task ListUserMatches_ReturnsEndedMatchesForUser()
+    {
+        GrpcServiceContext ctx = new();
+        MatchDocument match = MatchServiceContext.BuildMatch(
+            "match-1",
+            new PlayerDocument { UserId = "user-1" },
+            new PlayerDocument { UserId = "opp" },
+            status: "white_won",
+            finishedAtMs: 5000);
+        ctx.SetupFindForUser([match]);
+
+        ListUserMatchesResponse response = await ctx.Service.ListUserMatches(
+            new ListUserMatchesRequest
+            {
+                UserId = "user-1",
+                Status = MatchStatusFilter.Ended,
+                Page = 1,
+                PageSize = 20,
+            },
+            ctx.CallContext);
+
+        Assert.Single(response.Matches);
+        Assert.Equal("match-1", response.Matches[0].Id);
+        Assert.Equal(MatchStatus.WhiteWon, response.Matches[0].Status);
+        Assert.Equal(5000L, response.Matches[0].FinishedAtMs);
+        Assert.Equal(MatchSource.Native, response.Matches[0].Source);
+        Assert.Equal(1, response.Total);
+    }
+
+    [Fact]
+    public async Task ListUserMatches_MapsExternalSourceAndProvider()
+    {
+        GrpcServiceContext ctx = new();
+        MatchDocument match = MatchServiceContext.BuildMatch(
+            "match-1",
+            new PlayerDocument { UserId = "user-1" },
+            new PlayerDocument { UserId = "opp" },
+            status: "draw",
+            finishedAtMs: 1);
+        match.Source = "external";
+        match.ExternalProvider = "lichess";
+        ctx.SetupFindForUser([match]);
+
+        ListUserMatchesResponse response = await ctx.Service.ListUserMatches(
+            new ListUserMatchesRequest { UserId = "user-1" },
+            ctx.CallContext);
+
+        Assert.Equal(MatchSource.External, response.Matches[0].Source);
+        Assert.Equal("lichess", response.Matches[0].ExternalProvider);
+    }
+
+    [Fact]
+    public async Task ListUserMatches_DefaultsPageAndSizeWhenZero()
+    {
+        GrpcServiceContext ctx = new();
+        ctx.SetupFindForUser([]);
+
+        ListUserMatchesResponse response = await ctx.Service.ListUserMatches(
+            new ListUserMatchesRequest { UserId = "user-1" },
+            ctx.CallContext);
+
+        Assert.Equal(1, response.Page);
+        Assert.Equal(20, response.PageSize);
+    }
+
+    [Fact]
+    public async Task ListUserMatches_OngoingFilter_CapsPageSizeAt100()
+    {
+        GrpcServiceContext ctx = new();
+        ctx.SetupFindForUser([]);
+
+        ListUserMatchesResponse response = await ctx.Service.ListUserMatches(
+            new ListUserMatchesRequest
+            {
+                UserId = "user-1",
+                Status = MatchStatusFilter.Ongoing,
+                Page = 1,
+                PageSize = 500,
+            },
+            ctx.CallContext);
+
+        Assert.Equal(100, response.PageSize);
+    }
+
     // ── MakeMove ─────────────────────────────────────────────────────────────
 
     [Fact]

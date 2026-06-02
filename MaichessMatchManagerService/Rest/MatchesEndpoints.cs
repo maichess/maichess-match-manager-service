@@ -27,7 +27,51 @@ internal static class MatchesEndpoints
         group.MapDelete("/{id}/draw-offer", DeclineDraw);
         group.MapPost("/{id}/draw-offer/accept", AcceptDraw);
 
+        routes.MapGet("/users/{userId}/matches", ListUserMatches).RequireAuthorization();
+
         return routes;
+    }
+
+    private static async Task<IResult> ListUserMatches(
+        string userId,
+        [FromQuery] string? status,
+        [FromQuery] int page,
+        [FromQuery] int page_size,
+        ClaimsPrincipal principal,
+        MatchService matchService,
+        Users.UsersClient usersClient,
+        Bots.BotsClient botsClient,
+        CancellationToken ct)
+    {
+        if (!TryGetUserId(principal, out string? authUserId))
+        {
+            return Results.Unauthorized();
+        }
+
+        if (userId != authUserId)
+        {
+            return Results.Forbid();
+        }
+
+        string normalizedStatus = status ?? "ended";
+        if (normalizedStatus != "ended" && normalizedStatus != "ongoing")
+        {
+            return Results.BadRequest(new ErrorResponse("unsupported status"));
+        }
+
+        (IReadOnlyList<MatchDocument> matches, int total) = await matchService.ListUserMatchesAsync(
+            userId, normalizedStatus, page, page_size, ct);
+
+        int normalizedPage = page < 1 ? 1 : page;
+        int normalizedSize = page_size <= 0 ? 20 : Math.Min(page_size, 100);
+
+        List<MatchSummaryResponse> summaries = [];
+        foreach (MatchDocument match in matches)
+        {
+            summaries.Add(await ToMatchSummaryAsync(match, usersClient, botsClient, ct));
+        }
+
+        return Results.Ok(new MatchListResponse(summaries, total, normalizedPage, normalizedSize));
     }
 
     private static async Task<IResult> ListMatches(
@@ -365,6 +409,10 @@ internal static class MatchesEndpoints
         PlayerResponse white = await ToPlayerResponseAsync(match.White, usersClient, botsClient, ct);
         PlayerResponse black = await ToPlayerResponseAsync(match.Black, usersClient, botsClient, ct);
 
+        PlayerResponse? createdBy = match.CreatedBy is null
+            ? null
+            : await ToPlayerResponseAsync(match.CreatedBy, usersClient, botsClient, ct);
+
         return new MatchSummaryResponse(
             match.Id,
             white,
@@ -374,7 +422,11 @@ internal static class MatchesEndpoints
             match.WhiteTimeMs,
             match.BlackTimeMs,
             match.LastMoveAt.ToUnixTimeMilliseconds(),
-            match.Moves.Count);
+            match.FinishedAtMs,
+            match.Moves.Count,
+            createdBy,
+            match.Source,
+            match.ExternalProvider);
     }
 
     private static TimeFormatResponse ToTimeFormatResponse(TimeFormatDocument tf) =>

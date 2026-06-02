@@ -1,6 +1,7 @@
 using Grpc.Core;
 using Maichess.Engine.V1;
 using Maichess.MoveValidator.V1;
+using Maichess.User.V1;
 using MaichessMatchManagerService.Data;
 using MaichessMatchManagerService.Entities;
 using MaichessMatchManagerService.Events;
@@ -19,6 +20,10 @@ internal sealed class MatchServiceContext
     internal Moves.MovesClient MoveValidator { get; } = Substitute.For<Moves.MovesClient>();
 
     internal Bots.BotsClient Engine { get; } = Substitute.For<Bots.BotsClient>();
+
+    internal Users.UsersClient UserService { get; } = Substitute.For<Users.UsersClient>();
+
+    internal List<(string UserId, MatchOutcome Outcome)> RecordedResults { get; } = [];
 
     internal SocketNotifier SocketNotifier { get; } =
         new SocketNotifier(Substitute.For<SocketSvc.SocketClient>(), NullLogger<SocketNotifier>.Instance);
@@ -45,6 +50,7 @@ internal sealed class MatchServiceContext
             Repository,
             MoveValidator,
             Engine,
+            UserService,
             SocketNotifier,
             NullLogger<MatchService>.Instance);
 
@@ -52,6 +58,25 @@ internal sealed class MatchServiceContext
             .Returns(ci => Task.FromResult(ci.Arg<MatchDocument>()));
         Repository.ReplaceAsync(Arg.Any<MatchDocument>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
+
+        UserService
+            .RecordMatchResultAsync(
+                Arg.Any<RecordMatchResultRequest>(),
+                Arg.Any<Metadata>(),
+                Arg.Any<DateTime?>(),
+                Arg.Any<CancellationToken>())
+            .Returns(ci =>
+            {
+                RecordMatchResultRequest request = ci.Arg<RecordMatchResultRequest>();
+                RecordedResults.Add((request.UserId, request.Outcome));
+                return GrpcHelper.GrpcCall(new RecordMatchResultResponse());
+            });
+    }
+
+    internal void SetupFindForUser(IEnumerable<MatchDocument> matches)
+    {
+        Repository.FindForUserAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<MatchDocument>>([.. matches]));
     }
 
     internal void SetupMatch(MatchDocument match)
@@ -154,6 +179,35 @@ internal sealed class MatchServiceContext
         _ when TimeFormatRegistry.IsKnown(name) => TimeFormatRegistry.Resolve(name),
         _ => TimeFormatRegistry.Default,
     };
+
+    internal static MatchDocument BuildMatch(
+        string matchId,
+        PlayerDocument white,
+        PlayerDocument black,
+        string status = "ongoing",
+        PlayerDocument? createdBy = null,
+        long finishedAtMs = 0,
+        string timeFormatCategory = "blitz")
+    {
+        const string initialFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        TimeFormatDocument tf = TimeFormatForCategoryName(timeFormatCategory);
+
+        return new MatchDocument
+        {
+            Id = matchId,
+            White = white,
+            Black = black,
+            CurrentFen = initialFen,
+            Status = status,
+            TimeFormat = tf,
+            WhiteTimeMs = tf.BaseMs,
+            BlackTimeMs = tf.BaseMs,
+            LastMoveAt = DateTimeOffset.UtcNow,
+            FenHistory = [initialFen],
+            CreatedBy = createdBy,
+            FinishedAtMs = finishedAtMs,
+        };
+    }
 
     internal static MatchDocument BuildHumanMatch(
         string matchId,

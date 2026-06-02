@@ -55,6 +55,33 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
         return [.. response.Records.Select(FromStruct)];
     }
 
+    public async Task<IReadOnlyList<MatchDocument>> FindForUserAsync(string userId, CancellationToken ct)
+    {
+        // The generic database filter is equality-only and ANDs its fields, so a
+        // "white OR black OR created_by" query is run as three lookups merged by
+        // id. The service applies the authoritative membership/status filtering.
+        List<MatchDocument> merged = [];
+        HashSet<string> seen = [];
+        foreach (string field in new[] { "white_user_id", "black_user_id", "created_by_user_id" })
+        {
+            Struct filter = new();
+            filter.Fields[field] = Value.ForString(userId);
+            ListResponse response = await db.ListAsync(
+                new ListRequest { Collection = Collection, Filter = filter },
+                cancellationToken: ct);
+            foreach (Struct record in response.Records)
+            {
+                MatchDocument match = FromStruct(record);
+                if (seen.Add(match.Id))
+                {
+                    merged.Add(match);
+                }
+            }
+        }
+
+        return merged;
+    }
+
     public async Task<(IReadOnlyList<MatchDocument> Matches, int Total)> ListAsync(
         string status,
         string? category,
@@ -116,6 +143,13 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
         s.Fields["position_history"] = Value.ForList(match.PositionHistory.Select(Value.ForString).ToArray());
         s.Fields["pending_draw_offerer_user_id"] = match.PendingDrawOffererUserId is not null
             ? Value.ForString(match.PendingDrawOffererUserId) : Value.ForNull();
+        s.Fields["created_by_user_id"] = match.CreatedBy?.UserId is not null
+            ? Value.ForString(match.CreatedBy.UserId) : Value.ForNull();
+        s.Fields["created_by_bot_id"] = match.CreatedBy?.BotId is not null
+            ? Value.ForString(match.CreatedBy.BotId) : Value.ForNull();
+        s.Fields["source"] = Value.ForString(match.Source);
+        s.Fields["external_provider"] = Value.ForString(match.ExternalProvider);
+        s.Fields["finished_at_ms"] = Value.ForNumber(match.FinishedAtMs);
         return s;
     }
 
@@ -148,7 +182,23 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
                 ? [.. ph.ListValue.Values.Select(v => v.StringValue)]
                 : [],
             PendingDrawOffererUserId = StringOrNull(s, "pending_draw_offerer_user_id"),
+            CreatedBy = ReadCreatedBy(s),
+            Source = s.Fields.TryGetValue("source", out Value? src) &&
+                src.KindCase == Value.KindOneofCase.StringValue ? src.StringValue : "native",
+            ExternalProvider = s.Fields.TryGetValue("external_provider", out Value? ep) &&
+                ep.KindCase == Value.KindOneofCase.StringValue ? ep.StringValue : string.Empty,
+            FinishedAtMs = s.Fields.TryGetValue("finished_at_ms", out Value? fa) &&
+                fa.KindCase == Value.KindOneofCase.NumberValue ? (long)fa.NumberValue : 0,
         };
+    }
+
+    private static PlayerDocument? ReadCreatedBy(Struct s)
+    {
+        string? userId = StringOrNull(s, "created_by_user_id");
+        string? botId = StringOrNull(s, "created_by_bot_id");
+        return userId is null && botId is null
+            ? null
+            : new PlayerDocument { UserId = userId, BotId = botId };
     }
 
     private static TimeFormatDocument ReadTimeFormat(Struct s)

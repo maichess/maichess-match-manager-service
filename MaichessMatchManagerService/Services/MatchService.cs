@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Maichess.Engine.V1;
 using Maichess.MoveValidator.V1;
+using Maichess.User.V1;
 using MaichessMatchManagerService.Data;
 using MaichessMatchManagerService.Entities;
 using MaichessMatchManagerService.Events;
@@ -11,6 +12,7 @@ internal sealed partial class MatchService(
     IMatchRepository repository,
     Moves.MovesClient moveValidatorClient,
     Bots.BotsClient engineClient,
+    Users.UsersClient userServiceClient,
     SocketNotifier socketNotifier,
     ILogger<MatchService> logger)
 {
@@ -25,6 +27,7 @@ internal sealed partial class MatchService(
         PlayerDocument white,
         PlayerDocument black,
         TimeFormatDocument timeFormat,
+        PlayerDocument? createdBy,
         CancellationToken ct)
     {
         MatchDocument created = await repository.InsertAsync(
@@ -40,6 +43,8 @@ internal sealed partial class MatchService(
                 BlackTimeMs = timeFormat.BaseMs,
                 LastMoveAt = DateTimeOffset.UtcNow,
                 FenHistory = [InitialFen],
+                CreatedBy = createdBy ?? DeriveInitiator(white, black),
+                Source = "native",
             },
             ct);
 
@@ -66,6 +71,31 @@ internal sealed partial class MatchService(
         int normalizedSize = pageSize <= 0 ? DefaultPageSize : Math.Min(pageSize, MaxPageSize);
         string? normalizedCategory = string.IsNullOrEmpty(category) ? null : category;
         return await repository.ListAsync(status, normalizedCategory, normalizedPage, normalizedSize, ct);
+    }
+
+    internal async Task<(IReadOnlyList<MatchDocument> Matches, int Total)> ListUserMatchesAsync(
+        string userId,
+        string status,
+        int page,
+        int pageSize,
+        CancellationToken ct)
+    {
+        int normalizedPage = page < 1 ? 1 : page;
+        int normalizedSize = pageSize <= 0 ? DefaultPageSize : Math.Min(pageSize, MaxPageSize);
+
+        IReadOnlyList<MatchDocument> candidates = await repository.FindForUserAsync(userId, ct);
+
+        IEnumerable<MatchDocument> filtered = candidates.Where(m => IsForUser(m, userId));
+        filtered = status == "ongoing"
+            ? filtered.Where(m => m.Status == "ongoing")
+            : filtered.Where(m => m.Status != "ongoing");
+
+        List<MatchDocument> ordered = [.. filtered.OrderByDescending(m => m.FinishedAtMs)];
+        int total = ordered.Count;
+        IReadOnlyList<MatchDocument> pageItems =
+            [.. ordered.Skip((normalizedPage - 1) * normalizedSize).Take(normalizedSize)];
+
+        return (pageItems, total);
     }
 
     internal async Task<MatchDocument> MakeMoveAsync(
@@ -126,6 +156,7 @@ internal sealed partial class MatchService(
         if (match.Status != "ongoing")
         {
             match.PositionHistory = [];
+            match.FinishedAtMs = now.ToUnixTimeMilliseconds();
         }
         else
         {
@@ -144,6 +175,7 @@ internal sealed partial class MatchService(
             bool isTimeout = match.WhiteTimeMs <= 0 || match.BlackTimeMs <= 0;
             string endReason = isTimeout ? "timeout" : GameResultToEndReason(validation.GameResult);
             socketNotifier.BroadcastMatchEnded(match, match.Status, endReason);
+            await RecordMatchResultsAsync(match, ct);
             return match;
         }
 
@@ -216,10 +248,12 @@ internal sealed partial class MatchService(
 
         match.Status = "draw";
         match.PendingDrawOffererUserId = null;
+        match.FinishedAtMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         await repository.ReplaceAsync(match, ct);
 
         socketNotifier.BroadcastMatchEnded(match, "draw", "draw_agreement");
+        await RecordMatchResultsAsync(match, ct);
 
         return match;
     }
@@ -274,10 +308,12 @@ internal sealed partial class MatchService(
         }
 
         match.Status = isWhite ? "black_won" : "white_won";
+        match.FinishedAtMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         await repository.ReplaceAsync(match, ct);
 
         socketNotifier.BroadcastMatchEnded(match, match.Status, "resignation");
+        await RecordMatchResultsAsync(match, ct);
 
         return match;
     }
@@ -331,8 +367,10 @@ internal sealed partial class MatchService(
             }
 
             match.PositionHistory = [];
+            match.FinishedAtMs = now.ToUnixTimeMilliseconds();
             await repository.ReplaceAsync(match, ct);
             socketNotifier.BroadcastMatchEnded(match, match.Status, "timeout");
+            await RecordMatchResultsAsync(match, ct);
         }
     }
 
@@ -432,6 +470,46 @@ internal sealed partial class MatchService(
         return parts.Length >= 2 ? parts[1][0] : 'w';
     }
 
+    // When the caller does not supply an initiator, attribute the match to the
+    // human side (white preferred); bot-vs-bot matches have no human initiator.
+    private static PlayerDocument? DeriveInitiator(PlayerDocument white, PlayerDocument black) =>
+        !white.IsBot ? white : black.IsBot ? null : black;
+
+    // A match belongs to a user's history when they played either colour or
+    // initiated it (created_by) — the latter covers bot-vs-bot games they spawned.
+    private static bool IsForUser(MatchDocument match, string userId) =>
+        match.White.UserId == userId ||
+        match.Black.UserId == userId ||
+        match.CreatedBy?.UserId == userId;
+
+    // Fans the final result out to user-service for each human participant. The
+    // single mutation point for player stats. Bot-vs-bot games record nothing,
+    // so they never affect any player's W/L/D.
+    private async Task RecordMatchResultsAsync(MatchDocument match, CancellationToken ct)
+    {
+        (MatchOutcome white, MatchOutcome black) = match.Status switch
+        {
+            "white_won" => (MatchOutcome.Win, MatchOutcome.Loss),
+            "black_won" => (MatchOutcome.Loss, MatchOutcome.Win),
+            _ => (MatchOutcome.Draw, MatchOutcome.Draw),
+        };
+
+        await RecordOutcomeAsync(match.White, white, ct);
+        await RecordOutcomeAsync(match.Black, black, ct);
+    }
+
+    private async Task RecordOutcomeAsync(PlayerDocument player, MatchOutcome outcome, CancellationToken ct)
+    {
+        if (player.UserId is null)
+        {
+            return;
+        }
+
+        await userServiceClient.RecordMatchResultAsync(
+            new RecordMatchResultRequest { UserId = player.UserId, Outcome = outcome },
+            cancellationToken: ct);
+    }
+
     [ExcludeFromCodeCoverage]
     private void TriggerBotMoveIfNeeded(MatchDocument match)
     {
@@ -510,6 +588,7 @@ internal sealed partial class MatchService(
         if (match.Status != "ongoing")
         {
             match.PositionHistory = [];
+            match.FinishedAtMs = now.ToUnixTimeMilliseconds();
         }
         else
         {
@@ -528,6 +607,7 @@ internal sealed partial class MatchService(
             bool isTimeout = match.WhiteTimeMs <= 0 || match.BlackTimeMs <= 0;
             string endReason = isTimeout ? "timeout" : GameResultToEndReason(validation.GameResult);
             socketNotifier.BroadcastMatchEnded(match, match.Status, endReason);
+            await RecordMatchResultsAsync(match, ct);
             return;
         }
 

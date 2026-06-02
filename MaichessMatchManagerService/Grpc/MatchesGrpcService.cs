@@ -14,9 +14,10 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
         PlayerDocument white = ToPlayerDocument(request.White);
         PlayerDocument black = ToPlayerDocument(request.Black);
         TimeFormatDocument timeFormat = ToTimeFormatDocument(request.TimeFormat);
+        PlayerDocument? createdBy = request.CreatedBy is null ? null : ToCreatedByDocument(request.CreatedBy);
 
         MatchDocument match = await matchService.CreateMatchAsync(
-            white, black, timeFormat, context.CancellationToken);
+            white, black, timeFormat, createdBy, context.CancellationToken);
 
         return new CreateMatchResponse { Match = ToProtoMatch(match) };
     }
@@ -48,6 +49,27 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
             context.CancellationToken);
 
         ListMatchesResponse response = new()
+        {
+            Total = total,
+            Page = request.Page < 1 ? 1 : request.Page,
+            PageSize = request.PageSize <= 0 ? 20 : Math.Min(request.PageSize, 100),
+        };
+        response.Matches.AddRange(matches.Select(ToProtoMatch));
+        return response;
+    }
+
+    public override async Task<ListUserMatchesResponse> ListUserMatches(
+        ListUserMatchesRequest request, ServerCallContext context)
+    {
+        string status = ToUserStatusString(request.Status);
+        (IReadOnlyList<MatchDocument> matches, int total) = await matchService.ListUserMatchesAsync(
+            request.UserId,
+            status,
+            request.Page,
+            request.PageSize,
+            context.CancellationToken);
+
+        ListUserMatchesResponse response = new()
         {
             Total = total,
             Page = request.Page < 1 ? 1 : request.Page,
@@ -145,6 +167,21 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
             _ => throw new RpcException(new Status(StatusCode.InvalidArgument, "player identity is required")),
         };
 
+    // created_by is optional; an unset or identity-less value yields no attribution.
+    private static PlayerDocument? ToCreatedByDocument(Player player) =>
+        player.IdentityCase switch
+        {
+            Player.IdentityOneofCase.UserId => new PlayerDocument { UserId = player.UserId },
+            Player.IdentityOneofCase.BotId => new PlayerDocument { BotId = player.BotId },
+            _ => null,
+        };
+
+    private static string ToUserStatusString(MatchStatusFilter filter) => filter switch
+    {
+        MatchStatusFilter.Ongoing => "ongoing",
+        _ => "ended",
+    };
+
     private static TimeFormatDocument ToTimeFormatDocument(TimeFormat tf)
     {
         if (tf is null || string.IsNullOrEmpty(tf.Id))
@@ -184,10 +221,24 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
             TimeFormat = ToProtoTimeFormat(match.TimeFormat),
             WhiteTimeMs = match.WhiteTimeMs,
             BlackTimeMs = match.BlackTimeMs,
+            Source = ToProtoSource(match.Source),
+            ExternalProvider = match.ExternalProvider,
+            FinishedAtMs = match.FinishedAtMs,
         };
+        if (match.CreatedBy is not null)
+        {
+            proto.CreatedBy = ToProtoPlayer(match.CreatedBy);
+        }
+
         proto.Moves.AddRange(match.Moves);
         return proto;
     }
+
+    private static MatchSource ToProtoSource(string source) => source switch
+    {
+        "external" => MatchSource.External,
+        _ => MatchSource.Native,
+    };
 
     private static Player ToProtoPlayer(PlayerDocument player) =>
         player.UserId is not null

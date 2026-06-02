@@ -12,6 +12,11 @@ internal interface IMatchRepository
 
     Task<IReadOnlyList<MatchDocument>> FindOngoingAsync(CancellationToken ct);
 
+    // Returns candidate matches a user took part in or initiated (white, black,
+    // or created_by). The service applies the authoritative membership and
+    // status filtering, ordering, and paging.
+    Task<IReadOnlyList<MatchDocument>> FindForUserAsync(string userId, CancellationToken ct);
+
     Task<(IReadOnlyList<MatchDocument> Matches, int Total)> ListAsync(
         string status,
         string? category,
