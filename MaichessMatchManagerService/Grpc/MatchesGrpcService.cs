@@ -16,10 +16,17 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
         TimeFormatDocument timeFormat = ToTimeFormatDocument(request.TimeFormat);
         PlayerDocument? createdBy = request.CreatedBy is null ? null : ToCreatedByDocument(request.CreatedBy);
 
-        MatchDocument match = await matchService.CreateMatchAsync(
-            white, black, timeFormat, createdBy, context.CancellationToken);
+        try
+        {
+            MatchDocument match = await matchService.CreateMatchAsync(
+                white, black, timeFormat, createdBy, request.StartFen, context.CancellationToken);
 
-        return new CreateMatchResponse { Match = ToProtoMatch(match) };
+            return new CreateMatchResponse { Match = ToProtoMatch(match) };
+        }
+        catch (InvalidStartPositionException ex)
+        {
+            throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
+        }
     }
 
     public override async Task<GetMatchResponse> GetMatch(

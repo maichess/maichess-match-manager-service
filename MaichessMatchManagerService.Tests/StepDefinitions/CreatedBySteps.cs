@@ -17,6 +17,7 @@ internal sealed class CreatedBySteps(MatchServiceContext context)
             MakePlayer(blackKind, blackId),
             TimeFormatRegistry.Resolve("5+0"),
             null,
+            null,
             CancellationToken.None);
     }
 
@@ -28,6 +29,7 @@ internal sealed class CreatedBySteps(MatchServiceContext context)
             new PlayerDocument { BotId = blackBot },
             TimeFormatRegistry.Resolve("5+0"),
             new PlayerDocument { UserId = starter },
+            null,
             CancellationToken.None);
     }
 

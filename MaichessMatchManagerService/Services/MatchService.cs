@@ -44,21 +44,24 @@ internal sealed partial class MatchService(
         PlayerDocument black,
         TimeFormatDocument timeFormat,
         PlayerDocument? createdBy,
+        string? startFen,
         CancellationToken ct)
     {
+        string fen = NormalizeStartFen(startFen);
+
         MatchDocument created = await repository.InsertAsync(
             new MatchDocument
             {
                 Id = string.Empty,
                 White = white,
                 Black = black,
-                CurrentFen = InitialFen,
+                CurrentFen = fen,
                 Status = "ongoing",
                 TimeFormat = timeFormat,
                 WhiteTimeMs = timeFormat.BaseMs,
                 BlackTimeMs = timeFormat.BaseMs,
                 LastMoveAt = DateTimeOffset.UtcNow,
-                FenHistory = [InitialFen],
+                FenHistory = [fen],
                 CreatedBy = createdBy ?? DeriveInitiator(white, black),
                 Source = "native",
             },
@@ -473,6 +476,24 @@ internal sealed partial class MatchService(
     {
         string[] parts = fen.Split(' ');
         return parts.Length >= 2 ? parts[1][0] : 'w';
+    }
+
+    // Resolves the starting position for a new match. An omitted, empty, or
+    // "standard" start_fen yields the standard initial position (the only
+    // behaviour pre-existing callers trigger); a supplied FEN is validated and an
+    // ill-formed one is rejected so it never reaches the board state.
+    private static string NormalizeStartFen(string? startFen)
+    {
+        if (string.IsNullOrWhiteSpace(startFen) ||
+            string.Equals(startFen, "standard", StringComparison.OrdinalIgnoreCase))
+        {
+            return InitialFen;
+        }
+
+        string trimmed = startFen.Trim();
+        return FenValidator.IsValid(trimmed)
+            ? trimmed
+            : throw new InvalidStartPositionException(trimmed);
     }
 
     // When the caller does not supply an initiator, attribute the match to the

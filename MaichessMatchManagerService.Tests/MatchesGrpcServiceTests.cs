@@ -260,6 +260,62 @@ public sealed class MatchesGrpcServiceTests
         Assert.Equal("blitz", response.Match.TimeFormat.Category);
     }
 
+    [Fact]
+    public async Task CreateMatch_WithCustomStartFen_SeedsCurrentFen()
+    {
+        GrpcServiceContext ctx = new();
+        const string fen = "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2";
+
+        CreateMatchResponse response = await ctx.Service.CreateMatch(
+            new CreateMatchRequest
+            {
+                White = new Player { BotId = "bot-a" },
+                Black = new Player { BotId = "bot-b" },
+                TimeFormat = BlitzFormat(),
+                StartFen = fen,
+            },
+            ctx.CallContext);
+
+        Assert.Equal(fen, response.Match.CurrentFen);
+    }
+
+    [Fact]
+    public async Task CreateMatch_WithStandardStartFen_UsesInitialPosition()
+    {
+        GrpcServiceContext ctx = new();
+
+        CreateMatchResponse response = await ctx.Service.CreateMatch(
+            new CreateMatchRequest
+            {
+                White = new Player { UserId = "w" },
+                Black = new Player { UserId = "b" },
+                TimeFormat = BlitzFormat(),
+                StartFen = "standard",
+            },
+            ctx.CallContext);
+
+        Assert.Equal(InitialFen, response.Match.CurrentFen);
+    }
+
+    [Fact]
+    public async Task CreateMatch_WithInvalidStartFen_ThrowsRpcExceptionInvalidArgument()
+    {
+        GrpcServiceContext ctx = new();
+
+        RpcException ex = await Assert.ThrowsAsync<RpcException>(() =>
+            ctx.Service.CreateMatch(
+                new CreateMatchRequest
+                {
+                    White = new Player { UserId = "w" },
+                    Black = new Player { UserId = "b" },
+                    TimeFormat = BlitzFormat(),
+                    StartFen = "not-a-fen",
+                },
+                ctx.CallContext));
+
+        Assert.Equal(StatusCode.InvalidArgument, ex.StatusCode);
+    }
+
     // ── GetMatch ─────────────────────────────────────────────────────────────
 
     [Fact]
