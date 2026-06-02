@@ -170,14 +170,14 @@ namespace MaichessMatchManagerService.Tests.Features
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Position 0 returns the initial FEN with no move and is not current")]
+        [Xunit.SkippableFactAttribute(DisplayName="Requesting a negative position index throws PositionIndexOutOfRangeException")]
         [Xunit.TraitAttribute("FeatureTitle", "Get Position")]
-        [Xunit.TraitAttribute("Description", "Position 0 returns the initial FEN with no move and is not current")]
-        public async System.Threading.Tasks.Task Position0ReturnsTheInitialFENWithNoMoveAndIsNotCurrent()
+        [Xunit.TraitAttribute("Description", "Requesting a negative position index throws PositionIndexOutOfRangeException")]
+        public async System.Threading.Tasks.Task RequestingANegativePositionIndexThrowsPositionIndexOutOfRangeException()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Position 0 returns the initial FEN with no move and is not current", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Requesting a negative position index throws PositionIndexOutOfRangeException", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 17
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -192,19 +192,53 @@ namespace MaichessMatchManagerService.Tests.Features
   await this.FeatureBackgroundAsync();
 #line hidden
 #line 18
+    await testRunner.GivenAsync("the match has status \"white_won\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 19
+    await testRunner.WhenAsync("any user requests position -1 on match \"match-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 20
+    await testRunner.ThenAsync("a PositionIndexOutOfRangeException is thrown", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Position 0 returns the initial FEN with no move and is not current")]
+        [Xunit.TraitAttribute("FeatureTitle", "Get Position")]
+        [Xunit.TraitAttribute("Description", "Position 0 returns the initial FEN with no move and is not current")]
+        public async System.Threading.Tasks.Task Position0ReturnsTheInitialFENWithNoMoveAndIsNotCurrent()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Position 0 returns the initial FEN with no move and is not current", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 22
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 5
+  await this.FeatureBackgroundAsync();
+#line hidden
+#line 23
     await testRunner.GivenAsync(("the match has status \"white_won\" with move \"e2e4\" producing FEN \"rnbqkbnr/ppppppp" +
                         "p/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1\""), ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 19
+#line 24
     await testRunner.WhenAsync("any user requests position 0 on match \"match-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 20
+#line 25
     await testRunner.ThenAsync("the position FEN is \"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 21
+#line 26
     await testRunner.AndAsync("the position move is \"\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 22
+#line 27
     await testRunner.AndAsync("the position is not current", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
@@ -219,7 +253,7 @@ namespace MaichessMatchManagerService.Tests.Features
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Requesting the last position is marked as current", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 24
+#line 29
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -232,20 +266,20 @@ namespace MaichessMatchManagerService.Tests.Features
 #line 5
   await this.FeatureBackgroundAsync();
 #line hidden
-#line 25
+#line 30
     await testRunner.GivenAsync(("the match has status \"white_won\" with move \"e2e4\" producing FEN \"rnbqkbnr/ppppppp" +
                         "p/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1\""), ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 26
+#line 31
     await testRunner.WhenAsync("any user requests position 1 on match \"match-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 27
+#line 32
     await testRunner.ThenAsync("the position FEN is \"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 28
+#line 33
     await testRunner.AndAsync("the position move is \"e2e4\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 29
+#line 34
     await testRunner.AndAsync("the position is current", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }

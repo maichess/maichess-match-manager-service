@@ -229,14 +229,14 @@ namespace MaichessMatchManagerService.Tests.Features
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="An illegal move is rejected")]
+        [Xunit.SkippableFactAttribute(DisplayName="White moving on black\'s turn throws NotYourTurnException")]
         [Xunit.TraitAttribute("FeatureTitle", "Make Move")]
-        [Xunit.TraitAttribute("Description", "An illegal move is rejected")]
-        public async System.Threading.Tasks.Task AnIllegalMoveIsRejected()
+        [Xunit.TraitAttribute("Description", "White moving on black\'s turn throws NotYourTurnException")]
+        public async System.Threading.Tasks.Task WhiteMovingOnBlacksTurnThrowsNotYourTurnException()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("An illegal move is rejected", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("White moving on black\'s turn throws NotYourTurnException", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 25
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -251,26 +251,26 @@ namespace MaichessMatchManagerService.Tests.Features
   await this.FeatureBackgroundAsync();
 #line hidden
 #line 26
-    await testRunner.GivenAsync("the move validator rejects the move with reason \"Piece cannot move there\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+    await testRunner.GivenAsync("the match is at a black-to-move FEN", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 27
-    await testRunner.WhenAsync("\"white-1\" makes move \"e2e5\" on match \"match-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+    await testRunner.WhenAsync("\"white-1\" makes move \"e2e4\" on match \"match-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 28
-    await testRunner.ThenAsync("an IllegalMoveException is thrown with reason \"Piece cannot move there\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+    await testRunner.ThenAsync("a NotYourTurnException is thrown", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="A valid move updates match state")]
+        [Xunit.SkippableFactAttribute(DisplayName="An illegal move is rejected")]
         [Xunit.TraitAttribute("FeatureTitle", "Make Move")]
-        [Xunit.TraitAttribute("Description", "A valid move updates match state")]
-        public async System.Threading.Tasks.Task AValidMoveUpdatesMatchState()
+        [Xunit.TraitAttribute("Description", "An illegal move is rejected")]
+        public async System.Threading.Tasks.Task AnIllegalMoveIsRejected()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("A valid move updates match state", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("An illegal move is rejected", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 30
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -285,17 +285,51 @@ namespace MaichessMatchManagerService.Tests.Features
   await this.FeatureBackgroundAsync();
 #line hidden
 #line 31
+    await testRunner.GivenAsync("the move validator rejects the move with reason \"Piece cannot move there\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 32
+    await testRunner.WhenAsync("\"white-1\" makes move \"e2e5\" on match \"match-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 33
+    await testRunner.ThenAsync("an IllegalMoveException is thrown with reason \"Piece cannot move there\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="A valid move updates match state")]
+        [Xunit.TraitAttribute("FeatureTitle", "Make Move")]
+        [Xunit.TraitAttribute("Description", "A valid move updates match state")]
+        public async System.Threading.Tasks.Task AValidMoveUpdatesMatchState()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("A valid move updates match state", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 35
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 5
+  await this.FeatureBackgroundAsync();
+#line hidden
+#line 36
     await testRunner.GivenAsync(("the move validator accepts move \"e2e4\" resulting in FEN \"rnbqkbnr/pppppppp/8/8/4P" +
                         "3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1\""), ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 32
+#line 37
     await testRunner.WhenAsync("\"white-1\" makes move \"e2e4\" on match \"match-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 33
+#line 38
     await testRunner.ThenAsync(("the match current FEN is \"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3" +
                         " 0 1\""), ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 34
+#line 39
     await testRunner.AndAsync("the match move list contains \"e2e4\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }

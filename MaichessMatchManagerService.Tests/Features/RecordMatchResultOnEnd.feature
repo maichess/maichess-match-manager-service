@@ -35,6 +35,24 @@ Feature: Recording match results on match end
     Then 1 match result was recorded
     And a "win" result was recorded for "white-1"
 
+  Scenario: A human-vs-human result rates each player against the other's pre-match rating
+    Given an ongoing match "m1" between human "white-1" and human "black-1"
+    And user "white-1" has rating 1300 and deviation 90
+    And user "black-1" has rating 1700 and deviation 60
+    And the move validator accepts move "e2e4" resulting in FEN "fen1" with game result "WhiteWon"
+    When "white-1" makes move "e2e4" on match "m1"
+    Then 2 match results were recorded
+    And a "win" result was recorded for "white-1" against opponent rating 1700 deviation 60
+    And a "loss" result was recorded for "black-1" against opponent rating 1300 deviation 90
+
+  Scenario: A human-vs-bot result rates the human against the bot's elo with a low deviation
+    Given an ongoing match "m1" between human "white-1" and bot "stockfish-3"
+    And bot "stockfish-3" has elo 2200
+    And the move validator accepts move "e2e4" resulting in FEN "fen4" with game result "WhiteWon"
+    When "white-1" makes move "e2e4" on match "m1"
+    Then 1 match result was recorded
+    And a "win" result was recorded for "white-1" against opponent rating 2200 deviation 50
+
   Scenario: Resigning records a loss for the resigner and a win for the opponent
     Given an ongoing match "m1" between human "white-1" and human "black-1"
     When "white-1" resigns from match "m1"

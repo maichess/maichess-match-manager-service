@@ -258,14 +258,14 @@ namespace MaichessMatchManagerService.Tests.Features
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Resigning records a loss for the resigner and a win for the opponent")]
+        [Xunit.SkippableFactAttribute(DisplayName="A human-vs-human result rates each player against the other\'s pre-match rating")]
         [Xunit.TraitAttribute("FeatureTitle", "Recording match results on match end")]
-        [Xunit.TraitAttribute("Description", "Resigning records a loss for the resigner and a win for the opponent")]
-        public async System.Threading.Tasks.Task ResigningRecordsALossForTheResignerAndAWinForTheOpponent()
+        [Xunit.TraitAttribute("Description", "A human-vs-human result rates each player against the other\'s pre-match rating")]
+        public async System.Threading.Tasks.Task AHuman_Vs_HumanResultRatesEachPlayerAgainstTheOthersPre_MatchRating()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Resigning records a loss for the resigner and a win for the opponent", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("A human-vs-human result rates each player against the other\'s pre-match rating", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 38
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -280,15 +280,106 @@ namespace MaichessMatchManagerService.Tests.Features
     await testRunner.GivenAsync("an ongoing match \"m1\" between human \"white-1\" and human \"black-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 40
-    await testRunner.WhenAsync("\"white-1\" resigns from match \"m1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+    await testRunner.AndAsync("user \"white-1\" has rating 1300 and deviation 90", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 41
-    await testRunner.ThenAsync("2 match results were recorded", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+    await testRunner.AndAsync("user \"black-1\" has rating 1700 and deviation 60", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 42
-    await testRunner.AndAsync("a \"loss\" result was recorded for \"white-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync(("the move validator accepts move \"e2e4\" resulting in FEN \"fen1\" with game result \"" +
+                        "WhiteWon\""), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 43
+    await testRunner.WhenAsync("\"white-1\" makes move \"e2e4\" on match \"m1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 44
+    await testRunner.ThenAsync("2 match results were recorded", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 45
+    await testRunner.AndAsync(("a \"win\" result was recorded for \"white-1\" against opponent rating 1700 deviation " +
+                        "60"), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 46
+    await testRunner.AndAsync(("a \"loss\" result was recorded for \"black-1\" against opponent rating 1300 deviation" +
+                        " 90"), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="A human-vs-bot result rates the human against the bot\'s elo with a low deviation")]
+        [Xunit.TraitAttribute("FeatureTitle", "Recording match results on match end")]
+        [Xunit.TraitAttribute("Description", "A human-vs-bot result rates the human against the bot\'s elo with a low deviation")]
+        public async System.Threading.Tasks.Task AHuman_Vs_BotResultRatesTheHumanAgainstTheBotsEloWithALowDeviation()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("A human-vs-bot result rates the human against the bot\'s elo with a low deviation", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 48
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 49
+    await testRunner.GivenAsync("an ongoing match \"m1\" between human \"white-1\" and bot \"stockfish-3\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 50
+    await testRunner.AndAsync("bot \"stockfish-3\" has elo 2200", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 51
+    await testRunner.AndAsync(("the move validator accepts move \"e2e4\" resulting in FEN \"fen4\" with game result \"" +
+                        "WhiteWon\""), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 52
+    await testRunner.WhenAsync("\"white-1\" makes move \"e2e4\" on match \"m1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 53
+    await testRunner.ThenAsync("1 match result was recorded", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 54
+    await testRunner.AndAsync(("a \"win\" result was recorded for \"white-1\" against opponent rating 2200 deviation " +
+                        "50"), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Resigning records a loss for the resigner and a win for the opponent")]
+        [Xunit.TraitAttribute("FeatureTitle", "Recording match results on match end")]
+        [Xunit.TraitAttribute("Description", "Resigning records a loss for the resigner and a win for the opponent")]
+        public async System.Threading.Tasks.Task ResigningRecordsALossForTheResignerAndAWinForTheOpponent()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Resigning records a loss for the resigner and a win for the opponent", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 56
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 57
+    await testRunner.GivenAsync("an ongoing match \"m1\" between human \"white-1\" and human \"black-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 58
+    await testRunner.WhenAsync("\"white-1\" resigns from match \"m1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 59
+    await testRunner.ThenAsync("2 match results were recorded", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 60
+    await testRunner.AndAsync("a \"loss\" result was recorded for \"white-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 61
     await testRunner.AndAsync("a \"win\" result was recorded for \"black-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
@@ -303,7 +394,7 @@ namespace MaichessMatchManagerService.Tests.Features
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Accepting a draw records a draw for both players", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 45
+#line 63
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -313,22 +404,22 @@ namespace MaichessMatchManagerService.Tests.Features
             else
             {
                 await this.ScenarioStartAsync();
-#line 46
+#line 64
     await testRunner.GivenAsync("an ongoing match \"m1\" between human \"white-1\" and human \"black-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 47
+#line 65
     await testRunner.AndAsync("\"white-1\" has a pending draw offer on match \"m1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 48
+#line 66
     await testRunner.WhenAsync("\"black-1\" accepts draw on match \"m1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 49
+#line 67
     await testRunner.ThenAsync("2 match results were recorded", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 50
+#line 68
     await testRunner.AndAsync("a \"draw\" result was recorded for \"white-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 51
+#line 69
     await testRunner.AndAsync("a \"draw\" result was recorded for \"black-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
@@ -343,7 +434,7 @@ namespace MaichessMatchManagerService.Tests.Features
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("A bot-vs-bot match ending on timeout records nothing", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 53
+#line 71
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -353,16 +444,16 @@ namespace MaichessMatchManagerService.Tests.Features
             else
             {
                 await this.ScenarioStartAsync();
-#line 54
+#line 72
     await testRunner.GivenAsync("an ongoing match \"m1\" between bot \"bot-a\" and bot \"bot-b\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 55
+#line 73
     await testRunner.AndAsync("the active side has timed out on match \"m1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 56
+#line 74
     await testRunner.WhenAsync("timeout enforcement runs for the match", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 57
+#line 75
     await testRunner.ThenAsync("no match results were recorded", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
@@ -377,7 +468,7 @@ namespace MaichessMatchManagerService.Tests.Features
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("A human-vs-bot match ending on timeout records only the human", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 59
+#line 77
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -387,19 +478,19 @@ namespace MaichessMatchManagerService.Tests.Features
             else
             {
                 await this.ScenarioStartAsync();
-#line 60
+#line 78
     await testRunner.GivenAsync("an ongoing match \"m1\" between human \"white-1\" and bot \"bot-b\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 61
+#line 79
     await testRunner.AndAsync("the active side has timed out on match \"m1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 62
+#line 80
     await testRunner.WhenAsync("timeout enforcement runs for the match", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 63
+#line 81
     await testRunner.ThenAsync("1 match result was recorded", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 64
+#line 82
     await testRunner.AndAsync("a \"loss\" result was recorded for \"white-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }

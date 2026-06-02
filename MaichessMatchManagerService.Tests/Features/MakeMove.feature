@@ -22,6 +22,11 @@ Feature: Make Move
     When "black-1" makes move "e7e5" on match "match-1"
     Then a NotYourTurnException is thrown
 
+  Scenario: White moving on black's turn throws NotYourTurnException
+    Given the match is at a black-to-move FEN
+    When "white-1" makes move "e2e4" on match "match-1"
+    Then a NotYourTurnException is thrown
+
   Scenario: An illegal move is rejected
     Given the move validator rejects the move with reason "Piece cannot move there"
     When "white-1" makes move "e2e5" on match "match-1"

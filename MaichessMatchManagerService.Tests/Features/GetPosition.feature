@@ -14,6 +14,11 @@ Feature: Get Position
     When any user requests position 5 on match "match-1"
     Then a PositionIndexOutOfRangeException is thrown
 
+  Scenario: Requesting a negative position index throws PositionIndexOutOfRangeException
+    Given the match has status "white_won"
+    When any user requests position -1 on match "match-1"
+    Then a PositionIndexOutOfRangeException is thrown
+
   Scenario: Position 0 returns the initial FEN with no move and is not current
     Given the match has status "white_won" with move "e2e4" producing FEN "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
     When any user requests position 0 on match "match-1"

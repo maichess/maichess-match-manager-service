@@ -20,8 +20,24 @@ internal sealed partial class MatchService(
     private const int DefaultPageSize = 20;
     private const int MaxPageSize = 100;
 
+    // Bots are treated as having an established rating, so their opponent update
+    // uses a low, fixed deviation rather than the new-player default of 350.
+    private const double BotRatingDeviation = 50.0;
+
     internal static bool IsAnalyzable(MatchDocument match) =>
         match.White.IsBot || match.Black.IsBot || match.Status != "ongoing";
+
+    // The default arm is a defensive fallback for future GameResult values —
+    // unreachable via the normal match flow, covered by a direct unit test.
+    internal static string GameResultToEndReason(GameResult gameResult) => gameResult switch
+    {
+        GameResult.WhiteWon or GameResult.BlackWon => "checkmate",
+        GameResult.Stalemate => "stalemate",
+        GameResult.FiftyMoveRule => "fifty_move_rule",
+        GameResult.ThreefoldRepetition => "threefold_repetition",
+        GameResult.InsufficientMaterial => "insufficient_material",
+        _ => "checkmate",
+    };
 
     internal async Task<MatchDocument> CreateMatchAsync(
         PlayerDocument white,
@@ -453,17 +469,6 @@ internal sealed partial class MatchService(
         }
     }
 
-    // The default arm is a defensive fallback for future GameResult values — unreachable with current proto.
-    private static string GameResultToEndReason(GameResult gameResult) => gameResult switch
-    {
-        GameResult.WhiteWon or GameResult.BlackWon => "checkmate",
-        GameResult.Stalemate => "stalemate",
-        GameResult.FiftyMoveRule => "fifty_move_rule",
-        GameResult.ThreefoldRepetition => "threefold_repetition",
-        GameResult.InsufficientMaterial => "insufficient_material",
-        _ => "checkmate",
-    };
-
     private static char GetActiveColor(string fen)
     {
         string[] parts = fen.Split(' ');
@@ -483,8 +488,8 @@ internal sealed partial class MatchService(
         match.CreatedBy?.UserId == userId;
 
     // Fans the final result out to user-service for each human participant. The
-    // single mutation point for player stats. Bot-vs-bot games record nothing,
-    // so they never affect any player's W/L/D.
+    // single mutation point for player stats and Glicko-2 ratings. Bot-vs-bot
+    // games record nothing, so they never affect any player's W/L/D or rating.
     private async Task RecordMatchResultsAsync(MatchDocument match, CancellationToken ct)
     {
         (MatchOutcome white, MatchOutcome black) = match.Status switch
@@ -494,20 +499,53 @@ internal sealed partial class MatchService(
             _ => (MatchOutcome.Draw, MatchOutcome.Draw),
         };
 
-        await RecordOutcomeAsync(match.White, white, ct);
-        await RecordOutcomeAsync(match.Black, black, ct);
+        // Snapshot both opponents' ratings before recording either result, so a
+        // human-vs-human pair is each rated against the other's pre-match rating
+        // rather than a value already updated by this same fan-out.
+        OpponentRating? whiteOpponent =
+            match.White.UserId is null ? null : await ResolveOpponentRatingAsync(match.Black, ct);
+        OpponentRating? blackOpponent =
+            match.Black.UserId is null ? null : await ResolveOpponentRatingAsync(match.White, ct);
+
+        await RecordOutcomeAsync(match.White, white, whiteOpponent, ct);
+        await RecordOutcomeAsync(match.Black, black, blackOpponent, ct);
     }
 
-    private async Task RecordOutcomeAsync(PlayerDocument player, MatchOutcome outcome, CancellationToken ct)
+    private async Task RecordOutcomeAsync(
+        PlayerDocument player, MatchOutcome outcome, OpponentRating? opponent, CancellationToken ct)
     {
-        if (player.UserId is null)
+        if (opponent is null)
         {
             return;
         }
 
         await userServiceClient.RecordMatchResultAsync(
-            new RecordMatchResultRequest { UserId = player.UserId, Outcome = outcome },
+            new RecordMatchResultRequest
+            {
+                UserId = player.UserId!,
+                Outcome = outcome,
+                OpponentRating = opponent.Value.Rating,
+                OpponentRd = opponent.Value.Rd,
+            },
             cancellationToken: ct);
+    }
+
+    // Resolves the opponent's display-scale rating and deviation used for the
+    // human's Glicko-2 update. Bots are treated as having an established rating:
+    // their engine-configured elo with a fixed low deviation.
+    private async Task<OpponentRating> ResolveOpponentRatingAsync(PlayerDocument opponent, CancellationToken ct)
+    {
+        if (opponent.IsBot)
+        {
+            ListBotsResponse bots = await engineClient.ListBotsAsync(new ListBotsRequest(), cancellationToken: ct);
+            Bot? bot = bots.Bots.FirstOrDefault(b => b.Id == opponent.BotId);
+            return new OpponentRating(bot?.Elo ?? 0, BotRatingDeviation);
+        }
+
+        GetUserResponse response = await userServiceClient.GetUserAsync(
+            new GetUserRequest { UserId = opponent.UserId! },
+            cancellationToken: ct);
+        return new OpponentRating(response.User.Rating, response.User.RatingDeviation);
     }
 
     [ExcludeFromCodeCoverage]
@@ -614,4 +652,8 @@ internal sealed partial class MatchService(
         // Continue the chain when the opponent is also a bot (bot-vs-bot games).
         TriggerBotMoveIfNeeded(match);
     }
+
+    // The opponent rating/deviation pair supplied to user-service for a Glicko-2
+    // update.
+    private readonly record struct OpponentRating(double Rating, double Rd);
 }

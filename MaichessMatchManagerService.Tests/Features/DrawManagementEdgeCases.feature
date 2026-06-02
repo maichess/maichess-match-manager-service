@@ -33,3 +33,7 @@ Feature: Draw Management Edge Cases
   Scenario: Non-participant cannot decline draw
     When "outsider" declines draw on match "match-1"
     Then a NotParticipantException is thrown
+
+  Scenario: Cannot decline draw when no offer is pending
+    When "black-1" declines draw on match "match-1"
+    Then a NoDrawOfferPendingException is thrown

@@ -51,6 +51,18 @@ internal sealed class MatchResultSteps(MatchServiceContext context)
         context.SetupOngoingMatches([match]);
     }
 
+    [Given(@"user ""([^""]*)"" has rating (\d+) and deviation (\d+)")]
+    public void GivenUserHasRating(string userId, int rating, int deviation)
+    {
+        context.SetupUserRating(userId, rating, deviation);
+    }
+
+    [Given(@"bot ""([^""]*)"" has elo (\d+)")]
+    public void GivenBotHasElo(string botId, int elo)
+    {
+        context.SetupBot(botId, elo);
+    }
+
     // ── When ──────────────────────────────────────────────────────────────────
 
     [When(@"timeout enforcement runs for the match")]
@@ -69,7 +81,16 @@ internal sealed class MatchResultSteps(MatchServiceContext context)
 
     [Then(@"a ""([^""]*)"" result was recorded for ""([^""]*)""")]
     public void ThenResultRecordedFor(string outcome, string userId) =>
-        Assert.Contains((userId, ParseOutcome(outcome)), context.RecordedResults);
+        Assert.Contains(context.RecordedResults, r => r.UserId == userId && r.Outcome == ParseOutcome(outcome));
+
+    [Then(@"a ""([^""]*)"" result was recorded for ""([^""]*)"" against opponent rating (\d+) deviation (\d+)")]
+    public void ThenResultRecordedForAgainstOpponent(string outcome, string userId, int rating, int deviation) =>
+        Assert.Contains(
+            context.RecordedResults,
+            r => r.UserId == userId
+                && r.Outcome == ParseOutcome(outcome)
+                && r.OpponentRating == rating
+                && r.OpponentRd == deviation);
 
     internal static MatchOutcome ParseOutcome(string outcome) => outcome switch
     {

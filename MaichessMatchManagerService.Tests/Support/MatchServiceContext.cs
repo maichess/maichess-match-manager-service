@@ -23,7 +23,11 @@ internal sealed class MatchServiceContext
 
     internal Users.UsersClient UserService { get; } = Substitute.For<Users.UsersClient>();
 
-    internal List<(string UserId, MatchOutcome Outcome)> RecordedResults { get; } = [];
+    internal List<RecordMatchResultRequest> RecordedResults { get; } = [];
+
+    private readonly Dictionary<string, (double Rating, double Rd)> _userRatings = [];
+
+    private readonly List<Bot> _bots = [];
 
     internal SocketNotifier SocketNotifier { get; } =
         new SocketNotifier(Substitute.For<SocketSvc.SocketClient>(), NullLogger<SocketNotifier>.Instance);
@@ -68,9 +72,54 @@ internal sealed class MatchServiceContext
             .Returns(ci =>
             {
                 RecordMatchResultRequest request = ci.Arg<RecordMatchResultRequest>();
-                RecordedResults.Add((request.UserId, request.Outcome));
+                RecordedResults.Add(request);
                 return GrpcHelper.GrpcCall(new RecordMatchResultResponse());
             });
+
+        UserService
+            .GetUserAsync(
+                Arg.Any<GetUserRequest>(),
+                Arg.Any<Metadata>(),
+                Arg.Any<DateTime?>(),
+                Arg.Any<CancellationToken>())
+            .Returns(ci =>
+            {
+                string id = ci.Arg<GetUserRequest>().UserId;
+                (double rating, double rd) = _userRatings.TryGetValue(id, out (double Rating, double Rd) v)
+                    ? v
+                    : (1500.0, 200.0);
+                return GrpcHelper.GrpcCall(new GetUserResponse
+                {
+                    User = new Maichess.User.V1.User { Id = id, Rating = rating, RatingDeviation = rd },
+                });
+            });
+
+        Engine
+            .ListBotsAsync(
+                Arg.Any<ListBotsRequest>(),
+                Arg.Any<Metadata>(),
+                Arg.Any<DateTime?>(),
+                Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                ListBotsResponse response = new();
+                response.Bots.AddRange(_bots);
+                return GrpcHelper.GrpcCall(response);
+            });
+    }
+
+    // Configures the rating/deviation returned by user-service for a given human
+    // id. Unconfigured ids fall back to 1500/200.
+    internal void SetupUserRating(string userId, double rating, double ratingDeviation)
+    {
+        _userRatings[userId] = (rating, ratingDeviation);
+    }
+
+    // Registers a bot in the engine's ListBots response so opponent-rating
+    // resolution can read its elo.
+    internal void SetupBot(string botId, int elo)
+    {
+        _bots.Add(new Bot { Id = botId, Elo = elo });
     }
 
     internal void SetupFindForUser(IEnumerable<MatchDocument> matches)
