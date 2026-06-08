@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using Maichess.Engine.V1;
-using Maichess.User.V1;
 using MaichessMatchManagerService.Entities;
 using MaichessMatchManagerService.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -39,7 +38,6 @@ internal static class MatchesEndpoints
         [FromQuery] int page_size,
         ClaimsPrincipal principal,
         MatchService matchService,
-        Users.UsersClient usersClient,
         Bots.BotsClient botsClient,
         CancellationToken ct)
     {
@@ -68,7 +66,7 @@ internal static class MatchesEndpoints
         List<MatchSummaryResponse> summaries = [];
         foreach (MatchDocument match in matches)
         {
-            summaries.Add(await ToMatchSummaryAsync(match, usersClient, botsClient, ct));
+            summaries.Add(await ToMatchSummaryAsync(match, matchService, botsClient, ct));
         }
 
         return Results.Ok(new MatchListResponse(summaries, total, normalizedPage, normalizedSize));
@@ -81,7 +79,6 @@ internal static class MatchesEndpoints
         [FromQuery] int page_size,
         ClaimsPrincipal principal,
         MatchService matchService,
-        Users.UsersClient usersClient,
         Bots.BotsClient botsClient,
         CancellationToken ct)
     {
@@ -110,7 +107,7 @@ internal static class MatchesEndpoints
         List<MatchSummaryResponse> summaries = [];
         foreach (MatchDocument match in matches)
         {
-            summaries.Add(await ToMatchSummaryAsync(match, usersClient, botsClient, ct));
+            summaries.Add(await ToMatchSummaryAsync(match, matchService, botsClient, ct));
         }
 
         return Results.Ok(new MatchListResponse(summaries, total, normalizedPage, normalizedSize));
@@ -120,7 +117,6 @@ internal static class MatchesEndpoints
         string id,
         ClaimsPrincipal principal,
         MatchService matchService,
-        Users.UsersClient usersClient,
         Bots.BotsClient botsClient,
         CancellationToken ct)
     {
@@ -148,7 +144,7 @@ internal static class MatchesEndpoints
             return Results.Forbid();
         }
 
-        MatchResponse response = await ToMatchResponseAsync(match, usersClient, botsClient, ct);
+        MatchResponse response = await ToMatchResponseAsync(match, matchService, botsClient, ct);
         return Results.Ok(response);
     }
 
@@ -213,7 +209,6 @@ internal static class MatchesEndpoints
         [FromBody] SubmitMoveRequest body,
         ClaimsPrincipal principal,
         MatchService matchService,
-        Users.UsersClient usersClient,
         Bots.BotsClient botsClient,
         CancellationToken ct)
     {
@@ -225,7 +220,7 @@ internal static class MatchesEndpoints
         try
         {
             MatchDocument match = await matchService.MakeMoveAsync(id, userId, body.Move, ct);
-            MatchResponse response = await ToMatchResponseAsync(match, usersClient, botsClient, ct);
+            MatchResponse response = await ToMatchResponseAsync(match, matchService, botsClient, ct);
             return Results.Ok(response);
         }
         catch (MatchNotFoundException)
@@ -250,7 +245,6 @@ internal static class MatchesEndpoints
         string id,
         ClaimsPrincipal principal,
         MatchService matchService,
-        Users.UsersClient usersClient,
         Bots.BotsClient botsClient,
         CancellationToken ct)
     {
@@ -262,7 +256,7 @@ internal static class MatchesEndpoints
         try
         {
             MatchDocument match = await matchService.ResignMatchAsync(id, userId, ct);
-            MatchResponse response = await ToMatchResponseAsync(match, usersClient, botsClient, ct);
+            MatchResponse response = await ToMatchResponseAsync(match, matchService, botsClient, ct);
             return Results.Ok(response);
         }
         catch (MatchNotFoundException)
@@ -317,7 +311,6 @@ internal static class MatchesEndpoints
         string id,
         ClaimsPrincipal principal,
         MatchService matchService,
-        Users.UsersClient usersClient,
         Bots.BotsClient botsClient,
         CancellationToken ct)
     {
@@ -329,7 +322,7 @@ internal static class MatchesEndpoints
         try
         {
             MatchDocument match = await matchService.AcceptDrawAsync(id, userId, ct);
-            MatchResponse response = await ToMatchResponseAsync(match, usersClient, botsClient, ct);
+            MatchResponse response = await ToMatchResponseAsync(match, matchService, botsClient, ct);
             return Results.Ok(response);
         }
         catch (MatchNotFoundException)
@@ -378,12 +371,12 @@ internal static class MatchesEndpoints
 
     private static async Task<MatchResponse> ToMatchResponseAsync(
         MatchDocument match,
-        Users.UsersClient usersClient,
+        MatchService matchService,
         Bots.BotsClient botsClient,
         CancellationToken ct)
     {
-        PlayerResponse white = await ToPlayerResponseAsync(match.White, usersClient, botsClient, ct);
-        PlayerResponse black = await ToPlayerResponseAsync(match.Black, usersClient, botsClient, ct);
+        PlayerResponse white = await ToPlayerResponseAsync(match.White, matchService, botsClient, ct);
+        PlayerResponse black = await ToPlayerResponseAsync(match.Black, matchService, botsClient, ct);
         bool analyzable = MatchService.IsAnalyzable(match);
 
         return new MatchResponse(
@@ -402,16 +395,16 @@ internal static class MatchesEndpoints
 
     private static async Task<MatchSummaryResponse> ToMatchSummaryAsync(
         MatchDocument match,
-        Users.UsersClient usersClient,
+        MatchService matchService,
         Bots.BotsClient botsClient,
         CancellationToken ct)
     {
-        PlayerResponse white = await ToPlayerResponseAsync(match.White, usersClient, botsClient, ct);
-        PlayerResponse black = await ToPlayerResponseAsync(match.Black, usersClient, botsClient, ct);
+        PlayerResponse white = await ToPlayerResponseAsync(match.White, matchService, botsClient, ct);
+        PlayerResponse black = await ToPlayerResponseAsync(match.Black, matchService, botsClient, ct);
 
         PlayerResponse? createdBy = match.CreatedBy is null
             ? null
-            : await ToPlayerResponseAsync(match.CreatedBy, usersClient, botsClient, ct);
+            : await ToPlayerResponseAsync(match.CreatedBy, matchService, botsClient, ct);
 
         return new MatchSummaryResponse(
             match.Id,
@@ -435,16 +428,14 @@ internal static class MatchesEndpoints
 
     private static async Task<PlayerResponse> ToPlayerResponseAsync(
         PlayerDocument player,
-        Users.UsersClient usersClient,
+        MatchService matchService,
         Bots.BotsClient botsClient,
         CancellationToken ct)
     {
         if (player.UserId is not null)
         {
-            Maichess.User.V1.GetUserResponse userResponse = await usersClient.GetUserAsync(
-                new Maichess.User.V1.GetUserRequest { UserId = player.UserId },
-                cancellationToken: ct);
-            return new PlayerResponse(player.UserId, userResponse.User.Username, null, null);
+            string username = await matchService.ResolveUsernameAsync(player.UserId, ct);
+            return new PlayerResponse(player.UserId, username, null, null);
         }
 
         if (player.ExternalName is not null)

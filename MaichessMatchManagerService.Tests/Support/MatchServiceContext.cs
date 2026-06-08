@@ -25,6 +25,8 @@ internal sealed class MatchServiceContext
 
     internal Users.UsersClient UserService { get; } = Substitute.For<Users.UsersClient>();
 
+    internal IUserReplica UserReplica { get; } = Substitute.For<IUserReplica>();
+
     internal List<RecordMatchResultRequest> RecordedResults { get; } = [];
 
     private readonly Dictionary<string, (double Rating, double Rd)> _userRatings = [];
@@ -55,11 +57,17 @@ internal sealed class MatchServiceContext
         MatchService = new MatchService(
             Repository,
             Cache,
+            UserReplica,
             MoveValidator,
             Engine,
             UserService,
             SocketNotifier,
             NullLogger<MatchService>.Instance);
+
+        // Default to a cold replica miss so resolution falls back to GetUser; the
+        // replica-hit paths are exercised by SetupUserReplica.
+        UserReplica.GetAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns((UserReplicaRecord?)null);
 
         Repository.InsertAsync(Arg.Any<MatchDocument>(), Arg.Any<CancellationToken>())
             .Returns(ci => Task.FromResult(ci.Arg<MatchDocument>()));
@@ -93,7 +101,13 @@ internal sealed class MatchServiceContext
                     : (1500.0, 200.0);
                 return GrpcHelper.GrpcCall(new GetUserResponse
                 {
-                    User = new Maichess.User.V1.User { Id = id, Rating = rating, RatingDeviation = rd },
+                    User = new Maichess.User.V1.User
+                    {
+                        Id = id,
+                        Username = $"rpc-{id}",
+                        Rating = rating,
+                        RatingDeviation = rd,
+                    },
                 });
             });
 
@@ -116,6 +130,14 @@ internal sealed class MatchServiceContext
     internal void SetupUserRating(string userId, double rating, double ratingDeviation)
     {
         _userRatings[userId] = (rating, ratingDeviation);
+    }
+
+    // Configures the Redis user replica to return a materialised row for an id, so
+    // replica-first resolution serves it without touching the GetUser RPC.
+    internal void SetupUserReplica(string userId, UserReplicaRecord record)
+    {
+        UserReplica.GetAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<UserReplicaRecord?>(record));
     }
 
     // Registers a bot in the engine's ListBots response so opponent-rating

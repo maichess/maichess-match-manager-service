@@ -22,6 +22,8 @@
       "!**/Rest/**/*Endpoints.cs",
       "!**/Data/MatchRepository.cs",
       "!**/Data/RedisMatchCache.cs",
+      "!**/Data/RedisUserReplica.cs",
+      "!**/Kafka/UserReplicaConsumer.cs",
       "!**/Services/*Exception.cs"
     ],
     "ignore-methods": [

@@ -7,6 +7,7 @@ using Maichess.User.V1;
 using MaichessMatchManagerService.Data;
 using MaichessMatchManagerService.Events;
 using MaichessMatchManagerService.Grpc;
+using MaichessMatchManagerService.Kafka;
 using MaichessMatchManagerService.Rest;
 using MaichessMatchManagerService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -35,6 +36,13 @@ string redisUrl = builder.Configuration.GetConnectionString("Redis")
     ?? throw new InvalidOperationException("ConnectionStrings:Redis is not configured");
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisUrl));
 builder.Services.AddSingleton<IMatchCache, RedisMatchCache>();
+
+// Redis-materialised user replica (user:{id}), fed by the compacted user.events.v1
+// topic. Replaces the hot GetUser RPC for username + match-end rating enrichment, with
+// a GetUser fallback while the replica warms. Rebuildable from the topic; shared across
+// pods. See caching-and-read-models.md (Stage 3).
+builder.Services.AddSingleton<IUserReplica, RedisUserReplica>();
+builder.Services.AddHostedService<UserReplicaConsumer>();
 
 // gRPC clients (long-lived singletons — channels and clients are thread-safe)
 string userServiceUrl = builder.Configuration["Services:UserService"]

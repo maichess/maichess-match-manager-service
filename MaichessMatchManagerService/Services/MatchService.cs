@@ -11,6 +11,7 @@ namespace MaichessMatchManagerService.Services;
 internal sealed partial class MatchService(
     IMatchRepository repository,
     IMatchCache cache,
+    IUserReplica userReplica,
     Moves.MovesClient moveValidatorClient,
     Bots.BotsClient engineClient,
     Users.UsersClient userServiceClient,
@@ -533,6 +534,23 @@ internal sealed partial class MatchService(
         return (fen, move, isCurrent);
     }
 
+    // Resolves a player's display username, replica-first with a GetUser fallback for a
+    // cold miss. Used by the REST player-response mapping (a thin, excluded adapter), so
+    // the replica-vs-RPC orchestration lives here where it is unit-tested.
+    internal async Task<string> ResolveUsernameAsync(string userId, CancellationToken ct)
+    {
+        UserReplicaRecord? replica = await userReplica.GetAsync(userId, ct);
+        if (replica?.Username is { Length: > 0 } username)
+        {
+            return username;
+        }
+
+        GetUserResponse response = await userServiceClient.GetUserAsync(
+            new GetUserRequest { UserId = userId },
+            cancellationToken: ct);
+        return response.User.Username;
+    }
+
     [ExcludeFromCodeCoverage]
     [LoggerMessage(Level = LogLevel.Error, Message = "Bot move failed for match {matchId}")]
     private static partial void LogBotMoveFailed(ILogger logger, Exception ex, string matchId);
@@ -706,6 +724,16 @@ internal sealed partial class MatchService(
             ListBotsResponse bots = await engineClient.ListBotsAsync(new ListBotsRequest(), cancellationToken: ct);
             Bot? bot = bots.Bots.FirstOrDefault(b => b.Id == opponent.BotId);
             return new OpponentRating(bot?.Elo ?? 0, BotRatingDeviation);
+        }
+
+        // Replica-first: the rating enrichment reads the Redis user replica and only
+        // falls back to the hot GetUser RPC on a cold miss (key or rating field not yet
+        // materialised). The replica's fields are nullable, so a partially-warmed row
+        // still defers to GetUser rather than rating an opponent against a default.
+        UserReplicaRecord? replica = await userReplica.GetAsync(opponent.UserId!, ct);
+        if (replica is { Rating: { } rating, RatingDeviation: { } rd })
+        {
+            return new OpponentRating(rating, rd);
         }
 
         GetUserResponse response = await userServiceClient.GetUserAsync(

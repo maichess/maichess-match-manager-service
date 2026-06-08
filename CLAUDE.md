@@ -38,7 +38,7 @@ MaichessMatchManagerService/
 - **FEN history:** Stored as `FenHistory` array in MongoDB alongside `Moves`. `FenHistory[N]` is the board position after the N-th move; `FenHistory[0]` is the starting position. Used by `GET /matches/{id}/positions/{index}`.
 - **Bot moves:** Triggered via a fire-and-forget `Task.Run` after every ply. Used both to drive bot replies to human moves and to chain bot-vs-bot games (the first bot move is also queued at match creation time).
 - **Finished-match cache:** Immutable (ended) data is cached in Redis behind the `IMatchCache` seam (`Data/RedisMatchCache.cs`): `match:{id}` finished-match docs and `matches:user:{userId}:ended:{page}:{pageSize}` `ListUserMatches` pages, no expiry (allkeys-lru only). Maintained event-driven by `OnMatchEndedAsync` at every match-end path (refresh doc + evict white/black/`created_by` pages, canonical ids). Ongoing matches/pages are never cached — that is the live read model's job. Rebuildable from match-db. See `maichess-knowledge-base/caching-and-read-models.md`.
-- **Username resolution:** Resolved on demand per request via gRPC to User service. No caching.
+- **User replica (Stage 3):** Username resolution and match-end opponent-rating enrichment read a Redis-materialised user replica (`user:{id}`, hash) instead of the hot `GetUser` RPC, with a `GetUser` fallback for a cold miss or a not-yet-materialised field. The replica is fed by `Kafka/UserReplicaConsumer.cs` (consumes compacted `user.events.v1` from the beginning) through the pure `Kafka/UserReplicaProjection.cs`, behind the `Data/IUserReplica` seam (Redis impl `Data/RedisUserReplica.cs`, `[ExcludeFromCodeCoverage]`). Replica-vs-RPC orchestration lives in `MatchService` (`ResolveUsernameAsync`, `ResolveOpponentRatingAsync`) where it is unit-tested. Rebuildable by replaying the topic (reset the `match-manager-user-replica` consumer group). See `maichess-knowledge-base/caching-and-read-models.md` (Stage 3).
 - **Bot name resolution:** Resolved on demand via `Engine.ListBots` per request. No caching.
 - **Socket broadcasting:** `SocketNotifier` calls `Socket.BroadcastMatchEvent` over gRPC; the socket service fan-outs to every client subscribed to the `match:<id>` room (participants and Watch spectators alike).
 
@@ -64,6 +64,8 @@ Match clock rules are described by a `TimeFormat` value object: `{ id, base_ms, 
 - Excluded from coverage (marked with `[ExcludeFromCodeCoverage]`):
   - `MatchesEndpoints` class (REST adapter layer)
   - `MatchRepository` class (requires MongoDB)
+  - `RedisMatchCache` and `RedisUserReplica` (require live Redis)
+  - `UserReplicaConsumer` (live-Kafka consumer shell; the pure `UserReplicaProjection` it delegates to is unit-tested)
   - `TriggerBotMoveIfNeeded` + `ProcessBotMoveAsync` (fire-and-forget)
   - Compiler-generated logging partials (`LogBotMoveFailed`, `LogEngineInvalidMove`)
   - All REST DTO record types (`ErrorResponse`, `MatchResponse`, etc.)
