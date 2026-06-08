@@ -31,7 +31,7 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
                 source,
                 externalProvider,
                 externalRef,
-                context.CancellationToken);
+                ct: context.CancellationToken);
 
             return new CreateMatchResponse { Match = ToProtoMatch(match) };
         }

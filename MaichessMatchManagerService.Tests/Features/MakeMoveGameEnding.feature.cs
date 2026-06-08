@@ -418,13 +418,16 @@ namespace MaichessMatchManagerService.Tests.Features
     await testRunner.GivenAsync("the match is at a black-to-move FEN", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 53
+    await testRunner.AndAsync("the black player has 300000 ms remaining and moved 2 seconds ago", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 54
     await testRunner.AndAsync(("the move validator accepts move \"e7e5\" resulting in FEN \"fen8\" with game result \"" +
                         "None\""), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 54
+#line 55
     await testRunner.WhenAsync("\"black-1\" makes move \"e7e5\" on match \"match-1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 55
+#line 56
     await testRunner.ThenAsync("the returned match BlackTimeMs is less than 300000", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }

@@ -50,6 +50,7 @@ Feature: Make Move Game Ending
 
   Scenario: Black making a valid move decrements black clock
     Given the match is at a black-to-move FEN
+    And the black player has 300000 ms remaining and moved 2 seconds ago
     And the move validator accepts move "e7e5" resulting in FEN "fen8" with game result "None"
     When "black-1" makes move "e7e5" on match "match-1"
     Then the returned match BlackTimeMs is less than 300000

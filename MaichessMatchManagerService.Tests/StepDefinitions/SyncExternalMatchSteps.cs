@@ -130,7 +130,7 @@ internal sealed class SyncExternalMatchSteps(MatchServiceContext context)
             "external",
             provider,
             externalRef,
-            CancellationToken.None);
+            ct: CancellationToken.None);
     }
 
     [When(@"an external match is created with bot white ""([^""]*)"" and external black ""([^""]*)""")]

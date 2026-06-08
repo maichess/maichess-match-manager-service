@@ -46,8 +46,23 @@ builder.Services.AddSingleton(
 builder.Services.AddSingleton(
     new SocketSvc.SocketClient(GrpcChannel.ForAddress(socketServiceUrl)));
 
+// Real-time transport: "kafka" publishes to socket.outbound.v1 (default);
+// "grpc" falls back to the legacy Socket.BroadcastMatchEvent path.
+string socketTransport = builder.Configuration["Socket:Transport"] ?? "kafka";
+if (string.Equals(socketTransport, "grpc", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddSingleton<ISocketBroadcaster, SocketNotifier>();
+}
+else
+{
+    builder.Services.AddSingleton<ISocketBroadcaster, KafkaSocketNotifier>();
+}
+
+// Match creation is event-sourced: consume CreateMatchCommand from match.commands.v1
+// and materialize the match with the caller-minted id (replaces inbound gRPC CreateMatch).
+builder.Services.AddHostedService<MatchCommandConsumer>();
+
 // Application services
-builder.Services.AddSingleton<SocketNotifier>();
 builder.Services.AddSingleton<MatchService>();
 builder.Services.AddHostedService<TimeoutWatchdog>();
 

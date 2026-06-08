@@ -9,8 +9,9 @@ namespace MaichessMatchManagerService.Events;
 
 [ExcludeFromCodeCoverage]
 internal sealed class SocketNotifier(SocketSvc.SocketClient client, ILogger<SocketNotifier> logger)
+    : ISocketBroadcaster
 {
-    internal void BroadcastMoveMade(
+    public void BroadcastMoveMade(
         MatchDocument match,
         string move,
         string resultingFen,
@@ -30,7 +31,7 @@ internal sealed class SocketNotifier(SocketSvc.SocketClient client, ILogger<Sock
         FireAndForget(match.Id, "move_made", payload);
     }
 
-    internal void BroadcastMatchEnded(MatchDocument match, string status, string reason)
+    public void BroadcastMatchEnded(MatchDocument match, string status, string reason)
     {
         Struct payload = new();
         payload.Fields["match_id"] = Value.ForString(match.Id);
@@ -39,7 +40,7 @@ internal sealed class SocketNotifier(SocketSvc.SocketClient client, ILogger<Sock
         FireAndForget(match.Id, "match_ended", payload);
     }
 
-    internal void BroadcastDrawOffered(MatchDocument match, PlayerDocument offerer)
+    public void BroadcastDrawOffered(MatchDocument match, PlayerDocument offerer)
     {
         Struct payload = new();
         payload.Fields["match_id"] = Value.ForString(match.Id);
@@ -47,7 +48,7 @@ internal sealed class SocketNotifier(SocketSvc.SocketClient client, ILogger<Sock
         FireAndForget(match.Id, "draw_offered", payload);
     }
 
-    internal void BroadcastDrawDeclined(MatchDocument match, PlayerDocument decliner)
+    public void BroadcastDrawDeclined(MatchDocument match, PlayerDocument decliner)
     {
         Struct payload = new();
         payload.Fields["match_id"] = Value.ForString(match.Id);

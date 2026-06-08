@@ -1,0 +1,172 @@
+{
+  "type": "record",
+  "name": "MatchEvent",
+  "namespace": "maichess.events.match",
+  "doc": "Value schema for the match.events.v1 topic. The match event log is the source of truth for the match domain; match state is a projection of this stream.",
+  "fields": [
+    { "name": "event_id", "type": "string", "doc": "uuid, idempotency key" },
+    { "name": "event_type", "type": "string", "doc": "e.g. match.MoveApplied" },
+    { "name": "aggregate_id", "type": "string", "doc": "matchId, the partition key" },
+    { "name": "sequence", "type": "long", "doc": "per-match monotonic sequence" },
+    { "name": "occurred_at", "type": "long", "doc": "epoch ms" },
+    { "name": "correlation_id", "type": "string", "default": "" },
+    { "name": "causation_id", "type": "string", "default": "" },
+    { "name": "producer", "type": "string" },
+    {
+      "name": "payload",
+      "type": [
+        {
+          "type": "record",
+          "name": "MatchCreated",
+          "fields": [
+            {
+              "name": "white",
+              "type": {
+                "type": "record",
+                "name": "Player",
+                "doc": "Exactly one of the three identity fields is non-null.",
+                "fields": [
+                  { "name": "user_id", "type": ["null", "string"], "default": null },
+                  { "name": "bot_id", "type": ["null", "string"], "default": null },
+                  { "name": "external_name", "type": ["null", "string"], "default": null }
+                ]
+              }
+            },
+            { "name": "black", "type": "Player" },
+            {
+              "name": "time_format",
+              "type": {
+                "type": "record",
+                "name": "TimeFormat",
+                "fields": [
+                  { "name": "id", "type": "string" },
+                  { "name": "base_ms", "type": "long" },
+                  { "name": "increment_ms", "type": "long" },
+                  { "name": "category", "type": "string" }
+                ]
+              }
+            },
+            { "name": "created_by", "type": ["null", "Player"], "default": null },
+            { "name": "start_fen", "type": "string", "default": "" },
+            {
+              "name": "source",
+              "type": {
+                "type": "enum",
+                "name": "MatchSource",
+                "symbols": ["NATIVE", "EXTERNAL"],
+                "default": "NATIVE"
+              },
+              "default": "NATIVE"
+            },
+            { "name": "external_provider", "type": "string", "default": "" },
+            { "name": "external_ref", "type": "string", "default": "" }
+          ]
+        },
+        {
+          "type": "record",
+          "name": "MoveSubmitted",
+          "doc": "A move accepted into the pipeline; carries the opaque position_history blob owned by the validator.",
+          "fields": [
+            { "name": "move_uci", "type": "string" },
+            { "name": "by", "type": "Player" },
+            { "name": "fen", "type": "string" },
+            { "name": "position_history", "type": { "type": "array", "items": "string" }, "default": [] }
+          ]
+        },
+        {
+          "type": "record",
+          "name": "MoveValidated",
+          "fields": [
+            { "name": "resulting_fen", "type": "string" },
+            {
+              "name": "game_result",
+              "type": {
+                "type": "enum",
+                "name": "GameResult",
+                "symbols": ["NONE", "WHITE_WON", "BLACK_WON", "STALEMATE", "FIFTY_MOVE_RULE", "THREEFOLD_REPETITION", "INSUFFICIENT_MATERIAL"],
+                "default": "NONE"
+              },
+              "default": "NONE"
+            },
+            { "name": "position_history", "type": { "type": "array", "items": "string" }, "default": [] }
+          ]
+        },
+        {
+          "type": "record",
+          "name": "MoveRejected",
+          "fields": [
+            { "name": "move_uci", "type": "string" },
+            { "name": "reason", "type": "string" }
+          ]
+        },
+        {
+          "type": "record",
+          "name": "MoveApplied",
+          "fields": [
+            { "name": "move_uci", "type": "string" },
+            { "name": "resulting_fen", "type": "string" },
+            { "name": "index", "type": "int" },
+            { "name": "player", "type": "Player" },
+            { "name": "white_time_ms", "type": "long" },
+            { "name": "black_time_ms", "type": "long" },
+            { "name": "applied_at_ms", "type": "long" }
+          ]
+        },
+        {
+          "type": "record",
+          "name": "BotMoveRequested",
+          "fields": [
+            { "name": "fen", "type": "string" },
+            { "name": "bot_id", "type": "string" },
+            { "name": "time_limit_ms", "type": ["null", "int"], "default": null },
+            { "name": "request_id", "type": "string", "doc": "dedupe key for the engine" }
+          ]
+        },
+        {
+          "type": "record",
+          "name": "BotMoveCalculated",
+          "fields": [
+            { "name": "move_uci", "type": "string" },
+            { "name": "evaluation_cp", "type": "int" },
+            { "name": "request_id", "type": "string" }
+          ]
+        },
+        {
+          "type": "record",
+          "name": "DrawOffered",
+          "fields": [{ "name": "by", "type": "Player" }]
+        },
+        {
+          "type": "record",
+          "name": "DrawDeclined",
+          "fields": [{ "name": "by", "type": "Player" }]
+        },
+        {
+          "type": "record",
+          "name": "MatchEnded",
+          "fields": [
+            {
+              "name": "status",
+              "type": {
+                "type": "enum",
+                "name": "MatchStatus",
+                "symbols": ["ONGOING", "WHITE_WON", "BLACK_WON", "DRAW"],
+                "default": "ONGOING"
+              }
+            },
+            {
+              "name": "end_reason",
+              "type": {
+                "type": "enum",
+                "name": "EndReason",
+                "symbols": ["CHECKMATE", "RESIGNATION", "STALEMATE", "TIMEOUT", "DRAW_AGREEMENT", "FIFTY_MOVE_RULE", "THREEFOLD_REPETITION", "INSUFFICIENT_MATERIAL"],
+                "default": "CHECKMATE"
+              }
+            },
+            { "name": "finished_at_ms", "type": "long" }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -13,7 +13,7 @@ internal sealed partial class MatchService(
     Moves.MovesClient moveValidatorClient,
     Bots.BotsClient engineClient,
     Users.UsersClient userServiceClient,
-    SocketNotifier socketNotifier,
+    ISocketBroadcaster socketNotifier,
     ILogger<MatchService> logger)
 {
     private const string InitialFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -48,6 +48,7 @@ internal sealed partial class MatchService(
         string source = "native",
         string externalProvider = "",
         string externalRef = "",
+        string? id = null,
         CancellationToken ct = default)
     {
         string fen = NormalizeStartFen(startFen);
@@ -56,7 +57,7 @@ internal sealed partial class MatchService(
         MatchDocument created = await repository.InsertAsync(
             new MatchDocument
             {
-                Id = string.Empty,
+                Id = id ?? string.Empty,
                 White = white,
                 Black = black,
                 CurrentFen = fen,
