@@ -10,6 +10,7 @@ namespace MaichessMatchManagerService.Services;
 
 internal sealed partial class MatchService(
     IMatchRepository repository,
+    IMatchCache cache,
     Moves.MovesClient moveValidatorClient,
     Bots.BotsClient engineClient,
     Users.UsersClient userServiceClient,
@@ -135,6 +136,7 @@ internal sealed partial class MatchService(
         if (status != "ongoing")
         {
             socketNotifier.BroadcastMatchEnded(match, status, endReason);
+            await OnMatchEndedAsync(match, ct);
         }
 
         return match;
@@ -142,8 +144,24 @@ internal sealed partial class MatchService(
 
     internal async Task<MatchDocument> GetMatchAsync(string matchId, CancellationToken ct)
     {
-        MatchDocument? match = await repository.GetByIdAsync(matchId, ct);
-        return match ?? throw new MatchNotFoundException(matchId);
+        // Finished matches are immutable, so a cache hit is authoritative. Ongoing
+        // matches are never cached (that is the live read model's job), so they
+        // always fall through to match-db.
+        MatchDocument? cached = await cache.GetMatchAsync(matchId, ct);
+        if (cached is not null)
+        {
+            return cached;
+        }
+
+        MatchDocument match = await repository.GetByIdAsync(matchId, ct)
+            ?? throw new MatchNotFoundException(matchId);
+
+        if (IsEnded(match))
+        {
+            await cache.SetMatchAsync(match, ct);
+        }
+
+        return match;
     }
 
     internal async Task<(IReadOnlyList<MatchDocument> Matches, int Total)> ListMatchesAsync(
@@ -173,6 +191,23 @@ internal sealed partial class MatchService(
         // only in representation from the stored white/black/created_by values
         // (e.g. the JWT `sub` vs the Guid-normalised `me.id`) still matches.
         string canonicalUserId = CanonicalizeUserId(userId)!;
+
+        // Only the ended page is immutable and therefore cacheable; the ongoing
+        // page changes as games start and progress, so it always reads live. The
+        // cache key uses the same canonical id as the DB filter (see prompt 08).
+        bool isEndedQuery = status != "ongoing";
+        const string statusFilter = "ended";
+
+        if (isEndedQuery)
+        {
+            (IReadOnlyList<MatchDocument> Matches, int Total)? hit =
+                await cache.GetUserPageAsync(canonicalUserId, statusFilter, normalizedPage, normalizedSize, ct);
+            if (hit is not null)
+            {
+                return hit.Value;
+            }
+        }
+
         IReadOnlyList<MatchDocument> candidates = await repository.FindForUserAsync(canonicalUserId, ct);
 
         IEnumerable<MatchDocument> filtered = candidates.Where(m => IsForUser(m, canonicalUserId));
@@ -184,6 +219,12 @@ internal sealed partial class MatchService(
         int total = ordered.Count;
         IReadOnlyList<MatchDocument> pageItems =
             [.. ordered.Skip((normalizedPage - 1) * normalizedSize).Take(normalizedSize)];
+
+        if (isEndedQuery)
+        {
+            await cache.SetUserPageAsync(
+                canonicalUserId, statusFilter, normalizedPage, normalizedSize, pageItems, total, ct);
+        }
 
         return (pageItems, total);
     }
@@ -265,6 +306,7 @@ internal sealed partial class MatchService(
             bool isTimeout = match.WhiteTimeMs <= 0 || match.BlackTimeMs <= 0;
             string endReason = isTimeout ? "timeout" : GameResultToEndReason(validation.GameResult);
             socketNotifier.BroadcastMatchEnded(match, match.Status, endReason);
+            await OnMatchEndedAsync(match, ct);
             await RecordMatchResultsAsync(match, ct);
             return match;
         }
@@ -343,6 +385,7 @@ internal sealed partial class MatchService(
         await repository.ReplaceAsync(match, ct);
 
         socketNotifier.BroadcastMatchEnded(match, "draw", "draw_agreement");
+        await OnMatchEndedAsync(match, ct);
         await RecordMatchResultsAsync(match, ct);
 
         return match;
@@ -403,6 +446,7 @@ internal sealed partial class MatchService(
         await repository.ReplaceAsync(match, ct);
 
         socketNotifier.BroadcastMatchEnded(match, match.Status, "resignation");
+        await OnMatchEndedAsync(match, ct);
         await RecordMatchResultsAsync(match, ct);
 
         return match;
@@ -460,6 +504,7 @@ internal sealed partial class MatchService(
             match.FinishedAtMs = now.ToUnixTimeMilliseconds();
             await repository.ReplaceAsync(match, ct);
             socketNotifier.BroadcastMatchEnded(match, match.Status, "timeout");
+            await OnMatchEndedAsync(match, ct);
             await RecordMatchResultsAsync(match, ct);
         }
     }
@@ -580,6 +625,33 @@ internal sealed partial class MatchService(
         CanonicalizeUserId(match.White.UserId) == canonicalUserId ||
         CanonicalizeUserId(match.Black.UserId) == canonicalUserId ||
         CanonicalizeUserId(match.CreatedBy?.UserId) == canonicalUserId;
+
+    // A match in any status other than "ongoing" has reached a terminal,
+    // immutable state and is safe to cache with no expiry.
+    private static bool IsEnded(MatchDocument match) => match.Status != "ongoing";
+
+    // The distinct canonical ids of the humans whose Past Matches include this
+    // match: either colour they played plus the initiator of a bot-vs-bot game.
+    private static IEnumerable<string> ParticipantUserIds(MatchDocument match) =>
+        new[] { match.White.UserId, match.Black.UserId, match.CreatedBy?.UserId }
+            .Where(id => id is not null)
+            .Select(id => CanonicalizeUserId(id)!)
+            .Distinct();
+
+    // Maintains the immutable read model when a match reaches an ended status:
+    // refreshes the finished-match document cache and evicts the page cache for
+    // every human who can see the game in their history (white, black, and the
+    // created_by initiator), so the newly-finished game appears on the next read.
+    // This is the only path that writes these caches outside a cache-miss reload.
+    private async Task OnMatchEndedAsync(MatchDocument match, CancellationToken ct)
+    {
+        await cache.SetMatchAsync(match, ct);
+
+        foreach (string canonicalUserId in ParticipantUserIds(match))
+        {
+            await cache.InvalidateUserPagesAsync(canonicalUserId, ct);
+        }
+    }
 
     // Fans the final result out to user-service for each human participant. The
     // single mutation point for player stats and Glicko-2 ratings. Bot-vs-bot
@@ -739,6 +811,7 @@ internal sealed partial class MatchService(
             bool isTimeout = match.WhiteTimeMs <= 0 || match.BlackTimeMs <= 0;
             string endReason = isTimeout ? "timeout" : GameResultToEndReason(validation.GameResult);
             socketNotifier.BroadcastMatchEnded(match, match.Status, endReason);
+            await OnMatchEndedAsync(match, ct);
             await RecordMatchResultsAsync(match, ct);
             return;
         }

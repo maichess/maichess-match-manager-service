@@ -17,6 +17,8 @@ internal sealed class MatchServiceContext
 {
     internal IMatchRepository Repository { get; } = Substitute.For<IMatchRepository>();
 
+    internal IMatchCache Cache { get; } = Substitute.For<IMatchCache>();
+
     internal Moves.MovesClient MoveValidator { get; } = Substitute.For<Moves.MovesClient>();
 
     internal Bots.BotsClient Engine { get; } = Substitute.For<Bots.BotsClient>();
@@ -52,6 +54,7 @@ internal sealed class MatchServiceContext
     {
         MatchService = new MatchService(
             Repository,
+            Cache,
             MoveValidator,
             Engine,
             UserService,

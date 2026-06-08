@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using StackExchange.Redis;
 
 using SocketSvc = Socket.V1.Socket;
 
@@ -26,6 +27,14 @@ string dbServiceUrl = builder.Configuration["Services:DatabaseService"]
 builder.Services.AddSingleton(
     new Database.DatabaseClient(GrpcChannel.ForAddress(dbServiceUrl)));
 builder.Services.AddSingleton<IMatchRepository, MatchRepository>();
+
+// Redis cache for immutable finished-match reads (finished-match docs +
+// ListUserMatches pages). Rebuildable from match-db; see the caching-and-read-
+// models ADR. Reuses the Redis instance already deployed for Match Maker.
+string redisUrl = builder.Configuration.GetConnectionString("Redis")
+    ?? throw new InvalidOperationException("ConnectionStrings:Redis is not configured");
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisUrl));
+builder.Services.AddSingleton<IMatchCache, RedisMatchCache>();
 
 // gRPC clients (long-lived singletons — channels and clients are thread-safe)
 string userServiceUrl = builder.Configuration["Services:UserService"]

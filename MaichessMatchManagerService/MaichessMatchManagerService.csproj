@@ -46,6 +46,7 @@
         <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
         <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />
         <PackageReference Include="OpenTelemetry.Instrumentation.GrpcNetClient" Version="1.15.1-beta.1" />
+        <PackageReference Include="StackExchange.Redis" Version="2.8.16" />
         <!-- StyleCop for naming, ordering, and documentation rules -->
         <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" />
     </ItemGroup>

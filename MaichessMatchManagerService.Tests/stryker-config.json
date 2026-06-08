@@ -21,6 +21,7 @@
       "!**/*.generated.cs",
       "!**/Rest/**/*Endpoints.cs",
       "!**/Data/MatchRepository.cs",
+      "!**/Data/RedisMatchCache.cs",
       "!**/Services/*Exception.cs"
     ],
     "ignore-methods": [
