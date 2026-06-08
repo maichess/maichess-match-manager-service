@@ -35,6 +35,12 @@ Feature: Listing a user's past matches
     Then the listed match count is 1
     And the listed match at position 0 is "m2"
 
+  Scenario: A match is listed when the user id differs only in Guid representation
+    Given a finished match "m1" with white "A1B2C3D4-1111-2222-3333-444455556666" black "bob" finished at 1000
+    When matches are listed for user "a1b2c3d4-1111-2222-3333-444455556666" with status "ended" page 1 size 20
+    Then the listed match count is 1
+    And the listed match at position 0 is "m1"
+
   Scenario: Paging returns the requested slice and the full total
     Given a finished match "m1" with white "alice" black "bob" finished at 1000
     And a finished match "m2" with white "alice" black "bob" finished at 2000

@@ -26,9 +26,9 @@ namespace MaichessMatchManagerService.Tests.Features
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Listing a user\'s past matches", ("  ListUserMatches returns matches the user played (either colour) or initiated\n  " +
-                "(created_by), filtered to ended matches by default and ordered newest first,\n  w" +
-                "ith paging."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Listing a user\'s past matches", ("  ListUserMatches returns matches the user played (either colour) or initiated\r\n " +
+                " (created_by), filtered to ended matches by default and ordered newest first,\r\n " +
+                " with paging."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
@@ -254,14 +254,14 @@ namespace MaichessMatchManagerService.Tests.Features
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Paging returns the requested slice and the full total")]
+        [Xunit.SkippableFactAttribute(DisplayName="A match is listed when the user id differs only in Guid representation")]
         [Xunit.TraitAttribute("FeatureTitle", "Listing a user\'s past matches")]
-        [Xunit.TraitAttribute("Description", "Paging returns the requested slice and the full total")]
-        public async System.Threading.Tasks.Task PagingReturnsTheRequestedSliceAndTheFullTotal()
+        [Xunit.TraitAttribute("Description", "A match is listed when the user id differs only in Guid representation")]
+        public async System.Threading.Tasks.Task AMatchIsListedWhenTheUserIdDiffersOnlyInGuidRepresentation()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Paging returns the requested slice and the full total", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("A match is listed when the user id differs only in Guid representation", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 38
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -273,24 +273,60 @@ namespace MaichessMatchManagerService.Tests.Features
             {
                 await this.ScenarioStartAsync();
 #line 39
-    await testRunner.GivenAsync("a finished match \"m1\" with white \"alice\" black \"bob\" finished at 1000", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+    await testRunner.GivenAsync(("a finished match \"m1\" with white \"A1B2C3D4-1111-2222-3333-444455556666\" black \"bo" +
+                        "b\" finished at 1000"), ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 40
-    await testRunner.AndAsync("a finished match \"m2\" with white \"alice\" black \"bob\" finished at 2000", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.WhenAsync(("matches are listed for user \"a1b2c3d4-1111-2222-3333-444455556666\" with status \"e" +
+                        "nded\" page 1 size 20"), ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 41
-    await testRunner.AndAsync("a finished match \"m3\" with white \"alice\" black \"bob\" finished at 3000", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 42
-    await testRunner.WhenAsync("matches are listed for user \"alice\" with status \"ended\" page 2 size 2", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
-#line hidden
-#line 43
     await testRunner.ThenAsync("the listed match count is 1", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
+#line 42
+    await testRunner.AndAsync("the listed match at position 0 is \"m1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Paging returns the requested slice and the full total")]
+        [Xunit.TraitAttribute("FeatureTitle", "Listing a user\'s past matches")]
+        [Xunit.TraitAttribute("Description", "Paging returns the requested slice and the full total")]
+        public async System.Threading.Tasks.Task PagingReturnsTheRequestedSliceAndTheFullTotal()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Paging returns the requested slice and the full total", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 44
+  this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 45
+    await testRunner.GivenAsync("a finished match \"m1\" with white \"alice\" black \"bob\" finished at 1000", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 46
+    await testRunner.AndAsync("a finished match \"m2\" with white \"alice\" black \"bob\" finished at 2000", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 47
+    await testRunner.AndAsync("a finished match \"m3\" with white \"alice\" black \"bob\" finished at 3000", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 48
+    await testRunner.WhenAsync("matches are listed for user \"alice\" with status \"ended\" page 2 size 2", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 49
+    await testRunner.ThenAsync("the listed match count is 1", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 50
     await testRunner.AndAsync("the listed total is 3", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 45
+#line 51
     await testRunner.AndAsync("the listed match at position 0 is \"m1\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }

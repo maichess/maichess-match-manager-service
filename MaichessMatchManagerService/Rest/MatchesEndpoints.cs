@@ -48,7 +48,7 @@ internal static class MatchesEndpoints
             return Results.Unauthorized();
         }
 
-        if (userId != authUserId)
+        if (MatchService.CanonicalizeUserId(userId) != MatchService.CanonicalizeUserId(authUserId))
         {
             return Results.Forbid();
         }

@@ -26,8 +26,8 @@ namespace MaichessMatchManagerService.Tests.Features
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Match creation attribution", ("  CreateMatch stamps created_by (the initiator) and source NATIVE. When the\n  cal" +
-                "ler does not supply created_by it is derived from the human side."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Match creation attribution", ("  CreateMatch stamps created_by (the initiator) and source NATIVE. When the\r\n  ca" +
+                "ller does not supply created_by it is derived from the human side."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         

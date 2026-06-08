@@ -27,6 +27,14 @@ internal sealed partial class MatchService(
     internal static bool IsAnalyzable(MatchDocument match) =>
         match.White.IsBot || match.Black.IsBot || match.Status != "ongoing";
 
+    // Identity is a Guid everywhere it is minted, stored, or compared. Normalising
+    // to the canonical lowercase hyphenated form makes ownership checks immune to a
+    // pure case/format difference between the JWT `sub` and the Guid-normalised
+    // id user-service returns. Non-Guid ids (e.g. legacy/test values) pass through
+    // unchanged so equality still holds for them.
+    internal static string? CanonicalizeUserId(string? userId) =>
+        userId is not null && Guid.TryParse(userId, out Guid guid) ? guid.ToString() : userId;
+
     // The default arm is a defensive fallback for future GameResult values —
     // unreachable via the normal match flow, covered by a direct unit test.
     internal static string GameResultToEndReason(GameResult gameResult) => gameResult switch
@@ -161,9 +169,13 @@ internal sealed partial class MatchService(
         int normalizedPage = page < 1 ? 1 : page;
         int normalizedSize = pageSize <= 0 ? DefaultPageSize : Math.Min(pageSize, MaxPageSize);
 
-        IReadOnlyList<MatchDocument> candidates = await repository.FindForUserAsync(userId, ct);
+        // Query and filter on the canonical id form so a user whose id differs
+        // only in representation from the stored white/black/created_by values
+        // (e.g. the JWT `sub` vs the Guid-normalised `me.id`) still matches.
+        string canonicalUserId = CanonicalizeUserId(userId)!;
+        IReadOnlyList<MatchDocument> candidates = await repository.FindForUserAsync(canonicalUserId, ct);
 
-        IEnumerable<MatchDocument> filtered = candidates.Where(m => IsForUser(m, userId));
+        IEnumerable<MatchDocument> filtered = candidates.Where(m => IsForUser(m, canonicalUserId));
         filtered = status == "ongoing"
             ? filtered.Where(m => m.Status == "ongoing")
             : filtered.Where(m => m.Status != "ongoing");
@@ -562,10 +574,12 @@ internal sealed partial class MatchService(
 
     // A match belongs to a user's history when they played either colour or
     // initiated it (created_by) — the latter covers bot-vs-bot games they spawned.
-    private static bool IsForUser(MatchDocument match, string userId) =>
-        match.White.UserId == userId ||
-        match.Black.UserId == userId ||
-        match.CreatedBy?.UserId == userId;
+    // The caller supplies an already-canonical id; stored ids are canonicalised
+    // here so a pure case/format difference cannot drop a legitimate match.
+    private static bool IsForUser(MatchDocument match, string canonicalUserId) =>
+        CanonicalizeUserId(match.White.UserId) == canonicalUserId ||
+        CanonicalizeUserId(match.Black.UserId) == canonicalUserId ||
+        CanonicalizeUserId(match.CreatedBy?.UserId) == canonicalUserId;
 
     // Fans the final result out to user-service for each human participant. The
     // single mutation point for player stats and Glicko-2 ratings. Bot-vs-bot

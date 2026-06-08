@@ -26,9 +26,9 @@ namespace MaichessMatchManagerService.Tests.Features
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Recording match results on match end", ("  When a match ends, the result is recorded with user-service for each human\n  pa" +
-                "rticipant. Bot-vs-bot games record nothing, so bots never affect any\n  player\'s " +
-                "win/loss/draw totals."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Recording match results on match end", ("  When a match ends, the result is recorded with user-service for each human\r\n  p" +
+                "articipant. Bot-vs-bot games record nothing, so bots never affect any\r\n  player\'" +
+                "s win/loss/draw totals."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         

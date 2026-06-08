@@ -26,8 +26,8 @@ namespace MaichessMatchManagerService.Tests.Features
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Timeout Enforcement", ("  EnforceTimeoutsAsync scans ongoing matches and ends any where the active\n  play" +
-                "er\'s clock has expired, broadcasting a match_ended event."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Timeout Enforcement", ("  EnforceTimeoutsAsync scans ongoing matches and ends any where the active\r\n  pla" +
+                "yer\'s clock has expired, broadcasting a match_ended event."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
