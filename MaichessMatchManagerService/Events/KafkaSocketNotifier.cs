@@ -1,11 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Text.Json;
-using Avro;
-using Avro.Generic;
 using Confluent.Kafka;
 using Confluent.SchemaRegistry;
-using Confluent.SchemaRegistry.Serdes;
+using Maichess.Events.V1;
 using MaichessMatchManagerService.Entities;
 
 namespace MaichessMatchManagerService.Events;
@@ -14,16 +11,18 @@ namespace MaichessMatchManagerService.Events;
 // service consumes the topic and fans out to clients, replacing the direct
 // Socket.BroadcastMatchEvent gRPC call. Payloads are JSON-encoded in payload_json
 // so the shape delivered to clients is identical to the legacy gRPC path.
+//
+// Serialized with Protobuf via the Confluent Protobuf serde (Kafka task 02 —
+// socket.outbound.v1 migrated off Avro). The socket consumer dual-reads, so the
+// cutover is reversible.
 [ExcludeFromCodeCoverage]
 internal sealed class KafkaSocketNotifier : ISocketBroadcaster, IDisposable
 {
     private const string Topic = "socket.outbound.v1";
-    private const string Producer = "match-manager-service";
+    private const string ProducerName = "match-manager-service";
 
-    private readonly IProducer<string, GenericRecord> producer;
+    private readonly IProducer<string, OutboundEvent> producer;
     private readonly CachedSchemaRegistryClient registry;
-    private readonly RecordSchema envelopeSchema;
-    private readonly RecordSchema pushSchema;
     private readonly ILogger<KafkaSocketNotifier> logger;
 
     public KafkaSocketNotifier(ILogger<KafkaSocketNotifier> logger)
@@ -34,13 +33,10 @@ internal sealed class KafkaSocketNotifier : ISocketBroadcaster, IDisposable
         string registryUrl = Environment.GetEnvironmentVariable("SCHEMA_REGISTRY_URL")
             ?? "http://schema-registry:8081";
 
-        envelopeSchema = (RecordSchema)Avro.Schema.Parse(LoadSchema());
-        pushSchema = (RecordSchema)envelopeSchema.Fields.Single(f => f.Name == "payload").Schema;
-
         registry = new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = registryUrl });
-        producer = new ProducerBuilder<string, GenericRecord>(
+        producer = new ProducerBuilder<string, OutboundEvent>(
                 new ProducerConfig { BootstrapServers = bootstrap })
-            .SetValueSerializer(new AvroSerializer<GenericRecord>(registry))
+            .SetValueSerializer(ProtobufEventSerdes.Serializer<OutboundEvent>(registry))
             .Build();
     }
 
@@ -63,7 +59,7 @@ internal sealed class KafkaSocketNotifier : ISocketBroadcaster, IDisposable
             ["white_time_ms"] = whiteTimeMs,
             ["black_time_ms"] = blackTimeMs,
         };
-        Publish(null, match.Id, match.Id, "move_made", payload);
+        PublishToMatch(match.Id, "move_made", payload);
     }
 
     public void BroadcastMatchEnded(MatchDocument match, string status, string reason)
@@ -74,7 +70,7 @@ internal sealed class KafkaSocketNotifier : ISocketBroadcaster, IDisposable
             ["status"] = status,
             ["reason"] = reason,
         };
-        Publish(null, match.Id, match.Id, "match_ended", payload);
+        PublishToMatch(match.Id, "match_ended", payload);
     }
 
     public void BroadcastDrawOffered(MatchDocument match, PlayerDocument offerer)
@@ -84,7 +80,7 @@ internal sealed class KafkaSocketNotifier : ISocketBroadcaster, IDisposable
             ["match_id"] = match.Id,
             ["player"] = PlayerJson(offerer),
         };
-        Publish(null, match.Id, match.Id, "draw_offered", payload);
+        PublishToMatch(match.Id, "draw_offered", payload);
     }
 
     public void BroadcastDrawDeclined(MatchDocument match, PlayerDocument decliner)
@@ -94,7 +90,7 @@ internal sealed class KafkaSocketNotifier : ISocketBroadcaster, IDisposable
             ["match_id"] = match.Id,
             ["player"] = PlayerJson(decliner),
         };
-        Publish(null, match.Id, match.Id, "draw_declined", payload);
+        PublishToMatch(match.Id, "draw_declined", payload);
     }
 
     public void Dispose()
@@ -109,48 +105,30 @@ internal sealed class KafkaSocketNotifier : ISocketBroadcaster, IDisposable
         : player.BotId is not null ? new Dictionary<string, string> { ["bot_id"] = player.BotId }
         : [];
 
-    private static string LoadSchema()
+    private void PublishToMatch(string matchId, string eventName, Dictionary<string, object?> payload)
     {
-        Assembly asm = typeof(KafkaSocketNotifier).Assembly;
-        string name = asm.GetManifestResourceNames()
-            .Single(n => n.EndsWith("socket.outbound.v1.avsc", StringComparison.Ordinal));
-        using Stream stream = asm.GetManifestResourceStream(name)!;
-        using StreamReader reader = new(stream);
-        return reader.ReadToEnd();
-    }
+        OutboundEvent envelope = new()
+        {
+            EventId = Guid.NewGuid().ToString(),
+            EventType = $"socket.{eventName}",
+            AggregateId = matchId,
+            Sequence = 0L,
+            OccurredAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            Producer = ProducerName,
+            Push = new SocketPush
+            {
+                TargetMatchId = matchId,
+                EventName = eventName,
+                PayloadJson = JsonSerializer.Serialize(payload),
+            },
+        };
 
-    private void Publish(
-        string? targetUserId,
-        string? targetMatchId,
-        string key,
-        string eventName,
-        Dictionary<string, object?> payload)
-    {
-        string payloadJson = JsonSerializer.Serialize(payload);
-
-        GenericRecord push = new(pushSchema);
-        push.Add("target_user_id", targetUserId);
-        push.Add("target_match_id", targetMatchId);
-        push.Add("event_name", eventName);
-        push.Add("payload_json", payloadJson);
-
-        GenericRecord envelope = new(envelopeSchema);
-        envelope.Add("event_id", Guid.NewGuid().ToString());
-        envelope.Add("event_type", $"socket.{eventName}");
-        envelope.Add("aggregate_id", key);
-        envelope.Add("sequence", 0L);
-        envelope.Add("occurred_at", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-        envelope.Add("correlation_id", string.Empty);
-        envelope.Add("causation_id", string.Empty);
-        envelope.Add("producer", Producer);
-        envelope.Add("payload", push);
-
-        Message<string, GenericRecord> message = new() { Key = key, Value = envelope };
-        _ = Task.Run(() => ProduceAsync(message, eventName, key));
+        Message<string, OutboundEvent> message = new() { Key = matchId, Value = envelope };
+        _ = Task.Run(() => ProduceAsync(message, eventName, matchId));
     }
 
 #pragma warning disable CA1031 // Fire-and-forget background publish: log and swallow all failures.
-    private async Task ProduceAsync(Message<string, GenericRecord> message, string eventName, string key)
+    private async Task ProduceAsync(Message<string, OutboundEvent> message, string eventName, string key)
     {
         try
         {

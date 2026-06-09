@@ -27,8 +27,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Events/socket.outbound.v1.avsc" />
-        <EmbeddedResource Include="Events/match.commands.v1.avsc" />
         <EmbeddedResource Include="Events/match.events.v1.avsc" />
     </ItemGroup>
 

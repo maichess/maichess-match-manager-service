@@ -55,3 +55,21 @@ Contracts **v0.6.0** is published; `Maichess.PlatformProtos` is pinned at `0.6.0
 **Local verify pending (auth handoff):** a fresh agent shell has no `GITHUB_TOKEN`, so
 `dotnet restore` cannot pull `Maichess.PlatformProtos@0.6.0` from GitHub Packages (401). Run
 `dotnet test ... -p:CollectCoverage=true` where the token is available to confirm.
+
+## Topics migrated to Protobuf (Kafka task `02`)
+
+`match.commands.v1` and `socket.outbound.v1` now carry **Protobuf**; the `.avsc` files (canonical +
+the embedded `Events/*.avsc` copies for these topics) are retired and build/tests pass locally at
+`0.6.0` (the 401 above did not recur — the package is in the NuGet cache). `match.events.v1.avsc`
+stays (that topic has no producer yet — task `05`).
+
+- **Producer → proto:** `KafkaSocketNotifier` emits `OutboundEvent`.
+- **Consumer dual-read:** `MatchCommandConsumer` consumes `byte[]`, discriminates Avro vs Protobuf
+  on the schema id's registry type (`ConfluentFraming` + cached lookup), and projects each arm onto
+  `CreateMatchInput` via `MatchCommandReader` (proto) / `MatchCommandAvroReader` (Avro). Every
+  consume path WARN-logs decode failures (resolving the silent-drop root cause of the socket caveat).
+- **Socket caveat resolved:** `Socket__Transport: kafka` for match-manager (the prior grpc revert
+  was already absent from `maichess-deploy` base values; an explicit `kafka` entry now codifies it).
+- **Decision (deviation from the task's literal step (c)):** the Avro **read** arm is *retained*
+  (removed in task `09` with the registry) for reversibility; "no Avro on the wire" still holds.
+  Serde glue stays `[ExcludeFromCodeCoverage]`; the pure readers/discriminator are unit-tested.

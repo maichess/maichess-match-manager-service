@@ -1,9 +1,11 @@
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Avro.Generic;
 using Confluent.Kafka;
 using Confluent.Kafka.SyncOverAsync;
 using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
+using Maichess.Events.V1;
 using MaichessMatchManagerService.Entities;
 using MaichessMatchManagerService.Services;
 
@@ -12,6 +14,12 @@ namespace MaichessMatchManagerService.Events;
 // Consumes match.commands.v1 and applies CreateMatchCommand: creates the match
 // with the caller-minted id, then pushes `matched` to each human participant.
 // This replaces the inbound Matches.CreateMatch gRPC call from Match Maker.
+//
+// Dual-read (Kafka task 02): the topic is mid-migration from Avro to Protobuf, so
+// each message is decoded with the arm its Confluent schema id resolves to in the
+// registry. The producer (match-maker KafkaMatchCreator) now emits Protobuf; the
+// Avro arm is kept so already-enqueued Avro commands still decode and the cutover
+// stays reversible (it is removed in task 09 with the registry).
 [ExcludeFromCodeCoverage]
 internal sealed class MatchCommandConsumer : BackgroundService
 {
@@ -21,7 +29,10 @@ internal sealed class MatchCommandConsumer : BackgroundService
     private readonly MatchService matchService;
     private readonly ILogger<MatchCommandConsumer> logger;
     private readonly CachedSchemaRegistryClient registry;
-    private readonly IConsumer<string, GenericRecord> consumer;
+    private readonly IConsumer<string, byte[]> consumer;
+    private readonly AvroDeserializer<GenericRecord> avroDeserializer;
+    private readonly ProtobufDeserializer<MatchCommand> protoDeserializer;
+    private readonly ConcurrentDictionary<int, bool> isProtobuf = new();
 
     public MatchCommandConsumer(
         MatchService matchService,
@@ -35,13 +46,16 @@ internal sealed class MatchCommandConsumer : BackgroundService
             ?? "http://schema-registry:8081";
 
         registry = new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = registryUrl });
-        consumer = new ConsumerBuilder<string, GenericRecord>(new ConsumerConfig
+        avroDeserializer = new AvroDeserializer<GenericRecord>(registry);
+        protoDeserializer = new ProtobufDeserializer<MatchCommand>();
+        consumer = new ConsumerBuilder<string, byte[]>(new ConsumerConfig
         {
             BootstrapServers = bootstrap,
             GroupId = GroupId,
             AutoOffsetReset = AutoOffsetReset.Earliest,
         })
-            .SetValueDeserializer(new AvroDeserializer<GenericRecord>(registry).AsSyncOverAsync())
+            .SetKeyDeserializer(Deserializers.Utf8)
+            .SetValueDeserializer(Deserializers.ByteArray)
             .Build();
     }
 
@@ -55,26 +69,6 @@ internal sealed class MatchCommandConsumer : BackgroundService
     protected override Task ExecuteAsync(CancellationToken stoppingToken) =>
         Task.Run(() => ConsumeLoop(stoppingToken), stoppingToken);
 
-    private static PlayerDocument ReadPlayer(GenericRecord player) => new()
-    {
-        UserId = player.TryGetValue("user_id", out object? u) ? u as string : null,
-        BotId = player.TryGetValue("bot_id", out object? b) ? b as string : null,
-    };
-
-    private static TimeFormatDocument ReadTimeFormat(GenericRecord tf) => new()
-    {
-        Id = Str(tf, "id"),
-        BaseMs = (long)tf["base_ms"],
-        IncrementMs = (long)tf["increment_ms"],
-        Category = Str(tf, "category"),
-    };
-
-    private static string Str(GenericRecord record, string field) =>
-        record.TryGetValue(field, out object? v) && v is string s ? s : string.Empty;
-
-    private static string Enum(GenericRecord record, string field) =>
-        record.TryGetValue(field, out object? v) && v is GenericEnum e ? e.Value : string.Empty;
-
 #pragma warning disable CA1031 // Resilient consumer loop: log and continue on per-message failures.
     private void ConsumeLoop(CancellationToken ct)
     {
@@ -85,10 +79,10 @@ internal sealed class MatchCommandConsumer : BackgroundService
             {
                 try
                 {
-                    ConsumeResult<string, GenericRecord> result = consumer.Consume(ct);
-                    if (result?.Message?.Value is { } envelope)
+                    ConsumeResult<string, byte[]> result = consumer.Consume(ct);
+                    if (result?.Message?.Value is { } value)
                     {
-                        Handle(envelope, ct).GetAwaiter().GetResult();
+                        Handle(value, ct).GetAwaiter().GetResult();
                     }
                 }
                 catch (ConsumeException ex)
@@ -112,38 +106,61 @@ internal sealed class MatchCommandConsumer : BackgroundService
     }
 #pragma warning restore CA1031
 
-    private async Task Handle(GenericRecord envelope, CancellationToken ct)
+    private async Task Handle(byte[] value, CancellationToken ct)
     {
-        if (!envelope.TryGetValue("payload", out object? payloadObj) ||
-            payloadObj is not GenericRecord command ||
-            command.Schema.Name != "CreateMatchCommand")
+        int? schemaId = ConfluentFraming.TryReadSchemaId(value);
+        if (schemaId is null)
         {
+            logger.LogWarning("Dropping non-Confluent-framed message on {Topic}", Topic);
             return;
         }
 
-        string matchId = Str(envelope, "aggregate_id");
-        PlayerDocument white = ReadPlayer((GenericRecord)command["white"]);
-        PlayerDocument black = ReadPlayer((GenericRecord)command["black"]);
-        TimeFormatDocument timeFormat = ReadTimeFormat((GenericRecord)command["time_format"]);
-        PlayerDocument? createdBy =
-            command.TryGetValue("created_by", out object? cb) && cb is GenericRecord cbr ? ReadPlayer(cbr) : null;
-        string startFen = Str(command, "start_fen");
-        string source = Enum(command, "source").Equals("EXTERNAL", StringComparison.OrdinalIgnoreCase)
-            ? "external"
-            : "native";
+        var context = new SerializationContext(MessageComponentType.Value, Topic);
+        CreateMatchInput? input;
+        if (await IsProtobuf(schemaId.Value).ConfigureAwait(false))
+        {
+            MatchCommand envelope = await protoDeserializer
+                .DeserializeAsync(value, false, context).ConfigureAwait(false);
+            input = MatchCommandReader.TryReadCreateMatch(envelope, out CreateMatchInput proto) ? proto : null;
+        }
+        else
+        {
+            GenericRecord envelope = await avroDeserializer
+                .DeserializeAsync(value, false, context).ConfigureAwait(false);
+            input = MatchCommandAvroReader.TryReadCreateMatch(envelope, out CreateMatchInput avro) ? avro : null;
+        }
 
-        // The match-maker emits `matched` (it minted the id); this consumer only
-        // materializes the match document with that id.
-        await matchService.CreateMatchAsync(
-            white,
-            black,
-            timeFormat,
-            createdBy,
-            string.IsNullOrEmpty(startFen) ? null : startFen,
-            source,
-            Str(command, "external_provider"),
-            Str(command, "external_ref"),
-            id: string.IsNullOrEmpty(matchId) ? null : matchId,
-            ct: ct);
+        if (input is not null)
+        {
+            await Apply(input, ct).ConfigureAwait(false);
+        }
     }
+
+    private async Task<bool> IsProtobuf(int schemaId)
+    {
+        if (isProtobuf.TryGetValue(schemaId, out bool cached))
+        {
+            return cached;
+        }
+
+        Schema schema = await registry.GetSchemaAsync(schemaId).ConfigureAwait(false);
+        bool proto = schema.SchemaType == SchemaType.Protobuf;
+        isProtobuf[schemaId] = proto;
+        return proto;
+    }
+
+    // The match-maker emits `matched` (it minted the id); this consumer only
+    // materializes the match document with that id.
+    private Task<MatchDocument> Apply(CreateMatchInput input, CancellationToken ct) =>
+        matchService.CreateMatchAsync(
+            input.White,
+            input.Black,
+            input.TimeFormat,
+            input.CreatedBy,
+            input.StartFen,
+            input.Source,
+            input.ExternalProvider,
+            input.ExternalRef,
+            id: input.Id,
+            ct: ct);
 }
