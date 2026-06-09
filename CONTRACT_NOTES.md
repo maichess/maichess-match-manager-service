@@ -32,3 +32,24 @@ the authoritative result arrives over the socket.io connection. Recorded in the 
 Until then, match creation stays on `Matches.CreateMatch` gRPC.
 
 Move loop / projector not yet implemented in code — Phase 1 added the Kafka socket producer only.
+
+## Protobuf event serde — pending v0.6.0 publish (Kafka task `01`)
+
+The event/command schemas are now **Protobuf**, not Avro: `maichess-api-contracts/protos/events/v1/`
+(`match_commands.proto`, `match_events.proto`, `socket_outbound.proto`, `user_events.proto`, all
+package `maichess.events.v1`). They mirror the `events/v1/*.avsc` field-for-field; the `.avsc` files
+stay in place until each topic cuts over (task `02`).
+
+**Blocked on the contracts publish** (publish-first — see
+[serialization-protobuf-migration.md](../../maichess-knowledge-base/knowledge/architecture/serialization-protobuf-migration.md)):
+
+1. The user tags/pushes contracts **v0.6.0** so the generated `Maichess.Events.V1` types ship in
+   `Maichess.PlatformProtos`. A fresh agent shell cannot restore the just-published version.
+2. Bump `Maichess.PlatformProtos` in `MaichessMatchManagerService/MaichessMatchManagerService.csproj`
+   from `0.4.0` → `0.6.0`.
+3. Add a `Confluent.SchemaRegistry.Serdes.Protobuf` serializer/deserializer helper (over
+   `Google.Protobuf` + the `Maichess.Events.V1` types) alongside the current Avro one. Serde
+   plumbing only; **no producer/consumer is switched in task `01`** — the existing `SocketNotifier`
+   / consumer seams are untouched here.
+
+Cannot compile or test until step 1–2 land.
