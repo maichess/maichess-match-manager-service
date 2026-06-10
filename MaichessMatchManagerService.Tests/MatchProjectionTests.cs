@@ -142,6 +142,69 @@ public sealed class MatchProjectionTests
     }
 
     [Fact]
+    public void MoveSubmitted_StashesThePendingMove()
+    {
+        LiveMatchState created = MatchProjection.Apply(null, Created())!;
+
+        MatchEvent submitted = new()
+        {
+            AggregateId = "m1",
+            Sequence = 2,
+            MoveSubmitted = new MoveSubmitted { MoveUci = "e2e4", By = new Player { UserId = "w" } },
+        };
+
+        LiveMatchState state = MatchProjection.Apply(created, submitted)!;
+
+        Assert.Equal("e2e4", state.PendingMoveUci);
+        Assert.Equal(2, state.Sequence);
+    }
+
+    [Fact]
+    public void MoveRejected_ClearsThePendingMove()
+    {
+        LiveMatchState pending = MatchProjection.Apply(null, Created())! with { PendingMoveUci = "e2e4" };
+
+        MatchEvent rejected = new()
+        {
+            AggregateId = "m1",
+            Sequence = 3,
+            MoveRejected = new MoveRejected { MoveUci = "e2e4", Reason = "illegal" },
+        };
+
+        LiveMatchState state = MatchProjection.Apply(pending, rejected)!;
+
+        Assert.Null(state.PendingMoveUci);
+        Assert.Equal(3, state.Sequence);
+    }
+
+    [Fact]
+    public void MoveApplied_ClearsThePendingMove()
+    {
+        LiveMatchState pending = MatchProjection.Apply(null, Created())! with { PendingMoveUci = "e2e4" };
+
+        MatchEvent applied = new()
+        {
+            AggregateId = "m1",
+            Sequence = 3,
+            MoveApplied = new MoveApplied { ResultingFen = AfterE4Fen, Index = 1, AppliedAtMs = 5_000 },
+        };
+
+        Assert.Null(MatchProjection.Apply(pending, applied)!.PendingMoveUci);
+    }
+
+    [Theory]
+    [InlineData(MatchEvent.PayloadOneofCase.MoveSubmitted)]
+    [InlineData(MatchEvent.PayloadOneofCase.MoveRejected)]
+    public void PendingMoveEventsBeforeMatchCreated_ProjectNothing(MatchEvent.PayloadOneofCase which)
+    {
+        MatchEvent ev = which == MatchEvent.PayloadOneofCase.MoveSubmitted
+            ? new MatchEvent { MoveSubmitted = new MoveSubmitted { MoveUci = "e2e4" } }
+            : new MatchEvent { MoveRejected = new MoveRejected { MoveUci = "e2e4" } };
+
+        Assert.Null(MatchProjection.Apply(null, ev));
+    }
+
+    [Fact]
     public void TransientPayload_LeavesStateUnchanged()
     {
         LiveMatchState created = MatchProjection.Apply(null, Created())!;

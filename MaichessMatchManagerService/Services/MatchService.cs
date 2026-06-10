@@ -5,12 +5,14 @@ using Maichess.User.V1;
 using MaichessMatchManagerService.Data;
 using MaichessMatchManagerService.Entities;
 using MaichessMatchManagerService.Events;
+using MaichessMatchManagerService.Kafka;
 
 namespace MaichessMatchManagerService.Services;
 
 internal sealed partial class MatchService(
     IMatchRepository repository,
     IMatchCache cache,
+    ILiveMatchState liveState,
     IUserReplica userReplica,
     Moves.MovesClient moveValidatorClient,
     Bots.BotsClient engineClient,
@@ -162,6 +164,37 @@ internal sealed partial class MatchService(
             await cache.SetMatchAsync(match, ct);
         }
 
+        return match;
+    }
+
+    // The read path for REST live reads: an ongoing match overlays the projector's
+    // live read-model fields (current fen, authoritative clocks, last-move time,
+    // status) onto the durable document, so a client sees the freshest state for a
+    // game in progress. When nothing has been projected yet (cold model, or the write
+    // side has not been cut over to the projector), it falls back to the durable
+    // document unchanged. Finished matches are immutable and never overlaid. Kept
+    // separate from GetMatchAsync so the internal write path never mutates a document
+    // with read-model values before persisting it.
+    internal async Task<MatchDocument> GetMatchForReadAsync(string matchId, CancellationToken ct)
+    {
+        MatchDocument match = await GetMatchAsync(matchId, ct);
+
+        if (match.Status != "ongoing")
+        {
+            return match;
+        }
+
+        LiveMatchState? live = await liveState.GetAsync(matchId, ct);
+        if (live is null)
+        {
+            return match;
+        }
+
+        match.CurrentFen = live.CurrentFen;
+        match.WhiteTimeMs = live.WhiteTimeMs;
+        match.BlackTimeMs = live.BlackTimeMs;
+        match.LastMoveAt = DateTimeOffset.FromUnixTimeMilliseconds(live.LastMoveAtMs);
+        match.Status = live.Status;
         return match;
     }
 

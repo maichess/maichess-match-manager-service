@@ -128,7 +128,7 @@ internal static class MatchesEndpoints
         MatchDocument match;
         try
         {
-            match = await matchService.GetMatchAsync(id, ct);
+            match = await matchService.GetMatchForReadAsync(id, ct);
         }
         catch (MatchNotFoundException)
         {

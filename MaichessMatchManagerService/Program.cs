@@ -44,6 +44,13 @@ builder.Services.AddSingleton<IMatchCache, RedisMatchCache>();
 builder.Services.AddSingleton<IUserReplica, RedisUserReplica>();
 builder.Services.AddHostedService<UserReplicaConsumer>();
 
+// Live match read model (match:live:{id}), the CQRS read side for ongoing matches.
+// The projector maintains it from match.events.v1; REST live reads overlay its
+// volatile fields (fen/clocks/last-move time) onto the durable doc. Rebuildable by
+// replaying the log. See caching-and-read-models.md (live match read model).
+builder.Services.AddSingleton<ILiveMatchState, RedisLiveMatchState>();
+builder.Services.AddHostedService<MatchEventProjectorConsumer>();
+
 // gRPC clients (long-lived singletons — channels and clients are thread-safe)
 string userServiceUrl = builder.Configuration["Services:UserService"]
     ?? throw new InvalidOperationException("Services:UserService is not configured");

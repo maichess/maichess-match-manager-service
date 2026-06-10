@@ -22,4 +22,9 @@ internal sealed record LiveMatchState(
     IReadOnlyList<string> PositionHistory,
     PlayerRef White,
     PlayerRef Black,
-    long Sequence);
+    long Sequence,
+
+    // The UCI move accepted into the pipeline but not yet applied — stashed from
+    // MoveSubmitted because MoveValidated (which drives MoveApplied) does not carry
+    // it. Null between moves. The only transient projector state in the read model.
+    string? PendingMoveUci = null);

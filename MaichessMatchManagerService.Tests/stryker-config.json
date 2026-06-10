@@ -23,7 +23,9 @@
       "!**/Data/MatchRepository.cs",
       "!**/Data/RedisMatchCache.cs",
       "!**/Data/RedisUserReplica.cs",
+      "!**/Data/RedisLiveMatchState.cs",
       "!**/Kafka/UserReplicaConsumer.cs",
+      "!**/Events/MatchEventProjectorConsumer.cs",
       "!**/Services/*Exception.cs"
     ],
     "ignore-methods": [

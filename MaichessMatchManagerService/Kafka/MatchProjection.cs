@@ -6,20 +6,25 @@ namespace MaichessMatchManagerService.Kafka;
 // durable fact updates only the fields it owns, so the projection is the
 // deterministic replay of the log:
 //   MatchCreated  -> initial state (players, clocks = base_ms, start fen, increment)
+//   MoveSubmitted -> stashes the pending UCI move (MoveValidated does not carry it)
 //   MoveValidated -> the opaque position_history blob (the only place it rides)
-//   MoveApplied   -> current fen, authoritative clocks, move index, last-move time
+//   MoveApplied   -> current fen, authoritative clocks, move index, last-move time;
+//                    clears the pending move now that it has been applied
+//   MoveRejected  -> clears the pending move (the submission did not take)
 //   MatchEnded    -> terminal status; clears position_history
-// The transient pipeline payloads (MoveSubmitted/MoveRejected/BotMove*/Draw*) carry
-// nothing the read model reconstructs, so they leave the state unchanged. Driving an
-// event before MatchCreated (no state yet) is ignored, keeping replay from a partial
-// log safe. The consumer that calls this and writes Redis is the only impure part.
+// The remaining transient payloads (BotMove*/Draw*) carry nothing the read model
+// reconstructs, so they leave the state unchanged. Driving an event before
+// MatchCreated (no state yet) is ignored, keeping replay from a partial log safe.
+// The consumer that calls this and writes Redis is the only impure part.
 internal static class MatchProjection
 {
     internal static LiveMatchState? Apply(LiveMatchState? state, MatchEvent ev) =>
         ev.PayloadCase switch
         {
             MatchEvent.PayloadOneofCase.MatchCreated => Init(ev, ev.MatchCreated),
+            MatchEvent.PayloadOneofCase.MoveSubmitted => state is null ? null : WithSubmitted(state, ev),
             MatchEvent.PayloadOneofCase.MoveValidated => state is null ? null : WithHistory(state, ev),
+            MatchEvent.PayloadOneofCase.MoveRejected => state is null ? null : WithRejected(state, ev),
             MatchEvent.PayloadOneofCase.MoveApplied => state is null ? null : WithMove(state, ev, ev.MoveApplied),
             MatchEvent.PayloadOneofCase.MatchEnded => state is null ? null : WithEnd(state, ev, ev.MatchEnded),
             _ => state,
@@ -53,10 +58,24 @@ internal static class MatchProjection
             Black: ToPlayerRef(created.Black),
             Sequence: ev.Sequence);
 
+    private static LiveMatchState WithSubmitted(LiveMatchState state, MatchEvent ev) =>
+        state with
+        {
+            PendingMoveUci = ev.MoveSubmitted.MoveUci,
+            Sequence = ev.Sequence,
+        };
+
     private static LiveMatchState WithHistory(LiveMatchState state, MatchEvent ev) =>
         state with
         {
             PositionHistory = [.. ev.MoveValidated.PositionHistory],
+            Sequence = ev.Sequence,
+        };
+
+    private static LiveMatchState WithRejected(LiveMatchState state, MatchEvent ev) =>
+        state with
+        {
+            PendingMoveUci = null,
             Sequence = ev.Sequence,
         };
 
@@ -68,6 +87,7 @@ internal static class MatchProjection
             BlackTimeMs = applied.BlackTimeMs,
             MoveIndex = applied.Index,
             LastMoveAtMs = applied.AppliedAtMs,
+            PendingMoveUci = null,
             Sequence = ev.Sequence,
         };
 

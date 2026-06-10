@@ -5,6 +5,7 @@ using Maichess.User.V1;
 using MaichessMatchManagerService.Data;
 using MaichessMatchManagerService.Entities;
 using MaichessMatchManagerService.Events;
+using MaichessMatchManagerService.Kafka;
 using MaichessMatchManagerService.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
@@ -18,6 +19,8 @@ internal sealed class MatchServiceContext
     internal IMatchRepository Repository { get; } = Substitute.For<IMatchRepository>();
 
     internal IMatchCache Cache { get; } = Substitute.For<IMatchCache>();
+
+    internal ILiveMatchState LiveState { get; } = Substitute.For<ILiveMatchState>();
 
     internal Moves.MovesClient MoveValidator { get; } = Substitute.For<Moves.MovesClient>();
 
@@ -57,12 +60,18 @@ internal sealed class MatchServiceContext
         MatchService = new MatchService(
             Repository,
             Cache,
+            LiveState,
             UserReplica,
             MoveValidator,
             Engine,
             UserService,
             SocketNotifier,
             NullLogger<MatchService>.Instance);
+
+        // Default to a cold live-model miss so GetMatchForReadAsync falls back to the
+        // durable document; the overlay path is exercised by SetupLiveState.
+        LiveState.GetAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns((LiveMatchState?)null);
 
         // Default to a cold replica miss so resolution falls back to GetUser; the
         // replica-hit paths are exercised by SetupUserReplica.
@@ -158,6 +167,14 @@ internal sealed class MatchServiceContext
         CurrentMatch = match;
         Repository.GetByIdAsync(match.Id, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<MatchDocument?>(match));
+    }
+
+    // Configures the live read model to return a projection for a match, so
+    // GetMatchForReadAsync overlays its volatile fields onto the durable document.
+    internal void SetupLiveState(LiveMatchState state)
+    {
+        LiveState.GetAsync(state.MatchId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<LiveMatchState?>(state));
     }
 
     internal void SetupMoveValidatorAccepts(string move, string resultingFen)
