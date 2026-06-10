@@ -44,6 +44,11 @@ builder.Services.AddSingleton<IMatchCache, RedisMatchCache>();
 builder.Services.AddSingleton<IUserReplica, RedisUserReplica>();
 builder.Services.AddHostedService<UserReplicaConsumer>();
 
+// Anti-cheat flag on the same replica (user:{id} flagged), fed by the compacted
+// cheat.events.v1 topic. Only PlayerFlagged/PlayerUnflagged touch the bit; the
+// advisory LiveSuspicionRaised is ignored by contract. See anticheat-service.md.
+builder.Services.AddHostedService<CheatFlagConsumer>();
+
 // Live match read model (match:live:{id}), the CQRS read side for ongoing matches.
 // The projector maintains it from match.events.v1; REST live reads overlay its
 // volatile fields (fen/clocks/last-move time) onto the durable doc. Rebuildable by

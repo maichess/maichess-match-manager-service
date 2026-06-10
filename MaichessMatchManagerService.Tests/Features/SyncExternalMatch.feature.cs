@@ -26,9 +26,9 @@ namespace MaichessMatchManagerService.Tests.Features
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Sync External Match", ("    External matches are mirrors of games played on an external server.\n    SyncE" +
-                "xternalMatch updates the state of an existing external match\n    without trigger" +
-                "ing move validation, bot-move scheduling, or rating updates."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Sync External Match", ("    External matches are mirrors of games played on an external server.\r\n    Sync" +
+                "ExternalMatch updates the state of an existing external match\r\n    without trigg" +
+                "ering move validation, bot-move scheduling, or rating updates."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         

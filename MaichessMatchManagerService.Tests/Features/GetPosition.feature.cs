@@ -26,8 +26,8 @@ namespace MaichessMatchManagerService.Tests.Features
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Get Position", ("  Position history is only accessible when a match is analyzable.\n  Indices map t" +
-                "o FenHistory: 0 is the start, N is after the N-th move."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Get Position", ("  Position history is only accessible when a match is analyzable.\r\n  Indices map " +
+                "to FenHistory: 0 is the start, N is after the N-th move."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         

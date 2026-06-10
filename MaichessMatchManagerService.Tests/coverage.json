@@ -1,6 +1,6 @@
 {
   "MaichessMatchManagerService.dll": {
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/AnalysisNotPermittedException.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\AnalysisNotPermittedException.cs": {
       "MaichessMatchManagerService.Services.AnalysisNotPermittedException": {
         "System.Void MaichessMatchManagerService.Services.AnalysisNotPermittedException::.ctor()": {
           "Lines": {
@@ -10,7 +10,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/DrawOfferAlreadyPendingException.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\DrawOfferAlreadyPendingException.cs": {
       "MaichessMatchManagerService.Services.DrawOfferAlreadyPendingException": {
         "System.Void MaichessMatchManagerService.Services.DrawOfferAlreadyPendingException::.ctor()": {
           "Lines": {
@@ -22,7 +22,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/FenValidator.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\FenValidator.cs": {
       "MaichessMatchManagerService.Services.FenValidator": {
         "System.Boolean MaichessMatchManagerService.Services.FenValidator::IsValid(System.String)": {
           "Lines": {
@@ -638,7 +638,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/InvalidStartPositionException.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\InvalidStartPositionException.cs": {
       "MaichessMatchManagerService.Services.InvalidStartPositionException": {
         "System.Void MaichessMatchManagerService.Services.InvalidStartPositionException::.ctor(System.String)": {
           "Lines": {
@@ -648,7 +648,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/MatchAlreadyEndedException.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\MatchAlreadyEndedException.cs": {
       "MaichessMatchManagerService.Services.MatchAlreadyEndedException": {
         "System.Void MaichessMatchManagerService.Services.MatchAlreadyEndedException::.ctor()": {
           "Lines": {
@@ -658,7 +658,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/MatchNotFoundException.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\MatchNotFoundException.cs": {
       "MaichessMatchManagerService.Services.MatchNotFoundException": {
         "System.Void MaichessMatchManagerService.Services.MatchNotFoundException::.ctor(System.String)": {
           "Lines": {
@@ -668,7 +668,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/MatchService.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\MatchService.cs": {
       "MaichessMatchManagerService.Services.MatchService": {
         "System.Boolean MaichessMatchManagerService.Services.MatchService::IsAnalyzable(MaichessMatchManagerService.Entities.MatchDocument)": {
           "Lines": {
@@ -2170,7 +2170,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/NoDrawOfferPendingException.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\NoDrawOfferPendingException.cs": {
       "MaichessMatchManagerService.Services.NoDrawOfferPendingException": {
         "System.Void MaichessMatchManagerService.Services.NoDrawOfferPendingException::.ctor()": {
           "Lines": {
@@ -2182,7 +2182,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/NotDrawRecipientException.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\NotDrawRecipientException.cs": {
       "MaichessMatchManagerService.Services.NotDrawRecipientException": {
         "System.Void MaichessMatchManagerService.Services.NotDrawRecipientException::.ctor()": {
           "Lines": {
@@ -2194,7 +2194,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/NotParticipantException.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\NotParticipantException.cs": {
       "MaichessMatchManagerService.Services.NotParticipantException": {
         "System.Void MaichessMatchManagerService.Services.NotParticipantException::.ctor()": {
           "Lines": {
@@ -2204,7 +2204,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/NotYourTurnException.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\NotYourTurnException.cs": {
       "MaichessMatchManagerService.Services.NotYourTurnException": {
         "System.Void MaichessMatchManagerService.Services.NotYourTurnException::.ctor()": {
           "Lines": {
@@ -2214,7 +2214,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/PositionIndexOutOfRangeException.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\PositionIndexOutOfRangeException.cs": {
       "MaichessMatchManagerService.Services.PositionIndexOutOfRangeException": {
         "System.Void MaichessMatchManagerService.Services.PositionIndexOutOfRangeException::.ctor()": {
           "Lines": {
@@ -2224,7 +2224,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/TimeFormatRegistry.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\TimeFormatRegistry.cs": {
       "MaichessMatchManagerService.Services.TimeFormatRegistry": {
         "MaichessMatchManagerService.Entities.TimeFormatDocument MaichessMatchManagerService.Services.TimeFormatRegistry::get_Default()": {
           "Lines": {
@@ -2282,7 +2282,75 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Kafka/MatchCommands.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Kafka\\CheatFlagProjection.cs": {
+      "MaichessMatchManagerService.Kafka.CheatFlagProjection": {
+        "MaichessMatchManagerService.Kafka.UserReplicaUpsert MaichessMatchManagerService.Kafka.CheatFlagProjection::Project(Maichess.Events.V1.CheatEvent)": {
+          "Lines": {
+            "16": 5,
+            "17": 5,
+            "18": 5,
+            "19": 5,
+            "20": 5,
+            "21": 1,
+            "22": 5,
+            "23": 1,
+            "24": 2,
+            "25": 5
+          },
+          "Branches": [
+            {
+              "Line": 16,
+              "Offset": 11,
+              "EndOffset": 13,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 1
+            },
+            {
+              "Line": 16,
+              "Offset": 11,
+              "EndOffset": 17,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 4
+            },
+            {
+              "Line": 18,
+              "Offset": 31,
+              "EndOffset": 35,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 3
+            },
+            {
+              "Line": 18,
+              "Offset": 31,
+              "EndOffset": 42,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 1
+            },
+            {
+              "Line": 18,
+              "Offset": 38,
+              "EndOffset": 76,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 1
+            },
+            {
+              "Line": 18,
+              "Offset": 38,
+              "EndOffset": 110,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 2
+            }
+          ]
+        }
+      }
+    },
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Kafka\\MatchCommands.cs": {
       "MaichessMatchManagerService.Kafka.MatchCommands": {
         "Maichess.Events.V1.MatchEvent MaichessMatchManagerService.Kafka.MatchCommands::SubmitMove(MaichessMatchManagerService.Kafka.LiveMatchState,System.String,System.String,System.Int64,System.Func`1<System.String>)": {
           "Lines": {
@@ -2652,7 +2720,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Kafka/MatchEndedFactory.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Kafka\\MatchEndedFactory.cs": {
       "MaichessMatchManagerService.Kafka.MatchEndedFactory": {
         "Maichess.Events.V1.MatchEnded MaichessMatchManagerService.Kafka.MatchEndedFactory::Create(MaichessMatchManagerService.Kafka.LiveMatchState,Maichess.Events.V1.MatchStatus,Maichess.Events.V1.EndReason,System.Int64)": {
           "Lines": {
@@ -2803,7 +2871,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Kafka/MatchHistoryProjection.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Kafka\\MatchHistoryProjection.cs": {
       "MaichessMatchManagerService.Kafka.MatchHistoryProjection": {
         "MaichessMatchManagerService.Entities.MatchDocument MaichessMatchManagerService.Kafka.MatchHistoryProjection::Apply(MaichessMatchManagerService.Entities.MatchDocument,Maichess.Events.V1.MatchEvent)": {
           "Lines": {
@@ -3113,7 +3181,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Kafka/MatchProjection.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Kafka\\MatchProjection.cs": {
       "MaichessMatchManagerService.Kafka.MatchProjection": {
         "MaichessMatchManagerService.Kafka.LiveMatchState MaichessMatchManagerService.Kafka.MatchProjection::Apply(MaichessMatchManagerService.Kafka.LiveMatchState,Maichess.Events.V1.MatchEvent)": {
           "Lines": {
@@ -3601,7 +3669,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Kafka/MatchProjector.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Kafka\\MatchProjector.cs": {
       "MaichessMatchManagerService.Kafka.MatchProjector": {
         "MaichessMatchManagerService.Kafka.ProjectorOutcome MaichessMatchManagerService.Kafka.MatchProjector::Decide(MaichessMatchManagerService.Kafka.LiveMatchState,Maichess.Events.V1.MatchEvent,System.Int64,System.Func`1<System.String>)": {
           "Lines": {
@@ -4743,7 +4811,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Kafka/UserReplicaProjection.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Kafka\\UserReplicaProjection.cs": {
       "MaichessMatchManagerService.Kafka.UserReplicaProjection": {
         "MaichessMatchManagerService.Kafka.UserReplicaUpsert MaichessMatchManagerService.Kafka.UserReplicaProjection::Project(Avro.Generic.GenericRecord)": {
           "Lines": {
@@ -4954,7 +5022,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Grpc/MatchesGrpcService.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Grpc\\MatchesGrpcService.cs": {
       "MaichessMatchManagerService.Grpc.MatchesGrpcService": {
         "MaichessMatchManagerService.Entities.PlayerDocument MaichessMatchManagerService.Grpc.MatchesGrpcService::ToPlayerDocument(Maichess.MatchManager.V1.Player)": {
           "Lines": {
@@ -5791,7 +5859,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Events/ConfluentFraming.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Events\\ConfluentFraming.cs": {
       "MaichessMatchManagerService.Events.ConfluentFraming": {
         "System.Nullable`1<System.Int32> MaichessMatchManagerService.Events.ConfluentFraming::TryReadSchemaId(System.ReadOnlySpan`1<System.Byte>)": {
           "Lines": {
@@ -5836,7 +5904,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Events/CreateMatchInput.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Events\\CreateMatchInput.cs": {
       "MaichessMatchManagerService.Events.CreateMatchInput": {
         "System.Void MaichessMatchManagerService.Events.CreateMatchInput::.ctor(MaichessMatchManagerService.Entities.PlayerDocument,MaichessMatchManagerService.Entities.PlayerDocument,MaichessMatchManagerService.Entities.TimeFormatDocument,MaichessMatchManagerService.Entities.PlayerDocument,System.String,System.String,System.String,System.String,System.String)": {
           "Lines": {
@@ -5855,7 +5923,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Events/MatchCommandAvroReader.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Events\\MatchCommandAvroReader.cs": {
       "MaichessMatchManagerService.Events.MatchCommandAvroReader": {
         "System.Boolean MaichessMatchManagerService.Events.MatchCommandAvroReader::TryReadCreateMatch(Avro.Generic.GenericRecord,MaichessMatchManagerService.Events.CreateMatchInput&)": {
           "Lines": {
@@ -6150,7 +6218,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Events/MatchCommandReader.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Events\\MatchCommandReader.cs": {
       "MaichessMatchManagerService.Events.MatchCommandReader": {
         "System.Boolean MaichessMatchManagerService.Events.MatchCommandReader::TryReadCreateMatch(Maichess.Events.V1.MatchCommand,MaichessMatchManagerService.Events.CreateMatchInput&)": {
           "Lines": {
@@ -6498,7 +6566,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Entities/PlayerDocument.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Entities\\PlayerDocument.cs": {
       "MaichessMatchManagerService.Entities.PlayerDocument": {
         "System.Boolean MaichessMatchManagerService.Entities.PlayerDocument::get_IsBot()": {
           "Lines": {
@@ -6514,7 +6582,7 @@
         }
       }
     },
-    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Data/UserReplicaRecord.cs": {
+    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Data\\UserReplicaRecord.cs": {
       "MaichessMatchManagerService.Data.UserReplicaRecord": {
         "System.Void MaichessMatchManagerService.Data.UserReplicaRecord::.ctor(System.String,System.Nullable`1<System.Double>,System.Nullable`1<System.Double>,System.Nullable`1<System.Double>,System.Nullable`1<System.Int32>,System.Nullable`1<System.Int32>,System.Nullable`1<System.Int32>,System.Nullable`1<System.Int32>,System.Nullable`1<System.Boolean>,System.Nullable`1<System.Boolean>)": {
           "Lines": {

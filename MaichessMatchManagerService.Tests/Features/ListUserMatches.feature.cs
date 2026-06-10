@@ -26,9 +26,9 @@ namespace MaichessMatchManagerService.Tests.Features
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Listing a user\'s past matches", ("  ListUserMatches returns matches the user played (either colour) or initiated\n  " +
-                "(created_by), filtered to ended matches by default and ordered newest first,\n  w" +
-                "ith paging."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Listing a user\'s past matches", ("  ListUserMatches returns matches the user played (either colour) or initiated\r\n " +
+                " (created_by), filtered to ended matches by default and ordered newest first,\r\n " +
+                " with paging."), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
