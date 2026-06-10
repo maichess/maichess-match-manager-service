@@ -70,6 +70,7 @@ internal sealed class MatchServiceContext
             UserReplica,
             MoveValidator,
             UserService,
+            Engine,
             SocketNotifier,
             EventProducer);
 

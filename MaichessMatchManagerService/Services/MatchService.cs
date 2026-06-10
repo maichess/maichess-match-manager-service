@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Maichess.Engine.V1;
 using Maichess.Events.V1;
 using Maichess.MoveValidator.V1;
 using Maichess.User.V1;
@@ -26,6 +27,7 @@ internal sealed class MatchService(
     IUserReplica userReplica,
     Moves.MovesClient moveValidatorClient,
     Users.UsersClient userServiceClient,
+    Bots.BotsClient engineClient,
     ISocketBroadcaster socketNotifier,
     IMatchEventProducer eventProducer)
 {
@@ -106,6 +108,25 @@ internal sealed class MatchService(
         if (initiator is not null)
         {
             payload.CreatedBy = ToEventPlayer(initiator);
+        }
+
+        // Snapshot the bot sides' engine-configured elo into the created fact so the
+        // rating consumer can rate humans against the bot's strength at play time
+        // without an engine lookup (kafka task 08). An unknown bot stays unset and
+        // the consumer falls back to its unknown-bot rating.
+        if (white.IsBot || black.IsBot)
+        {
+            ListBotsResponse bots = await engineClient.ListBotsAsync(
+                new ListBotsRequest(), cancellationToken: ct);
+            if (white.IsBot && bots.Bots.FirstOrDefault(b => b.Id == white.BotId) is { } whiteBot)
+            {
+                payload.WhiteBotElo = whiteBot.Elo;
+            }
+
+            if (black.IsBot && bots.Bots.FirstOrDefault(b => b.Id == black.BotId) is { } blackBot)
+            {
+                payload.BlackBotElo = blackBot.Elo;
+            }
         }
 
         created.MatchCreated = payload;

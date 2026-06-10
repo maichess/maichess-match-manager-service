@@ -165,6 +165,87 @@ public sealed class MatchServiceCommandTests
     }
 
     [Fact]
+    public async Task CreateMatch_WithBot_SnapshotsTheEngineEloIntoTheCreatedFact()
+    {
+        MatchServiceContext ctx = new();
+        ctx.SetupBot("stockfish-3", 1500);
+        TimeFormatDocument tf = MatchServiceContext.TimeFormatForCategoryName("blitz");
+
+        await ctx.MatchService.CreateMatchAsync(
+            new PlayerDocument { UserId = "alice" },
+            new PlayerDocument { BotId = "stockfish-3" },
+            tf,
+            createdBy: null,
+            startFen: null,
+            ct: CancellationToken.None);
+
+        MatchEvent ev = Assert.Single(ctx.ProducedEvents);
+        Assert.False(ev.MatchCreated.HasWhiteBotElo);
+        Assert.Equal(1500, ev.MatchCreated.BlackBotElo);
+    }
+
+    [Fact]
+    public async Task CreateMatch_BotVsBot_SnapshotsBothElos()
+    {
+        MatchServiceContext ctx = new();
+        ctx.SetupBot("bot-a", 800);
+        ctx.SetupBot("bot-b", 2200);
+        TimeFormatDocument tf = MatchServiceContext.TimeFormatForCategoryName("blitz");
+
+        await ctx.MatchService.CreateMatchAsync(
+            new PlayerDocument { BotId = "bot-a" },
+            new PlayerDocument { BotId = "bot-b" },
+            tf,
+            createdBy: null,
+            startFen: null,
+            ct: CancellationToken.None);
+
+        MatchEvent ev = Assert.Single(ctx.ProducedEvents);
+        Assert.Equal(800, ev.MatchCreated.WhiteBotElo);
+        Assert.Equal(2200, ev.MatchCreated.BlackBotElo);
+    }
+
+    [Fact]
+    public async Task CreateMatch_UnknownBot_LeavesTheEloUnset()
+    {
+        MatchServiceContext ctx = new();
+        TimeFormatDocument tf = MatchServiceContext.TimeFormatForCategoryName("blitz");
+
+        await ctx.MatchService.CreateMatchAsync(
+            new PlayerDocument { BotId = "ghost-bot" },
+            new PlayerDocument { UserId = "alice" },
+            tf,
+            createdBy: null,
+            startFen: null,
+            ct: CancellationToken.None);
+
+        MatchEvent ev = Assert.Single(ctx.ProducedEvents);
+        Assert.False(ev.MatchCreated.HasWhiteBotElo);
+        Assert.False(ev.MatchCreated.HasBlackBotElo);
+    }
+
+    [Fact]
+    public async Task CreateMatch_HumanVsHuman_DoesNotQueryTheEngine()
+    {
+        MatchServiceContext ctx = new();
+        TimeFormatDocument tf = MatchServiceContext.TimeFormatForCategoryName("blitz");
+
+        await ctx.MatchService.CreateMatchAsync(
+            new PlayerDocument { UserId = "alice" },
+            new PlayerDocument { UserId = "bob" },
+            tf,
+            createdBy: null,
+            startFen: null,
+            ct: CancellationToken.None);
+
+        _ = ctx.Engine.DidNotReceive().ListBotsAsync(
+            Arg.Any<Maichess.Engine.V1.ListBotsRequest>(),
+            Arg.Any<global::Grpc.Core.Metadata>(),
+            Arg.Any<DateTime?>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task CreateMatch_WithCallerMintedId_UsesItAsAggregateId()
     {
         MatchServiceContext ctx = new();

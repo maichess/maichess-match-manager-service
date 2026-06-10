@@ -189,10 +189,12 @@ four pre-existing baseline files noted under task 05: `MatchesGrpcService`,
 
 ### Decisions / known gaps
 
-- **RecordMatchResult gap (interim):** the event-loop match-end path will **not** record
-  player ratings/stats — that is **task `08`** ("rating events; retire RecordMatchResult").
-  Removing the synchronous `RecordMatchResultsAsync` from the move/resign/draw/timeout
-  paths leaves a rating gap closed by `08`.
+- **RecordMatchResult gap — closed by kafka `08`:** the event-loop match-end path now drives
+  ratings via events. Every `MatchEnded` (projector natural end, resign, draw agreement,
+  timeout — all built by `Kafka/MatchEndedFactory`) carries the participants, source, and the
+  bot sides' elo snapshotted at creation (`CreateMatchAsync` → `ListBots` →
+  `MatchCreated.white/black_bot_elo` → `LiveMatchState`); user-service consumes it and applies
+  the Glicko-2/W-L-D update idempotently. The `RecordMatchResult` RPC itself is removed in `09`.
 - The command side emits **events** on `match.events.v1` (not the `match.commands.v1`
   `SubmitMove`/`Resign`/… messages), matching the task's "emit the corresponding
   event"/"close the loop" and the projector's existing inputs.

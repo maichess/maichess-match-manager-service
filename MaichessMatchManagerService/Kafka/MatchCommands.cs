@@ -47,12 +47,11 @@ internal static class MatchCommands
         bool isWhite = ResolveSide(state, userId);
 
         MatchEvent ev = Envelope(state, newId, "match.MatchEnded", nowMs);
-        ev.MatchEnded = new MatchEnded
-        {
-            Status = isWhite ? MatchStatus.BlackWon : MatchStatus.WhiteWon,
-            EndReason = EndReason.Resignation,
-            FinishedAtMs = nowMs,
-        };
+        ev.MatchEnded = MatchEndedFactory.Create(
+            state,
+            isWhite ? MatchStatus.BlackWon : MatchStatus.WhiteWon,
+            EndReason.Resignation,
+            nowMs);
         return ev;
     }
 
@@ -95,12 +94,7 @@ internal static class MatchCommands
         }
 
         MatchEvent ev = Envelope(state, newId, "match.MatchEnded", nowMs);
-        ev.MatchEnded = new MatchEnded
-        {
-            Status = MatchStatus.Draw,
-            EndReason = EndReason.DrawAgreement,
-            FinishedAtMs = nowMs,
-        };
+        ev.MatchEnded = MatchEndedFactory.Create(state, MatchStatus.Draw, EndReason.DrawAgreement, nowMs);
         return ev;
     }
 
@@ -124,12 +118,11 @@ internal static class MatchCommands
     internal static MatchEvent Timeout(LiveMatchState state, bool whiteFlagged, long nowMs, Func<string> newId)
     {
         MatchEvent ev = Envelope(state, newId, "match.MatchEnded", nowMs);
-        ev.MatchEnded = new MatchEnded
-        {
-            Status = whiteFlagged ? MatchStatus.BlackWon : MatchStatus.WhiteWon,
-            EndReason = EndReason.Timeout,
-            FinishedAtMs = nowMs,
-        };
+        ev.MatchEnded = MatchEndedFactory.Create(
+            state,
+            whiteFlagged ? MatchStatus.BlackWon : MatchStatus.WhiteWon,
+            EndReason.Timeout,
+            nowMs);
         return ev;
     }
 

@@ -60,7 +60,10 @@ internal static class MatchProjection
             PositionHistory: [],
             White: ToPlayerRef(created.White),
             Black: ToPlayerRef(created.Black),
-            Sequence: ev.Sequence);
+            Sequence: ev.Sequence,
+            Source: created.Source == MatchSource.External ? "external" : "native",
+            WhiteBotElo: created.HasWhiteBotElo ? created.WhiteBotElo : null,
+            BlackBotElo: created.HasBlackBotElo ? created.BlackBotElo : null);
 
     private static LiveMatchState WithSubmitted(LiveMatchState state, MatchEvent ev) =>
         state with

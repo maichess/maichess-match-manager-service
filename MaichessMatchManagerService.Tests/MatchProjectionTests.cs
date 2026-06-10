@@ -57,6 +57,31 @@ public sealed class MatchProjectionTests
     }
 
     [Fact]
+    public void MatchCreated_DefaultsToNativeWithoutBotEloSnapshots()
+    {
+        LiveMatchState state = MatchProjection.Apply(null, Created())!;
+
+        Assert.Equal("native", state.Source);
+        Assert.Null(state.WhiteBotElo);
+        Assert.Null(state.BlackBotElo);
+    }
+
+    [Fact]
+    public void MatchCreated_FoldsSourceAndBotEloSnapshots()
+    {
+        MatchEvent ev = Created();
+        ev.MatchCreated.Source = MatchSource.External;
+        ev.MatchCreated.WhiteBotElo = 1200;
+        ev.MatchCreated.BlackBotElo = 1500;
+
+        LiveMatchState state = MatchProjection.Apply(null, ev)!;
+
+        Assert.Equal("external", state.Source);
+        Assert.Equal(1200, state.WhiteBotElo);
+        Assert.Equal(1500, state.BlackBotElo);
+    }
+
+    [Fact]
     public void ExternalPlayer_ProjectsToNeitherUserNorBot()
     {
         LiveMatchState state = MatchProjection.Apply(

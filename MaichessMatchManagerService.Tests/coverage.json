@@ -1,6 +1,6 @@
 {
   "MaichessMatchManagerService.dll": {
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\AnalysisNotPermittedException.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/AnalysisNotPermittedException.cs": {
       "MaichessMatchManagerService.Services.AnalysisNotPermittedException": {
         "System.Void MaichessMatchManagerService.Services.AnalysisNotPermittedException::.ctor()": {
           "Lines": {
@@ -10,7 +10,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\DrawOfferAlreadyPendingException.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/DrawOfferAlreadyPendingException.cs": {
       "MaichessMatchManagerService.Services.DrawOfferAlreadyPendingException": {
         "System.Void MaichessMatchManagerService.Services.DrawOfferAlreadyPendingException::.ctor()": {
           "Lines": {
@@ -22,7 +22,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\FenValidator.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/FenValidator.cs": {
       "MaichessMatchManagerService.Services.FenValidator": {
         "System.Boolean MaichessMatchManagerService.Services.FenValidator::IsValid(System.String)": {
           "Lines": {
@@ -638,7 +638,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\InvalidStartPositionException.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/InvalidStartPositionException.cs": {
       "MaichessMatchManagerService.Services.InvalidStartPositionException": {
         "System.Void MaichessMatchManagerService.Services.InvalidStartPositionException::.ctor(System.String)": {
           "Lines": {
@@ -648,7 +648,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\MatchAlreadyEndedException.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/MatchAlreadyEndedException.cs": {
       "MaichessMatchManagerService.Services.MatchAlreadyEndedException": {
         "System.Void MaichessMatchManagerService.Services.MatchAlreadyEndedException::.ctor()": {
           "Lines": {
@@ -658,7 +658,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\MatchNotFoundException.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/MatchNotFoundException.cs": {
       "MaichessMatchManagerService.Services.MatchNotFoundException": {
         "System.Void MaichessMatchManagerService.Services.MatchNotFoundException::.ctor(System.String)": {
           "Lines": {
@@ -668,15 +668,15 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\MatchService.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/MatchService.cs": {
       "MaichessMatchManagerService.Services.MatchService": {
         "System.Boolean MaichessMatchManagerService.Services.MatchService::IsAnalyzable(MaichessMatchManagerService.Entities.MatchDocument)": {
           "Lines": {
-            "38": 12
+            "40": 12
           },
           "Branches": [
             {
-              "Line": 38,
+              "Line": 40,
               "Offset": 11,
               "EndOffset": 13,
               "Path": 0,
@@ -684,7 +684,7 @@
               "Hits": 11
             },
             {
-              "Line": 38,
+              "Line": 40,
               "Offset": 24,
               "EndOffset": 26,
               "Path": 0,
@@ -692,7 +692,7 @@
               "Hits": 10
             },
             {
-              "Line": 38,
+              "Line": 40,
               "Offset": 11,
               "EndOffset": 44,
               "Path": 1,
@@ -700,7 +700,7 @@
               "Hits": 2
             },
             {
-              "Line": 38,
+              "Line": 40,
               "Offset": 24,
               "EndOffset": 44,
               "Path": 1,
@@ -711,11 +711,11 @@
         },
         "System.String MaichessMatchManagerService.Services.MatchService::CanonicalizeUserId(System.String)": {
           "Lines": {
-            "46": 37
+            "48": 37
           },
           "Branches": [
             {
-              "Line": 46,
+              "Line": 48,
               "Offset": 1,
               "EndOffset": 3,
               "Path": 0,
@@ -723,7 +723,7 @@
               "Hits": 34
             },
             {
-              "Line": 46,
+              "Line": 48,
               "Offset": 1,
               "EndOffset": 13,
               "Path": 1,
@@ -731,7 +731,7 @@
               "Hits": 34
             },
             {
-              "Line": 46,
+              "Line": 48,
               "Offset": 11,
               "EndOffset": 13,
               "Path": 0,
@@ -739,7 +739,7 @@
               "Hits": 34
             },
             {
-              "Line": 46,
+              "Line": 48,
               "Offset": 11,
               "EndOffset": 16,
               "Path": 1,
@@ -750,14 +750,14 @@
         },
         "System.Char MaichessMatchManagerService.Services.MatchService::GetActiveColor(System.String)": {
           "Lines": {
-            "423": 4,
-            "424": 4,
-            "425": 4,
-            "426": 4
+            "444": 4,
+            "445": 4,
+            "446": 4,
+            "447": 4
           },
           "Branches": [
             {
-              "Line": 425,
+              "Line": 446,
               "Offset": 15,
               "EndOffset": 17,
               "Path": 0,
@@ -765,7 +765,7 @@
               "Hits": 1
             },
             {
-              "Line": 425,
+              "Line": 446,
               "Offset": 15,
               "EndOffset": 21,
               "Path": 1,
@@ -776,20 +776,20 @@
         },
         "System.String MaichessMatchManagerService.Services.MatchService::NormalizeStartFen(System.String)": {
           "Lines": {
-            "433": 24,
-            "434": 24,
-            "435": 24,
-            "436": 22,
-            "437": 22,
-            "440": 2,
-            "441": 2,
-            "442": 2,
-            "443": 2,
-            "444": 23
+            "454": 28,
+            "455": 28,
+            "456": 28,
+            "457": 26,
+            "458": 26,
+            "461": 2,
+            "462": 2,
+            "463": 2,
+            "464": 2,
+            "465": 27
           },
           "Branches": [
             {
-              "Line": 434,
+              "Line": 455,
               "Offset": 7,
               "EndOffset": 9,
               "Path": 0,
@@ -797,23 +797,23 @@
               "Hits": 3
             },
             {
-              "Line": 434,
+              "Line": 455,
               "Offset": 7,
               "EndOffset": 23,
               "Path": 1,
               "Ordinal": 1,
-              "Hits": 21
+              "Hits": 25
             },
             {
-              "Line": 434,
+              "Line": 455,
               "Offset": 26,
               "EndOffset": 28,
               "Path": 0,
               "Ordinal": 2,
-              "Hits": 22
+              "Hits": 26
             },
             {
-              "Line": 434,
+              "Line": 455,
               "Offset": 26,
               "EndOffset": 37,
               "Path": 1,
@@ -821,7 +821,7 @@
               "Hits": 2
             },
             {
-              "Line": 441,
+              "Line": 462,
               "Offset": 50,
               "EndOffset": 52,
               "Path": 0,
@@ -829,7 +829,7 @@
               "Hits": 1
             },
             {
-              "Line": 441,
+              "Line": 462,
               "Offset": 50,
               "EndOffset": 59,
               "Path": 1,
@@ -840,52 +840,52 @@
         },
         "MaichessMatchManagerService.Entities.PlayerDocument MaichessMatchManagerService.Services.MatchService::DeriveInitiator(MaichessMatchManagerService.Entities.PlayerDocument,MaichessMatchManagerService.Entities.PlayerDocument)": {
           "Lines": {
-            "449": 20
+            "470": 24
           },
           "Branches": [
             {
-              "Line": 449,
+              "Line": 470,
               "Offset": 6,
               "EndOffset": 8,
               "Path": 0,
               "Ordinal": 0,
-              "Hits": 4
+              "Hits": 6
             },
             {
-              "Line": 449,
+              "Line": 470,
               "Offset": 14,
               "EndOffset": 16,
               "Path": 0,
               "Ordinal": 2,
-              "Hits": 2
+              "Hits": 3
             },
             {
-              "Line": 449,
+              "Line": 470,
               "Offset": 14,
               "EndOffset": 19,
               "Path": 1,
               "Ordinal": 3,
-              "Hits": 2
+              "Hits": 3
             },
             {
-              "Line": 449,
+              "Line": 470,
               "Offset": 6,
               "EndOffset": 22,
               "Path": 1,
               "Ordinal": 1,
-              "Hits": 16
+              "Hits": 18
             }
           ]
         },
         "System.Boolean MaichessMatchManagerService.Services.MatchService::IsForUser(MaichessMatchManagerService.Entities.MatchDocument,System.String)": {
           "Lines": {
-            "454": 17,
-            "455": 17,
-            "456": 17
+            "475": 17,
+            "476": 17,
+            "477": 17
           },
           "Branches": [
             {
-              "Line": 454,
+              "Line": 475,
               "Offset": 22,
               "EndOffset": 24,
               "Path": 0,
@@ -893,7 +893,7 @@
               "Hits": 3
             },
             {
-              "Line": 454,
+              "Line": 475,
               "Offset": 46,
               "EndOffset": 48,
               "Path": 0,
@@ -901,7 +901,7 @@
               "Hits": 2
             },
             {
-              "Line": 454,
+              "Line": 475,
               "Offset": 55,
               "EndOffset": 57,
               "Path": 0,
@@ -909,7 +909,7 @@
               "Hits": 1
             },
             {
-              "Line": 454,
+              "Line": 475,
               "Offset": 55,
               "EndOffset": 61,
               "Path": 1,
@@ -917,7 +917,7 @@
               "Hits": 1
             },
             {
-              "Line": 454,
+              "Line": 475,
               "Offset": 22,
               "EndOffset": 79,
               "Path": 1,
@@ -925,7 +925,7 @@
               "Hits": 15
             },
             {
-              "Line": 454,
+              "Line": 475,
               "Offset": 46,
               "EndOffset": 79,
               "Path": 1,
@@ -936,20 +936,20 @@
         },
         "System.Boolean MaichessMatchManagerService.Services.MatchService::IsEnded(MaichessMatchManagerService.Entities.MatchDocument)": {
           "Lines": {
-            "460": 27
+            "481": 27
           },
           "Branches": []
         },
         "System.Collections.Generic.IEnumerable`1<System.String> MaichessMatchManagerService.Services.MatchService::ParticipantUserIds(MaichessMatchManagerService.Entities.MatchDocument)": {
           "Lines": {
-            "465": 2,
-            "466": 2,
-            "467": 2,
-            "468": 2
+            "486": 2,
+            "487": 2,
+            "488": 2,
+            "489": 2
           },
           "Branches": [
             {
-              "Line": 465,
+              "Line": 486,
               "Offset": 43,
               "EndOffset": 45,
               "Path": 0,
@@ -957,7 +957,7 @@
               "Hits": 1
             },
             {
-              "Line": 465,
+              "Line": 486,
               "Offset": 43,
               "EndOffset": 49,
               "Path": 1,
@@ -968,250 +968,360 @@
         },
         "Maichess.Events.V1.Player MaichessMatchManagerService.Services.MatchService::ToEventPlayer(MaichessMatchManagerService.Entities.PlayerDocument)": {
           "Lines": {
-            "473": 52,
-            "474": 52,
-            "475": 52
+            "494": 63,
+            "495": 63,
+            "496": 63
           },
           "Branches": [
             {
-              "Line": 473,
+              "Line": 494,
               "Offset": 6,
               "EndOffset": 8,
               "Path": 0,
               "Ordinal": 0,
-              "Hits": 11
+              "Hits": 15
             },
             {
-              "Line": 473,
+              "Line": 494,
               "Offset": 6,
               "EndOffset": 28,
               "Path": 1,
               "Ordinal": 1,
-              "Hits": 41
+              "Hits": 48
             }
           ]
         },
         "Maichess.Events.V1.TimeFormat MaichessMatchManagerService.Services.MatchService::ToEventTimeFormat(MaichessMatchManagerService.Entities.TimeFormatDocument)": {
           "Lines": {
-            "477": 18,
-            "478": 18,
-            "479": 18,
-            "480": 18,
-            "481": 18,
-            "482": 18,
-            "483": 18
+            "498": 22,
+            "499": 22,
+            "500": 22,
+            "501": 22,
+            "502": 22,
+            "503": 22,
+            "504": 22
           },
           "Branches": []
         },
         "System.String MaichessMatchManagerService.Services.MatchService::NewId()": {
           "Lines": {
-            "485": 52
+            "506": 60
           },
           "Branches": []
         },
         "System.Int64 MaichessMatchManagerService.Services.MatchService::Now()": {
           "Lines": {
-            "487": 12
+            "508": 12
           },
           "Branches": []
         },
         "Maichess.Events.V1.MatchEvent MaichessMatchManagerService.Services.MatchService::Envelope(System.String,System.String,System.Int64)": {
           "Lines": {
-            "490": 18,
-            "491": 18,
-            "492": 18,
-            "493": 18,
-            "494": 18,
-            "495": 18,
-            "496": 18,
-            "497": 18,
-            "498": 18,
-            "499": 18,
-            "500": 18
+            "511": 22,
+            "512": 22,
+            "513": 22,
+            "514": 22,
+            "515": 22,
+            "516": 22,
+            "517": 22,
+            "518": 22,
+            "519": 22,
+            "520": 22,
+            "521": 22
           },
           "Branches": []
         },
-        "System.Void MaichessMatchManagerService.Services.MatchService::.ctor(MaichessMatchManagerService.Data.IMatchRepository,MaichessMatchManagerService.Data.IMatchCache,MaichessMatchManagerService.Data.ILiveMatchState,MaichessMatchManagerService.Data.IUserReplica,Maichess.MoveValidator.V1.Moves/MovesClient,Maichess.User.V1.Users/UsersClient,MaichessMatchManagerService.Events.ISocketBroadcaster,MaichessMatchManagerService.Events.IMatchEventProducer)": {
+        "System.Void MaichessMatchManagerService.Services.MatchService::.ctor(MaichessMatchManagerService.Data.IMatchRepository,MaichessMatchManagerService.Data.IMatchCache,MaichessMatchManagerService.Data.ILiveMatchState,MaichessMatchManagerService.Data.IUserReplica,Maichess.MoveValidator.V1.Moves/MovesClient,Maichess.User.V1.Users/UsersClient,Maichess.Engine.V1.Bots/BotsClient,MaichessMatchManagerService.Events.ISocketBroadcaster,MaichessMatchManagerService.Events.IMatchEventProducer)": {
           "Lines": {
-            "22": 103,
-            "23": 103,
-            "24": 103,
-            "25": 103,
-            "26": 103,
-            "27": 103,
-            "28": 103,
-            "29": 103,
-            "30": 103
+            "23": 107,
+            "24": 107,
+            "25": 107,
+            "26": 107,
+            "27": 107,
+            "28": 107,
+            "29": 107,
+            "30": 107,
+            "31": 107,
+            "32": 107
           },
           "Branches": []
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<AcceptDrawAsync>d__23": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<AcceptDrawAsync>d__23::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<AcceptDrawAsync>d__24": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<AcceptDrawAsync>d__24::MoveNext()": {
           "Lines": {
-            "305": 1,
-            "306": 1,
-            "307": 1,
-            "308": 1,
-            "309": 1
+            "326": 1,
+            "327": 1,
+            "328": 1,
+            "329": 1,
+            "330": 1
           },
           "Branches": []
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<CreateMatchAsync>d__15": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<CreateMatchAsync>d__15::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<CreateMatchAsync>d__16": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<CreateMatchAsync>d__16::MoveNext()": {
           "Lines": {
-            "66": 24,
-            "67": 24,
-            "68": 23,
-            "69": 23,
-            "70": 23,
-            "72": 23,
-            "73": 23,
-            "74": 23,
-            "75": 23,
-            "76": 23,
-            "77": 23,
-            "78": 23,
-            "79": 23,
-            "80": 23,
-            "81": 23,
-            "82": 23,
-            "83": 23,
-            "84": 23,
-            "85": 23,
-            "86": 23,
-            "87": 23,
-            "88": 23,
-            "90": 23,
-            "91": 5,
-            "92": 5,
-            "95": 18,
-            "96": 18,
-            "97": 18,
-            "98": 18,
-            "99": 18,
-            "100": 18,
-            "101": 18,
-            "102": 18,
-            "103": 18,
-            "104": 18,
-            "105": 18,
-            "106": 18,
-            "107": 16,
-            "108": 16,
-            "109": 16,
-            "111": 18,
-            "112": 18,
-            "114": 18,
-            "115": 23
+            "68": 28,
+            "69": 28,
+            "70": 27,
+            "71": 27,
+            "72": 27,
+            "74": 27,
+            "75": 27,
+            "76": 27,
+            "77": 27,
+            "78": 27,
+            "79": 27,
+            "80": 27,
+            "81": 27,
+            "82": 27,
+            "83": 27,
+            "84": 27,
+            "85": 27,
+            "86": 27,
+            "87": 27,
+            "88": 27,
+            "89": 27,
+            "90": 27,
+            "92": 27,
+            "93": 5,
+            "94": 5,
+            "97": 22,
+            "98": 22,
+            "99": 22,
+            "100": 22,
+            "101": 22,
+            "102": 22,
+            "103": 22,
+            "104": 22,
+            "105": 22,
+            "106": 22,
+            "107": 22,
+            "108": 22,
+            "109": 19,
+            "110": 19,
+            "111": 19,
+            "117": 22,
+            "118": 10,
+            "119": 10,
+            "120": 10,
+            "121": 10,
+            "122": 1,
+            "123": 1,
+            "124": 1,
+            "126": 10,
+            "127": 2,
+            "128": 2,
+            "129": 2,
+            "130": 10,
+            "132": 22,
+            "133": 22,
+            "135": 22,
+            "136": 27
           },
           "Branches": [
             {
-              "Line": 68,
-              "Offset": 58,
-              "EndOffset": 60,
+              "Line": 70,
+              "Offset": 117,
+              "EndOffset": 119,
               "Path": 0,
               "Ordinal": 0,
               "Hits": 1
             },
             {
-              "Line": 68,
-              "Offset": 58,
-              "EndOffset": 68,
+              "Line": 70,
+              "Offset": 117,
+              "EndOffset": 127,
               "Path": 1,
               "Ordinal": 1,
-              "Hits": 22
+              "Hits": 26
             },
             {
-              "Line": 69,
-              "Offset": 100,
-              "EndOffset": 102,
+              "Line": 71,
+              "Offset": 159,
+              "EndOffset": 161,
               "Path": 0,
               "Ordinal": 2,
-              "Hits": 20
+              "Hits": 24
             },
             {
-              "Line": 69,
-              "Offset": 100,
-              "EndOffset": 120,
+              "Line": 71,
+              "Offset": 159,
+              "EndOffset": 189,
               "Path": 1,
               "Ordinal": 3,
-              "Hits": 23
+              "Hits": 27
             },
             {
-              "Line": 90,
-              "Offset": 369,
-              "EndOffset": 374,
+              "Line": 92,
+              "Offset": 448,
+              "EndOffset": 453,
               "Path": 0,
               "Ordinal": 4,
               "Hits": 5
             },
             {
-              "Line": 90,
-              "Offset": 369,
-              "EndOffset": 514,
+              "Line": 92,
+              "Offset": 448,
+              "EndOffset": 593,
               "Path": 1,
               "Ordinal": 5,
-              "Hits": 18
+              "Hits": 22
             },
             {
-              "Line": 106,
-              "Offset": 672,
-              "EndOffset": 674,
+              "Line": 108,
+              "Offset": 761,
+              "EndOffset": 763,
               "Path": 0,
               "Ordinal": 6,
+              "Hits": 19
+            },
+            {
+              "Line": 108,
+              "Offset": 761,
+              "EndOffset": 788,
+              "Path": 1,
+              "Ordinal": 7,
+              "Hits": 22
+            },
+            {
+              "Line": 117,
+              "Offset": 804,
+              "EndOffset": 806,
+              "Path": 0,
+              "Ordinal": 8,
               "Hits": 16
             },
             {
-              "Line": 106,
-              "Offset": 672,
-              "EndOffset": 699,
+              "Line": 117,
+              "Offset": 804,
+              "EndOffset": 824,
               "Path": 1,
-              "Ordinal": 7,
-              "Hits": 18
+              "Ordinal": 9,
+              "Hits": 6
+            },
+            {
+              "Line": 117,
+              "Offset": 829,
+              "EndOffset": 834,
+              "Path": 0,
+              "Ordinal": 10,
+              "Hits": 10
+            },
+            {
+              "Line": 121,
+              "Offset": 1011,
+              "EndOffset": 1013,
+              "Path": 0,
+              "Ordinal": 12,
+              "Hits": 6
+            },
+            {
+              "Line": 121,
+              "Offset": 1011,
+              "EndOffset": 1063,
+              "Path": 1,
+              "Ordinal": 13,
+              "Hits": 4
+            },
+            {
+              "Line": 121,
+              "Offset": 1068,
+              "EndOffset": 1070,
+              "Path": 0,
+              "Ordinal": 14,
+              "Hits": 1
+            },
+            {
+              "Line": 121,
+              "Offset": 1068,
+              "EndOffset": 1096,
+              "Path": 1,
+              "Ordinal": 15,
+              "Hits": 10
+            },
+            {
+              "Line": 126,
+              "Offset": 1112,
+              "EndOffset": 1114,
+              "Path": 0,
+              "Ordinal": 16,
+              "Hits": 8
+            },
+            {
+              "Line": 126,
+              "Offset": 1112,
+              "EndOffset": 1164,
+              "Path": 1,
+              "Ordinal": 17,
+              "Hits": 2
+            },
+            {
+              "Line": 126,
+              "Offset": 1169,
+              "EndOffset": 1171,
+              "Path": 0,
+              "Ordinal": 18,
+              "Hits": 2
+            },
+            {
+              "Line": 126,
+              "Offset": 1169,
+              "EndOffset": 1197,
+              "Path": 1,
+              "Ordinal": 19,
+              "Hits": 10
+            },
+            {
+              "Line": 117,
+              "Offset": 829,
+              "EndOffset": 1219,
+              "Path": 1,
+              "Ordinal": 11,
+              "Hits": 22
             }
           ]
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<DeclineDrawAsync>d__24": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<DeclineDrawAsync>d__24::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<DeclineDrawAsync>d__25": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<DeclineDrawAsync>d__25::MoveNext()": {
           "Lines": {
-            "313": 1,
-            "314": 1,
-            "315": 1,
-            "316": 1,
-            "317": 1
+            "334": 1,
+            "335": 1,
+            "336": 1,
+            "337": 1,
+            "338": 1
           },
           "Branches": []
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<EnforceTimeoutsAsync>d__27": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<EnforceTimeoutsAsync>d__27::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<EnforceTimeoutsAsync>d__28": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<EnforceTimeoutsAsync>d__28::MoveNext()": {
           "Lines": {
-            "355": 6,
-            "356": 6,
-            "357": 6,
-            "359": 30,
-            "360": 6,
-            "361": 6,
-            "362": 6,
-            "363": 2,
-            "364": 2,
-            "367": 4,
-            "368": 4,
-            "369": 4,
-            "371": 4,
-            "372": 1,
-            "373": 1,
-            "376": 3,
-            "377": 3,
-            "378": 3,
-            "379": 6
+            "376": 6,
+            "377": 6,
+            "378": 6,
+            "380": 30,
+            "381": 6,
+            "382": 6,
+            "383": 6,
+            "384": 2,
+            "385": 2,
+            "388": 4,
+            "389": 4,
+            "390": 4,
+            "392": 4,
+            "393": 1,
+            "394": 1,
+            "397": 3,
+            "398": 3,
+            "399": 3,
+            "400": 6
           },
           "Branches": [
             {
-              "Line": 355,
+              "Line": 376,
               "Offset": 16,
               "EndOffset": 27,
               "Path": 0,
@@ -1219,7 +1329,7 @@
               "Hits": 6
             },
             {
-              "Line": 355,
+              "Line": 376,
               "Offset": 16,
               "EndOffset": 193,
               "Path": 1,
@@ -1227,7 +1337,7 @@
               "Hits": 6
             },
             {
-              "Line": 359,
+              "Line": 380,
               "Offset": 751,
               "EndOffset": 218,
               "Path": 1,
@@ -1235,7 +1345,7 @@
               "Hits": 6
             },
             {
-              "Line": 362,
+              "Line": 383,
               "Offset": 389,
               "EndOffset": 391,
               "Path": 0,
@@ -1243,7 +1353,7 @@
               "Hits": 5
             },
             {
-              "Line": 362,
+              "Line": 383,
               "Offset": 389,
               "EndOffset": 414,
               "Path": 1,
@@ -1251,7 +1361,7 @@
               "Hits": 1
             },
             {
-              "Line": 362,
+              "Line": 383,
               "Offset": 419,
               "EndOffset": 421,
               "Path": 0,
@@ -1259,7 +1369,7 @@
               "Hits": 2
             },
             {
-              "Line": 362,
+              "Line": 383,
               "Offset": 419,
               "EndOffset": 427,
               "Path": 1,
@@ -1267,7 +1377,7 @@
               "Hits": 4
             },
             {
-              "Line": 368,
+              "Line": 389,
               "Offset": 460,
               "EndOffset": 462,
               "Path": 0,
@@ -1275,7 +1385,7 @@
               "Hits": 1
             },
             {
-              "Line": 368,
+              "Line": 389,
               "Offset": 460,
               "EndOffset": 475,
               "Path": 1,
@@ -1283,7 +1393,7 @@
               "Hits": 3
             },
             {
-              "Line": 371,
+              "Line": 392,
               "Offset": 533,
               "EndOffset": 535,
               "Path": 0,
@@ -1291,7 +1401,7 @@
               "Hits": 1
             },
             {
-              "Line": 371,
+              "Line": 392,
               "Offset": 533,
               "EndOffset": 541,
               "Path": 1,
@@ -1299,7 +1409,7 @@
               "Hits": 3
             },
             {
-              "Line": 359,
+              "Line": 380,
               "Offset": 751,
               "EndOffset": 756,
               "Path": 0,
@@ -1309,25 +1419,25 @@
           ]
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<GetLegalMovesAsync>d__26": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<GetLegalMovesAsync>d__26::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<GetLegalMovesAsync>d__27": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<GetLegalMovesAsync>d__27::MoveNext()": {
           "Lines": {
-            "331": 3,
-            "332": 3,
-            "334": 2,
-            "335": 2,
-            "336": 2,
-            "338": 2,
-            "340": 2,
-            "341": 1,
-            "342": 1,
-            "343": 1,
-            "345": 2,
-            "346": 2
+            "352": 3,
+            "353": 3,
+            "355": 2,
+            "356": 2,
+            "357": 2,
+            "359": 2,
+            "361": 2,
+            "362": 1,
+            "363": 1,
+            "364": 1,
+            "366": 2,
+            "367": 2
           },
           "Branches": [
             {
-              "Line": 340,
+              "Line": 361,
               "Offset": 403,
               "EndOffset": 405,
               "Path": 0,
@@ -1335,7 +1445,7 @@
               "Hits": 1
             },
             {
-              "Line": 340,
+              "Line": 361,
               "Offset": 403,
               "EndOffset": 441,
               "Path": 1,
@@ -1345,26 +1455,26 @@
           ]
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<GetMatchAsync>d__17": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<GetMatchAsync>d__17::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<GetMatchAsync>d__18": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<GetMatchAsync>d__18::MoveNext()": {
           "Lines": {
-            "169": 34,
-            "173": 34,
-            "174": 34,
-            "175": 1,
-            "176": 1,
-            "179": 33,
-            "180": 33,
-            "182": 27,
-            "183": 11,
-            "184": 11,
-            "185": 11,
-            "187": 27,
-            "188": 28
+            "190": 34,
+            "194": 34,
+            "195": 34,
+            "196": 1,
+            "197": 1,
+            "200": 33,
+            "201": 33,
+            "203": 27,
+            "204": 11,
+            "205": 11,
+            "206": 11,
+            "208": 27,
+            "209": 28
           },
           "Branches": [
             {
-              "Line": 174,
+              "Line": 195,
               "Offset": 195,
               "EndOffset": 197,
               "Path": 0,
@@ -1372,7 +1482,7 @@
               "Hits": 1
             },
             {
-              "Line": 174,
+              "Line": 195,
               "Offset": 195,
               "EndOffset": 210,
               "Path": 1,
@@ -1380,7 +1490,7 @@
               "Hits": 33
             },
             {
-              "Line": 179,
+              "Line": 200,
               "Offset": 344,
               "EndOffset": 346,
               "Path": 0,
@@ -1388,7 +1498,7 @@
               "Hits": 6
             },
             {
-              "Line": 179,
+              "Line": 200,
               "Offset": 344,
               "EndOffset": 359,
               "Path": 1,
@@ -1396,7 +1506,7 @@
               "Hits": 27
             },
             {
-              "Line": 182,
+              "Line": 203,
               "Offset": 386,
               "EndOffset": 388,
               "Path": 0,
@@ -1404,7 +1514,7 @@
               "Hits": 11
             },
             {
-              "Line": 182,
+              "Line": 203,
               "Offset": 386,
               "EndOffset": 508,
               "Path": 1,
@@ -1414,29 +1524,29 @@
           ]
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<GetMatchForReadAsync>d__18": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<GetMatchForReadAsync>d__18::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<GetMatchForReadAsync>d__19": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<GetMatchForReadAsync>d__19::MoveNext()": {
           "Lines": {
-            "198": 3,
-            "199": 3,
-            "201": 3,
-            "202": 1,
-            "203": 1,
-            "206": 2,
-            "207": 2,
-            "208": 1,
-            "209": 1,
-            "212": 1,
-            "213": 1,
-            "214": 1,
-            "215": 1,
-            "216": 1,
-            "217": 1,
-            "218": 3
+            "219": 3,
+            "220": 3,
+            "222": 3,
+            "223": 1,
+            "224": 1,
+            "227": 2,
+            "228": 2,
+            "229": 1,
+            "230": 1,
+            "233": 1,
+            "234": 1,
+            "235": 1,
+            "236": 1,
+            "237": 1,
+            "238": 1,
+            "239": 3
           },
           "Branches": [
             {
-              "Line": 201,
+              "Line": 222,
               "Offset": 188,
               "EndOffset": 190,
               "Path": 0,
@@ -1444,7 +1554,7 @@
               "Hits": 1
             },
             {
-              "Line": 201,
+              "Line": 222,
               "Offset": 188,
               "EndOffset": 203,
               "Path": 1,
@@ -1452,7 +1562,7 @@
               "Hits": 2
             },
             {
-              "Line": 207,
+              "Line": 228,
               "Offset": 361,
               "EndOffset": 363,
               "Path": 0,
@@ -1460,7 +1570,7 @@
               "Hits": 1
             },
             {
-              "Line": 207,
+              "Line": 228,
               "Offset": 361,
               "EndOffset": 376,
               "Path": 1,
@@ -1470,26 +1580,26 @@
           ]
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<GetPositionAsync>d__28": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<GetPositionAsync>d__28::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<GetPositionAsync>d__29": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<GetPositionAsync>d__29::MoveNext()": {
           "Lines": {
-            "385": 9,
-            "386": 9,
-            "388": 8,
-            "389": 2,
-            "390": 2,
-            "393": 6,
-            "394": 3,
-            "395": 3,
-            "398": 3,
-            "399": 3,
-            "400": 3,
-            "402": 3,
-            "403": 3
+            "406": 9,
+            "407": 9,
+            "409": 8,
+            "410": 2,
+            "411": 2,
+            "414": 6,
+            "415": 3,
+            "416": 3,
+            "419": 3,
+            "420": 3,
+            "421": 3,
+            "423": 3,
+            "424": 3
           },
           "Branches": [
             {
-              "Line": 388,
+              "Line": 409,
               "Offset": 170,
               "EndOffset": 172,
               "Path": 0,
@@ -1497,7 +1607,7 @@
               "Hits": 2
             },
             {
-              "Line": 388,
+              "Line": 409,
               "Offset": 170,
               "EndOffset": 179,
               "Path": 1,
@@ -1505,7 +1615,7 @@
               "Hits": 6
             },
             {
-              "Line": 393,
+              "Line": 414,
               "Offset": 186,
               "EndOffset": 188,
               "Path": 0,
@@ -1513,7 +1623,7 @@
               "Hits": 5
             },
             {
-              "Line": 393,
+              "Line": 414,
               "Offset": 186,
               "EndOffset": 214,
               "Path": 1,
@@ -1521,7 +1631,7 @@
               "Hits": 1
             },
             {
-              "Line": 393,
+              "Line": 414,
               "Offset": 219,
               "EndOffset": 221,
               "Path": 0,
@@ -1529,7 +1639,7 @@
               "Hits": 3
             },
             {
-              "Line": 393,
+              "Line": 414,
               "Offset": 219,
               "EndOffset": 228,
               "Path": 1,
@@ -1537,7 +1647,7 @@
               "Hits": 3
             },
             {
-              "Line": 399,
+              "Line": 420,
               "Offset": 263,
               "EndOffset": 265,
               "Path": 0,
@@ -1545,7 +1655,7 @@
               "Hits": 2
             },
             {
-              "Line": 399,
+              "Line": 420,
               "Offset": 263,
               "EndOffset": 291,
               "Path": 1,
@@ -1555,19 +1665,19 @@
           ]
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<ListMatchesAsync>d__19": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<ListMatchesAsync>d__19::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<ListMatchesAsync>d__20": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<ListMatchesAsync>d__20::MoveNext()": {
           "Lines": {
-            "226": 8,
-            "227": 8,
-            "228": 8,
-            "229": 8,
-            "230": 8,
-            "231": 8
+            "247": 8,
+            "248": 8,
+            "249": 8,
+            "250": 8,
+            "251": 8,
+            "252": 8
           },
           "Branches": [
             {
-              "Line": 227,
+              "Line": 248,
               "Offset": 26,
               "EndOffset": 28,
               "Path": 0,
@@ -1575,7 +1685,7 @@
               "Hits": 5
             },
             {
-              "Line": 227,
+              "Line": 248,
               "Offset": 26,
               "EndOffset": 36,
               "Path": 1,
@@ -1583,7 +1693,7 @@
               "Hits": 3
             },
             {
-              "Line": 228,
+              "Line": 249,
               "Offset": 50,
               "EndOffset": 52,
               "Path": 0,
@@ -1591,7 +1701,7 @@
               "Hits": 6
             },
             {
-              "Line": 228,
+              "Line": 249,
               "Offset": 50,
               "EndOffset": 67,
               "Path": 1,
@@ -1599,7 +1709,7 @@
               "Hits": 2
             },
             {
-              "Line": 229,
+              "Line": 250,
               "Offset": 86,
               "EndOffset": 88,
               "Path": 0,
@@ -1607,7 +1717,7 @@
               "Hits": 4
             },
             {
-              "Line": 229,
+              "Line": 250,
               "Offset": 86,
               "EndOffset": 96,
               "Path": 1,
@@ -1617,42 +1727,42 @@
           ]
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<ListUserMatchesAsync>d__20": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<ListUserMatchesAsync>d__20::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<ListUserMatchesAsync>d__21": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<ListUserMatchesAsync>d__21::MoveNext()": {
           "Lines": {
-            "239": 14,
-            "240": 14,
-            "241": 14,
-            "246": 14,
-            "251": 14,
-            "254": 14,
-            "255": 11,
-            "256": 11,
-            "257": 11,
-            "258": 11,
-            "259": 1,
-            "260": 1,
-            "262": 10,
-            "264": 13,
-            "266": 13,
-            "267": 13,
-            "268": 13,
-            "269": 13,
-            "271": 13,
-            "272": 13,
-            "273": 13,
-            "274": 13,
-            "276": 13,
-            "277": 10,
-            "278": 10,
-            "279": 10,
-            "280": 10,
-            "282": 13,
-            "283": 14
+            "260": 14,
+            "261": 14,
+            "262": 14,
+            "267": 14,
+            "272": 14,
+            "275": 14,
+            "276": 11,
+            "277": 11,
+            "278": 11,
+            "279": 11,
+            "280": 1,
+            "281": 1,
+            "283": 10,
+            "285": 13,
+            "287": 13,
+            "288": 13,
+            "289": 13,
+            "290": 13,
+            "292": 13,
+            "293": 13,
+            "294": 13,
+            "295": 13,
+            "297": 13,
+            "298": 10,
+            "299": 10,
+            "300": 10,
+            "301": 10,
+            "303": 13,
+            "304": 14
           },
           "Branches": [
             {
-              "Line": 240,
+              "Line": 261,
               "Offset": 62,
               "EndOffset": 64,
               "Path": 0,
@@ -1660,7 +1770,7 @@
               "Hits": 12
             },
             {
-              "Line": 240,
+              "Line": 261,
               "Offset": 62,
               "EndOffset": 72,
               "Path": 1,
@@ -1668,7 +1778,7 @@
               "Hits": 2
             },
             {
-              "Line": 241,
+              "Line": 262,
               "Offset": 86,
               "EndOffset": 88,
               "Path": 0,
@@ -1676,7 +1786,7 @@
               "Hits": 12
             },
             {
-              "Line": 241,
+              "Line": 262,
               "Offset": 86,
               "EndOffset": 103,
               "Path": 1,
@@ -1684,7 +1794,7 @@
               "Hits": 2
             },
             {
-              "Line": 254,
+              "Line": 275,
               "Offset": 162,
               "EndOffset": 167,
               "Path": 0,
@@ -1692,7 +1802,7 @@
               "Hits": 11
             },
             {
-              "Line": 258,
+              "Line": 279,
               "Offset": 353,
               "EndOffset": 355,
               "Path": 0,
@@ -1700,7 +1810,7 @@
               "Hits": 1
             },
             {
-              "Line": 258,
+              "Line": 279,
               "Offset": 353,
               "EndOffset": 373,
               "Path": 1,
@@ -1708,7 +1818,7 @@
               "Hits": 10
             },
             {
-              "Line": 254,
+              "Line": 275,
               "Offset": 162,
               "EndOffset": 386,
               "Path": 1,
@@ -1716,7 +1826,7 @@
               "Hits": 13
             },
             {
-              "Line": 267,
+              "Line": 288,
               "Offset": 588,
               "EndOffset": 590,
               "Path": 0,
@@ -1724,7 +1834,7 @@
               "Hits": 10
             },
             {
-              "Line": 267,
+              "Line": 288,
               "Offset": 588,
               "EndOffset": 634,
               "Path": 1,
@@ -1732,7 +1842,7 @@
               "Hits": 3
             },
             {
-              "Line": 276,
+              "Line": 297,
               "Offset": 821,
               "EndOffset": 826,
               "Path": 0,
@@ -1740,7 +1850,7 @@
               "Hits": 10
             },
             {
-              "Line": 276,
+              "Line": 297,
               "Offset": 821,
               "EndOffset": 984,
               "Path": 1,
@@ -1750,14 +1860,14 @@
           ]
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<LoadLiveAsync>d__41": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<LoadLiveAsync>d__41::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<LoadLiveAsync>d__42": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<LoadLiveAsync>d__42::MoveNext()": {
           "Lines": {
-            "503": 7
+            "524": 7
           },
           "Branches": [
             {
-              "Line": 503,
+              "Line": 524,
               "Offset": 141,
               "EndOffset": 143,
               "Path": 0,
@@ -1765,7 +1875,7 @@
               "Hits": 1
             },
             {
-              "Line": 503,
+              "Line": 524,
               "Offset": 141,
               "EndOffset": 156,
               "Path": 1,
@@ -1775,44 +1885,44 @@
           ]
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<MakeMoveAsync>d__21": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<MakeMoveAsync>d__21::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<MakeMoveAsync>d__22": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<MakeMoveAsync>d__22::MoveNext()": {
           "Lines": {
-            "289": 3,
-            "290": 3,
-            "291": 2,
-            "292": 1,
-            "293": 1
+            "310": 3,
+            "311": 3,
+            "312": 2,
+            "313": 1,
+            "314": 1
           },
           "Branches": []
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<OfferDrawAsync>d__22": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<OfferDrawAsync>d__22::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<OfferDrawAsync>d__23": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<OfferDrawAsync>d__23::MoveNext()": {
           "Lines": {
-            "297": 1,
-            "298": 1,
-            "299": 1,
-            "300": 1,
-            "301": 1
+            "318": 1,
+            "319": 1,
+            "320": 1,
+            "321": 1,
+            "322": 1
           },
           "Branches": []
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<OnMatchEndedAsync>d__42": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<OnMatchEndedAsync>d__42::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<OnMatchEndedAsync>d__43": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<OnMatchEndedAsync>d__43::MoveNext()": {
           "Lines": {
-            "510": 2,
-            "511": 2,
-            "513": 8,
-            "514": 1,
-            "515": 1,
-            "516": 1,
-            "517": 2
+            "531": 2,
+            "532": 2,
+            "534": 8,
+            "535": 1,
+            "536": 1,
+            "537": 1,
+            "538": 2
           },
           "Branches": [
             {
-              "Line": 513,
+              "Line": 534,
               "Offset": 336,
               "EndOffset": 181,
               "Path": 1,
@@ -1820,7 +1930,7 @@
               "Hits": 1
             },
             {
-              "Line": 513,
+              "Line": 534,
               "Offset": 336,
               "EndOffset": 341,
               "Path": 0,
@@ -1830,35 +1940,35 @@
           ]
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<ResignMatchAsync>d__25": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<ResignMatchAsync>d__25::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<ResignMatchAsync>d__26": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<ResignMatchAsync>d__26::MoveNext()": {
           "Lines": {
-            "321": 1,
-            "322": 1,
-            "323": 1,
-            "324": 1,
-            "325": 1
+            "342": 1,
+            "343": 1,
+            "344": 1,
+            "345": 1,
+            "346": 1
           },
           "Branches": []
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<ResolveUsernameAsync>d__29": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<ResolveUsernameAsync>d__29::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<ResolveUsernameAsync>d__30": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<ResolveUsernameAsync>d__30::MoveNext()": {
           "Lines": {
-            "409": 4,
-            "410": 4,
-            "411": 4,
-            "412": 1,
-            "413": 1,
-            "416": 3,
-            "417": 3,
-            "418": 3,
-            "419": 3,
-            "420": 4
+            "430": 4,
+            "431": 4,
+            "432": 4,
+            "433": 1,
+            "434": 1,
+            "437": 3,
+            "438": 3,
+            "439": 3,
+            "440": 3,
+            "441": 4
           },
           "Branches": [
             {
-              "Line": 411,
+              "Line": 432,
               "Offset": 176,
               "EndOffset": 178,
               "Path": 0,
@@ -1866,7 +1976,7 @@
               "Hits": 1
             },
             {
-              "Line": 411,
+              "Line": 432,
               "Offset": 176,
               "EndOffset": 182,
               "Path": 1,
@@ -1874,7 +1984,7 @@
               "Hits": 3
             },
             {
-              "Line": 411,
+              "Line": 432,
               "Offset": 198,
               "EndOffset": 200,
               "Path": 0,
@@ -1882,7 +1992,7 @@
               "Hits": 2
             },
             {
-              "Line": 411,
+              "Line": 432,
               "Offset": 198,
               "EndOffset": 216,
               "Path": 1,
@@ -1890,7 +2000,7 @@
               "Hits": 2
             },
             {
-              "Line": 411,
+              "Line": 432,
               "Offset": 221,
               "EndOffset": 223,
               "Path": 0,
@@ -1898,7 +2008,7 @@
               "Hits": 1
             },
             {
-              "Line": 411,
+              "Line": 432,
               "Offset": 221,
               "EndOffset": 236,
               "Path": 1,
@@ -1908,44 +2018,44 @@
           ]
         }
       },
-      "MaichessMatchManagerService.Services.MatchService/<SyncExternalMatchAsync>d__16": {
-        "System.Void MaichessMatchManagerService.Services.MatchService/<SyncExternalMatchAsync>d__16::MoveNext()": {
+      "MaichessMatchManagerService.Services.MatchService/<SyncExternalMatchAsync>d__17": {
+        "System.Void MaichessMatchManagerService.Services.MatchService/<SyncExternalMatchAsync>d__17::MoveNext()": {
           "Lines": {
-            "127": 9,
-            "128": 9,
-            "130": 7,
-            "131": 2,
-            "132": 2,
-            "135": 5,
-            "136": 5,
-            "138": 5,
-            "139": 5,
-            "140": 5,
-            "141": 5,
-            "142": 5,
-            "143": 5,
-            "145": 5,
-            "146": 2,
-            "147": 2,
-            "148": 2,
-            "150": 5,
-            "152": 5,
-            "153": 3,
-            "154": 3,
-            "155": 3,
-            "156": 3,
-            "157": 3,
+            "148": 9,
+            "149": 9,
+            "151": 7,
+            "152": 2,
+            "153": 2,
+            "156": 5,
+            "157": 5,
             "159": 5,
-            "160": 2,
-            "161": 2,
-            "162": 2,
-            "163": 2,
-            "165": 5,
-            "166": 5
+            "160": 5,
+            "161": 5,
+            "162": 5,
+            "163": 5,
+            "164": 5,
+            "166": 5,
+            "167": 2,
+            "168": 2,
+            "169": 2,
+            "171": 5,
+            "173": 5,
+            "174": 3,
+            "175": 3,
+            "176": 3,
+            "177": 3,
+            "178": 3,
+            "180": 5,
+            "181": 2,
+            "182": 2,
+            "183": 2,
+            "184": 2,
+            "186": 5,
+            "187": 5
           },
           "Branches": [
             {
-              "Line": 130,
+              "Line": 151,
               "Offset": 202,
               "EndOffset": 204,
               "Path": 0,
@@ -1953,7 +2063,7 @@
               "Hits": 2
             },
             {
-              "Line": 130,
+              "Line": 151,
               "Offset": 202,
               "EndOffset": 216,
               "Path": 1,
@@ -1961,7 +2071,7 @@
               "Hits": 5
             },
             {
-              "Line": 136,
+              "Line": 157,
               "Offset": 256,
               "EndOffset": 258,
               "Path": 0,
@@ -1969,7 +2079,7 @@
               "Hits": 2
             },
             {
-              "Line": 136,
+              "Line": 157,
               "Offset": 256,
               "EndOffset": 261,
               "Path": 1,
@@ -1977,7 +2087,7 @@
               "Hits": 3
             },
             {
-              "Line": 145,
+              "Line": 166,
               "Offset": 413,
               "EndOffset": 415,
               "Path": 0,
@@ -1985,7 +2095,7 @@
               "Hits": 2
             },
             {
-              "Line": 145,
+              "Line": 166,
               "Offset": 413,
               "EndOffset": 427,
               "Path": 1,
@@ -1993,7 +2103,7 @@
               "Hits": 3
             },
             {
-              "Line": 145,
+              "Line": 166,
               "Offset": 432,
               "EndOffset": 434,
               "Path": 0,
@@ -2001,7 +2111,7 @@
               "Hits": 2
             },
             {
-              "Line": 145,
+              "Line": 166,
               "Offset": 432,
               "EndOffset": 454,
               "Path": 1,
@@ -2009,7 +2119,7 @@
               "Hits": 5
             },
             {
-              "Line": 152,
+              "Line": 173,
               "Offset": 588,
               "EndOffset": 593,
               "Path": 0,
@@ -2017,7 +2127,7 @@
               "Hits": 3
             },
             {
-              "Line": 155,
+              "Line": 176,
               "Offset": 623,
               "EndOffset": 625,
               "Path": 0,
@@ -2025,7 +2135,7 @@
               "Hits": 1
             },
             {
-              "Line": 155,
+              "Line": 176,
               "Offset": 623,
               "EndOffset": 638,
               "Path": 1,
@@ -2033,7 +2143,7 @@
               "Hits": 2
             },
             {
-              "Line": 152,
+              "Line": 173,
               "Offset": 588,
               "EndOffset": 726,
               "Path": 1,
@@ -2041,7 +2151,7 @@
               "Hits": 5
             },
             {
-              "Line": 159,
+              "Line": 180,
               "Offset": 746,
               "EndOffset": 751,
               "Path": 0,
@@ -2049,7 +2159,7 @@
               "Hits": 2
             },
             {
-              "Line": 159,
+              "Line": 180,
               "Offset": 746,
               "EndOffset": 901,
               "Path": 1,
@@ -2060,7 +2170,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\NoDrawOfferPendingException.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/NoDrawOfferPendingException.cs": {
       "MaichessMatchManagerService.Services.NoDrawOfferPendingException": {
         "System.Void MaichessMatchManagerService.Services.NoDrawOfferPendingException::.ctor()": {
           "Lines": {
@@ -2072,7 +2182,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\NotDrawRecipientException.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/NotDrawRecipientException.cs": {
       "MaichessMatchManagerService.Services.NotDrawRecipientException": {
         "System.Void MaichessMatchManagerService.Services.NotDrawRecipientException::.ctor()": {
           "Lines": {
@@ -2084,7 +2194,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\NotParticipantException.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/NotParticipantException.cs": {
       "MaichessMatchManagerService.Services.NotParticipantException": {
         "System.Void MaichessMatchManagerService.Services.NotParticipantException::.ctor()": {
           "Lines": {
@@ -2094,7 +2204,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\NotYourTurnException.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/NotYourTurnException.cs": {
       "MaichessMatchManagerService.Services.NotYourTurnException": {
         "System.Void MaichessMatchManagerService.Services.NotYourTurnException::.ctor()": {
           "Lines": {
@@ -2104,7 +2214,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\PositionIndexOutOfRangeException.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/PositionIndexOutOfRangeException.cs": {
       "MaichessMatchManagerService.Services.PositionIndexOutOfRangeException": {
         "System.Void MaichessMatchManagerService.Services.PositionIndexOutOfRangeException::.ctor()": {
           "Lines": {
@@ -2114,7 +2224,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Services\\TimeFormatRegistry.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Services/TimeFormatRegistry.cs": {
       "MaichessMatchManagerService.Services.TimeFormatRegistry": {
         "MaichessMatchManagerService.Entities.TimeFormatDocument MaichessMatchManagerService.Services.TimeFormatRegistry::get_Default()": {
           "Lines": {
@@ -2124,7 +2234,7 @@
         },
         "MaichessMatchManagerService.Entities.TimeFormatDocument MaichessMatchManagerService.Services.TimeFormatRegistry::Resolve(System.String)": {
           "Lines": {
-            "28": 98
+            "28": 102
           },
           "Branches": [
             {
@@ -2141,7 +2251,7 @@
               "EndOffset": 44,
               "Path": 1,
               "Ordinal": 1,
-              "Hits": 98
+              "Hits": 102
             }
           ]
         },
@@ -2172,7 +2282,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Kafka\\MatchCommands.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Kafka/MatchCommands.cs": {
       "MaichessMatchManagerService.Kafka.MatchCommands": {
         "Maichess.Events.V1.MatchEvent MaichessMatchManagerService.Kafka.MatchCommands::SubmitMove(MaichessMatchManagerService.Kafka.LiveMatchState,System.String,System.String,System.Int64,System.Func`1<System.String>)": {
           "Lines": {
@@ -2224,22 +2334,21 @@
             "53": 3,
             "54": 3,
             "55": 3,
-            "56": 3,
-            "57": 3
+            "56": 3
           },
           "Branches": [
             {
               "Line": 50,
-              "Offset": 38,
-              "EndOffset": 40,
+              "Offset": 33,
+              "EndOffset": 35,
               "Path": 0,
               "Ordinal": 0,
               "Hits": 1
             },
             {
               "Line": 50,
-              "Offset": 38,
-              "EndOffset": 43,
+              "Offset": 33,
+              "EndOffset": 38,
               "Path": 1,
               "Ordinal": 1,
               "Hits": 2
@@ -2248,24 +2357,24 @@
         },
         "Maichess.Events.V1.MatchEvent MaichessMatchManagerService.Kafka.MatchCommands::OfferDraw(MaichessMatchManagerService.Kafka.LiveMatchState,System.String,System.Int64,System.Func`1<System.String>)": {
           "Lines": {
+            "60": 7,
             "61": 7,
-            "62": 7,
-            "63": 6,
+            "62": 6,
+            "64": 5,
             "65": 5,
-            "66": 5,
+            "66": 1,
             "67": 1,
-            "68": 1,
-            "71": 4,
+            "70": 4,
+            "71": 1,
             "72": 1,
-            "73": 1,
+            "75": 3,
             "76": 3,
             "77": 3,
-            "78": 3,
-            "79": 3
+            "78": 3
           },
           "Branches": [
             {
-              "Line": 65,
+              "Line": 64,
               "Offset": 17,
               "EndOffset": 19,
               "Path": 0,
@@ -2273,7 +2382,7 @@
               "Hits": 1
             },
             {
-              "Line": 65,
+              "Line": 64,
               "Offset": 17,
               "EndOffset": 27,
               "Path": 1,
@@ -2281,7 +2390,7 @@
               "Hits": 4
             },
             {
-              "Line": 66,
+              "Line": 65,
               "Offset": 48,
               "EndOffset": 50,
               "Path": 0,
@@ -2289,7 +2398,7 @@
               "Hits": 1
             },
             {
-              "Line": 66,
+              "Line": 65,
               "Offset": 48,
               "EndOffset": 57,
               "Path": 1,
@@ -2297,7 +2406,7 @@
               "Hits": 4
             },
             {
-              "Line": 71,
+              "Line": 70,
               "Offset": 73,
               "EndOffset": 75,
               "Path": 0,
@@ -2305,7 +2414,7 @@
               "Hits": 1
             },
             {
-              "Line": 71,
+              "Line": 70,
               "Offset": 73,
               "EndOffset": 82,
               "Path": 1,
@@ -2316,28 +2425,23 @@
         },
         "Maichess.Events.V1.MatchEvent MaichessMatchManagerService.Kafka.MatchCommands::AcceptDraw(MaichessMatchManagerService.Kafka.LiveMatchState,System.String,System.Int64,System.Func`1<System.String>)": {
           "Lines": {
+            "82": 6,
             "83": 6,
-            "84": 6,
-            "85": 5,
-            "87": 4,
+            "84": 5,
+            "86": 4,
+            "87": 1,
             "88": 1,
-            "89": 1,
-            "92": 3,
+            "91": 3,
+            "92": 1,
             "93": 1,
-            "94": 1,
+            "96": 2,
             "97": 2,
             "98": 2,
-            "99": 2,
-            "100": 2,
-            "101": 2,
-            "102": 2,
-            "103": 2,
-            "104": 2,
-            "105": 2
+            "99": 2
           },
           "Branches": [
             {
-              "Line": 87,
+              "Line": 86,
               "Offset": 27,
               "EndOffset": 29,
               "Path": 0,
@@ -2345,7 +2449,7 @@
               "Hits": 1
             },
             {
-              "Line": 87,
+              "Line": 86,
               "Offset": 27,
               "EndOffset": 36,
               "Path": 1,
@@ -2353,7 +2457,7 @@
               "Hits": 3
             },
             {
-              "Line": 92,
+              "Line": 91,
               "Offset": 50,
               "EndOffset": 52,
               "Path": 0,
@@ -2361,7 +2465,7 @@
               "Hits": 1
             },
             {
-              "Line": 92,
+              "Line": 91,
               "Offset": 50,
               "EndOffset": 59,
               "Path": 1,
@@ -2372,20 +2476,20 @@
         },
         "Maichess.Events.V1.MatchEvent MaichessMatchManagerService.Kafka.MatchCommands::DeclineDraw(MaichessMatchManagerService.Kafka.LiveMatchState,System.String,System.Int64,System.Func`1<System.String>)": {
           "Lines": {
-            "109": 5,
-            "110": 5,
-            "111": 4,
-            "113": 3,
-            "114": 1,
-            "115": 1,
-            "118": 2,
-            "119": 2,
-            "120": 2,
-            "121": 2
+            "103": 5,
+            "104": 5,
+            "105": 4,
+            "107": 3,
+            "108": 1,
+            "109": 1,
+            "112": 2,
+            "113": 2,
+            "114": 2,
+            "115": 2
           },
           "Branches": [
             {
-              "Line": 113,
+              "Line": 107,
               "Offset": 27,
               "EndOffset": 29,
               "Path": 0,
@@ -2393,7 +2497,7 @@
               "Hits": 1
             },
             {
-              "Line": 113,
+              "Line": 107,
               "Offset": 27,
               "EndOffset": 36,
               "Path": 1,
@@ -2404,30 +2508,29 @@
         },
         "Maichess.Events.V1.MatchEvent MaichessMatchManagerService.Kafka.MatchCommands::Timeout(MaichessMatchManagerService.Kafka.LiveMatchState,System.Boolean,System.Int64,System.Func`1<System.String>)": {
           "Lines": {
+            "119": 5,
+            "120": 5,
+            "121": 5,
+            "122": 5,
+            "123": 5,
+            "124": 5,
             "125": 5,
             "126": 5,
-            "127": 5,
-            "128": 5,
-            "129": 5,
-            "130": 5,
-            "131": 5,
-            "132": 5,
-            "133": 5,
-            "134": 5
+            "127": 5
           },
           "Branches": [
             {
-              "Line": 127,
-              "Offset": 23,
-              "EndOffset": 25,
+              "Line": 121,
+              "Offset": 18,
+              "EndOffset": 20,
               "Path": 0,
               "Ordinal": 0,
               "Hits": 2
             },
             {
-              "Line": 127,
-              "Offset": 23,
-              "EndOffset": 28,
+              "Line": 121,
+              "Offset": 18,
+              "EndOffset": 23,
               "Path": 1,
               "Ordinal": 1,
               "Hits": 3
@@ -2436,15 +2539,15 @@
         },
         "System.Void MaichessMatchManagerService.Kafka.MatchCommands::EnsureOngoing(MaichessMatchManagerService.Kafka.LiveMatchState)": {
           "Lines": {
-            "137": 31,
-            "138": 31,
-            "139": 5,
-            "140": 5,
-            "142": 26
+            "130": 31,
+            "131": 31,
+            "132": 5,
+            "133": 5,
+            "135": 26
           },
           "Branches": [
             {
-              "Line": 138,
+              "Line": 131,
               "Offset": 19,
               "EndOffset": 21,
               "Path": 0,
@@ -2452,7 +2555,7 @@
               "Hits": 5
             },
             {
-              "Line": 138,
+              "Line": 131,
               "Offset": 19,
               "EndOffset": 28,
               "Path": 1,
@@ -2463,16 +2566,16 @@
         },
         "System.Boolean MaichessMatchManagerService.Kafka.MatchCommands::ResolveSide(MaichessMatchManagerService.Kafka.LiveMatchState,System.String)": {
           "Lines": {
-            "146": 26,
-            "147": 26,
-            "148": 36,
-            "149": 27,
-            "150": 5,
-            "151": 26
+            "139": 26,
+            "140": 26,
+            "141": 36,
+            "142": 27,
+            "143": 5,
+            "144": 26
           },
           "Branches": [
             {
-              "Line": 148,
+              "Line": 141,
               "Offset": 25,
               "EndOffset": 29,
               "Path": 1,
@@ -2480,7 +2583,7 @@
               "Hits": 10
             },
             {
-              "Line": 148,
+              "Line": 141,
               "Offset": 25,
               "EndOffset": 33,
               "Path": 0,
@@ -2488,7 +2591,7 @@
               "Hits": 16
             },
             {
-              "Line": 149,
+              "Line": 142,
               "Offset": 50,
               "EndOffset": 54,
               "Path": 1,
@@ -2496,7 +2599,7 @@
               "Hits": 11
             },
             {
-              "Line": 149,
+              "Line": 142,
               "Offset": 50,
               "EndOffset": 58,
               "Path": 0,
@@ -2507,30 +2610,30 @@
         },
         "Maichess.Events.V1.MatchEvent MaichessMatchManagerService.Kafka.MatchCommands::Envelope(MaichessMatchManagerService.Kafka.LiveMatchState,System.Func`1<System.String>,System.String,System.Int64)": {
           "Lines": {
+            "147": 19,
+            "148": 19,
+            "149": 19,
+            "150": 19,
+            "151": 19,
+            "152": 19,
+            "153": 19,
             "154": 19,
             "155": 19,
             "156": 19,
-            "157": 19,
-            "158": 19,
-            "159": 19,
-            "160": 19,
-            "161": 19,
-            "162": 19,
-            "163": 19,
-            "164": 19
+            "157": 19
           },
           "Branches": []
         },
         "System.Char MaichessMatchManagerService.Kafka.MatchCommands::ActiveColor(System.String)": {
           "Lines": {
-            "167": 6,
-            "168": 6,
-            "169": 6,
-            "170": 6
+            "160": 6,
+            "161": 6,
+            "162": 6,
+            "163": 6
           },
           "Branches": [
             {
-              "Line": 169,
+              "Line": 162,
               "Offset": 15,
               "EndOffset": 17,
               "Path": 0,
@@ -2538,7 +2641,7 @@
               "Hits": 1
             },
             {
-              "Line": 169,
+              "Line": 162,
               "Offset": 15,
               "EndOffset": 21,
               "Path": 1,
@@ -2549,7 +2652,158 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Kafka\\MatchHistoryProjection.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Kafka/MatchEndedFactory.cs": {
+      "MaichessMatchManagerService.Kafka.MatchEndedFactory": {
+        "Maichess.Events.V1.MatchEnded MaichessMatchManagerService.Kafka.MatchEndedFactory::Create(MaichessMatchManagerService.Kafka.LiveMatchState,Maichess.Events.V1.MatchStatus,Maichess.Events.V1.EndReason,System.Int64)": {
+          "Lines": {
+            "13": 22,
+            "14": 22,
+            "15": 22,
+            "16": 22,
+            "17": 22,
+            "18": 22,
+            "19": 22,
+            "20": 22,
+            "21": 22,
+            "22": 22,
+            "24": 22,
+            "25": 1,
+            "26": 1,
+            "27": 1,
+            "29": 22,
+            "30": 2,
+            "31": 2,
+            "32": 2,
+            "34": 22,
+            "35": 22
+          },
+          "Branches": [
+            {
+              "Line": 14,
+              "Offset": 83,
+              "EndOffset": 85,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 21
+            },
+            {
+              "Line": 14,
+              "Offset": 83,
+              "EndOffset": 88,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 1
+            },
+            {
+              "Line": 24,
+              "Offset": 111,
+              "EndOffset": 113,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 1
+            },
+            {
+              "Line": 24,
+              "Offset": 111,
+              "EndOffset": 124,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 21
+            },
+            {
+              "Line": 24,
+              "Offset": 127,
+              "EndOffset": 129,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 1
+            },
+            {
+              "Line": 24,
+              "Offset": 127,
+              "EndOffset": 139,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 22
+            },
+            {
+              "Line": 29,
+              "Offset": 154,
+              "EndOffset": 156,
+              "Path": 0,
+              "Ordinal": 6,
+              "Hits": 2
+            },
+            {
+              "Line": 29,
+              "Offset": 154,
+              "EndOffset": 167,
+              "Path": 1,
+              "Ordinal": 7,
+              "Hits": 20
+            },
+            {
+              "Line": 29,
+              "Offset": 172,
+              "EndOffset": 174,
+              "Path": 0,
+              "Ordinal": 8,
+              "Hits": 2
+            },
+            {
+              "Line": 29,
+              "Offset": 172,
+              "EndOffset": 184,
+              "Path": 1,
+              "Ordinal": 9,
+              "Hits": 22
+            }
+          ]
+        },
+        "Maichess.Events.V1.Player MaichessMatchManagerService.Kafka.MatchEndedFactory::ToPlayer(MaichessMatchManagerService.Kafka.PlayerRef)": {
+          "Lines": {
+            "38": 44,
+            "39": 44,
+            "40": 44
+          },
+          "Branches": [
+            {
+              "Line": 38,
+              "Offset": 6,
+              "EndOffset": 8,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 4
+            },
+            {
+              "Line": 38,
+              "Offset": 14,
+              "EndOffset": 16,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 1
+            },
+            {
+              "Line": 38,
+              "Offset": 14,
+              "EndOffset": 23,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 3
+            },
+            {
+              "Line": 38,
+              "Offset": 6,
+              "EndOffset": 43,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 40
+            }
+          ]
+        }
+      }
+    },
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Kafka/MatchHistoryProjection.cs": {
       "MaichessMatchManagerService.Kafka.MatchHistoryProjection": {
         "MaichessMatchManagerService.Entities.MatchDocument MaichessMatchManagerService.Kafka.MatchHistoryProjection::Apply(MaichessMatchManagerService.Entities.MatchDocument,Maichess.Events.V1.MatchEvent)": {
           "Lines": {
@@ -2859,13 +3113,13 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Kafka\\MatchProjection.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Kafka/MatchProjection.cs": {
       "MaichessMatchManagerService.Kafka.MatchProjection": {
         "MaichessMatchManagerService.Kafka.LiveMatchState MaichessMatchManagerService.Kafka.MatchProjection::Apply(MaichessMatchManagerService.Kafka.LiveMatchState,Maichess.Events.V1.MatchEvent)": {
           "Lines": {
-            "24": 81,
-            "25": 81,
-            "26": 13,
+            "24": 83,
+            "25": 83,
+            "26": 15,
             "27": 5,
             "28": 21,
             "29": 2,
@@ -2874,7 +3128,7 @@
             "32": 2,
             "33": 12,
             "34": 2,
-            "35": 81
+            "35": 83
           },
           "Branches": [
             {
@@ -2883,7 +3137,7 @@
               "EndOffset": 65,
               "Path": 1,
               "Ordinal": 1,
-              "Hits": 13
+              "Hits": 15
             },
             {
               "Line": 24,
@@ -3141,80 +3395,132 @@
         },
         "MaichessMatchManagerService.Kafka.LiveMatchState MaichessMatchManagerService.Kafka.MatchProjection::Init(Maichess.Events.V1.MatchEvent,Maichess.Events.V1.MatchCreated)": {
           "Lines": {
-            "51": 13,
-            "52": 13,
-            "53": 13,
-            "54": 13,
-            "55": 13,
-            "56": 13,
-            "57": 13,
-            "58": 13,
-            "59": 13,
-            "60": 13,
-            "61": 13,
-            "62": 13,
-            "63": 13
+            "51": 15,
+            "52": 15,
+            "53": 15,
+            "54": 15,
+            "55": 15,
+            "56": 15,
+            "57": 15,
+            "58": 15,
+            "59": 15,
+            "60": 15,
+            "61": 15,
+            "62": 15,
+            "63": 15,
+            "64": 15,
+            "65": 15,
+            "66": 15
           },
-          "Branches": []
+          "Branches": [
+            {
+              "Line": 51,
+              "Offset": 99,
+              "EndOffset": 101,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 14
+            },
+            {
+              "Line": 51,
+              "Offset": 99,
+              "EndOffset": 108,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 1
+            },
+            {
+              "Line": 51,
+              "Offset": 119,
+              "EndOffset": 121,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 14
+            },
+            {
+              "Line": 51,
+              "Offset": 119,
+              "EndOffset": 132,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 1
+            },
+            {
+              "Line": 51,
+              "Offset": 149,
+              "EndOffset": 151,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 14
+            },
+            {
+              "Line": 51,
+              "Offset": 149,
+              "EndOffset": 162,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 1
+            }
+          ]
         },
         "MaichessMatchManagerService.Kafka.LiveMatchState MaichessMatchManagerService.Kafka.MatchProjection::WithSubmitted(MaichessMatchManagerService.Kafka.LiveMatchState,Maichess.Events.V1.MatchEvent)": {
           "Lines": {
-            "66": 4,
-            "67": 4,
-            "68": 4,
             "69": 4,
-            "70": 4
+            "70": 4,
+            "71": 4,
+            "72": 4,
+            "73": 4
           },
           "Branches": []
         },
         "MaichessMatchManagerService.Kafka.LiveMatchState MaichessMatchManagerService.Kafka.MatchProjection::WithHistory(MaichessMatchManagerService.Kafka.LiveMatchState,Maichess.Events.V1.MatchEvent)": {
           "Lines": {
-            "73": 19,
-            "74": 19,
-            "75": 19,
             "76": 19,
-            "77": 19
+            "77": 19,
+            "78": 19,
+            "79": 19,
+            "80": 19
           },
           "Branches": []
         },
         "MaichessMatchManagerService.Kafka.LiveMatchState MaichessMatchManagerService.Kafka.MatchProjection::WithRejected(MaichessMatchManagerService.Kafka.LiveMatchState,Maichess.Events.V1.MatchEvent)": {
           "Lines": {
-            "80": 1,
-            "81": 1,
-            "82": 1,
             "83": 1,
-            "84": 1
+            "84": 1,
+            "85": 1,
+            "86": 1,
+            "87": 1
           },
           "Branches": []
         },
         "MaichessMatchManagerService.Kafka.LiveMatchState MaichessMatchManagerService.Kafka.MatchProjection::WithMove(MaichessMatchManagerService.Kafka.LiveMatchState,Maichess.Events.V1.MatchEvent,Maichess.Events.V1.MoveApplied)": {
           "Lines": {
-            "87": 20,
-            "88": 20,
-            "89": 20,
             "90": 20,
             "91": 20,
             "92": 20,
             "93": 20,
             "94": 20,
             "95": 20,
-            "96": 20
+            "96": 20,
+            "97": 20,
+            "98": 20,
+            "99": 20
           },
           "Branches": []
         },
         "MaichessMatchManagerService.Kafka.LiveMatchState MaichessMatchManagerService.Kafka.MatchProjection::WithDrawOffered(MaichessMatchManagerService.Kafka.LiveMatchState,Maichess.Events.V1.MatchEvent)": {
           "Lines": {
-            "99": 2,
-            "100": 2,
-            "101": 2,
             "102": 2,
             "103": 2,
             "104": 2,
-            "105": 2
+            "105": 2,
+            "106": 2,
+            "107": 2,
+            "108": 2
           },
           "Branches": [
             {
-              "Line": 99,
+              "Line": 102,
               "Offset": 24,
               "EndOffset": 26,
               "Path": 0,
@@ -3222,7 +3528,7 @@
               "Hits": 1
             },
             {
-              "Line": 99,
+              "Line": 102,
               "Offset": 24,
               "EndOffset": 29,
               "Path": 1,
@@ -3233,69 +3539,69 @@
         },
         "MaichessMatchManagerService.Kafka.LiveMatchState MaichessMatchManagerService.Kafka.MatchProjection::WithDrawDeclined(MaichessMatchManagerService.Kafka.LiveMatchState,Maichess.Events.V1.MatchEvent)": {
           "Lines": {
-            "108": 1,
-            "109": 1,
-            "110": 1,
             "111": 1,
-            "112": 1
+            "112": 1,
+            "113": 1,
+            "114": 1,
+            "115": 1
           },
           "Branches": []
         },
         "MaichessMatchManagerService.Kafka.LiveMatchState MaichessMatchManagerService.Kafka.MatchProjection::WithEnd(MaichessMatchManagerService.Kafka.LiveMatchState,Maichess.Events.V1.MatchEvent,Maichess.Events.V1.MatchEnded)": {
           "Lines": {
-            "115": 11,
-            "116": 11,
-            "117": 11,
             "118": 11,
             "119": 11,
-            "120": 11
+            "120": 11,
+            "121": 11,
+            "122": 11,
+            "123": 11
           },
           "Branches": []
         },
         "MaichessMatchManagerService.Kafka.PlayerRef MaichessMatchManagerService.Kafka.MatchProjection::ToPlayerRef(Maichess.Events.V1.Player)": {
           "Lines": {
-            "123": 26,
-            "124": 26,
-            "125": 26
+            "126": 30,
+            "127": 30,
+            "128": 30
           },
           "Branches": [
             {
-              "Line": 123,
+              "Line": 126,
               "Offset": 7,
               "EndOffset": 9,
               "Path": 0,
               "Ordinal": 0,
-              "Hits": 13
+              "Hits": 15
             },
             {
-              "Line": 123,
+              "Line": 126,
               "Offset": 7,
               "EndOffset": 12,
               "Path": 1,
               "Ordinal": 1,
-              "Hits": 13
+              "Hits": 15
             },
             {
-              "Line": 123,
+              "Line": 126,
               "Offset": 25,
               "EndOffset": 27,
               "Path": 0,
               "Ordinal": 2,
-              "Hits": 14
+              "Hits": 16
             },
             {
-              "Line": 123,
+              "Line": 126,
               "Offset": 25,
               "EndOffset": 30,
               "Path": 1,
               "Ordinal": 3,
-              "Hits": 12
+              "Hits": 14
             }
           ]
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Kafka\\MatchProjector.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Kafka/MatchProjector.cs": {
       "MaichessMatchManagerService.Kafka.MatchProjector": {
         "MaichessMatchManagerService.Kafka.ProjectorOutcome MaichessMatchManagerService.Kafka.MatchProjector::Decide(MaichessMatchManagerService.Kafka.LiveMatchState,Maichess.Events.V1.MatchEvent,System.Int64,System.Func`1<System.String>)": {
           "Lines": {
@@ -3673,26 +3979,21 @@
             "159": 8,
             "160": 8,
             "161": 8,
-            "162": 8,
-            "163": 8,
-            "164": 8,
-            "165": 8,
-            "166": 8,
-            "169": 9,
-            "170": 9,
-            "171": 9,
+            "164": 9,
+            "165": 9,
+            "166": 9,
+            "167": 2,
+            "168": 2,
+            "169": 2,
+            "170": 2,
+            "171": 2,
             "172": 2,
             "173": 2,
             "174": 2,
             "175": 2,
             "176": 2,
-            "177": 2,
-            "178": 2,
-            "179": 2,
-            "180": 2,
-            "181": 2,
-            "183": 9,
-            "184": 17
+            "178": 9,
+            "179": 17
           },
           "Branches": [
             {
@@ -3794,7 +4095,7 @@
             {
               "Line": 154,
               "Offset": 448,
-              "EndOffset": 453,
+              "EndOffset": 450,
               "Path": 0,
               "Ordinal": 12,
               "Hits": 8
@@ -3802,55 +4103,55 @@
             {
               "Line": 154,
               "Offset": 448,
-              "EndOffset": 600,
+              "EndOffset": 577,
               "Path": 1,
               "Ordinal": 13,
               "Hits": 9
             },
             {
-              "Line": 170,
-              "Offset": 617,
-              "EndOffset": 619,
+              "Line": 165,
+              "Offset": 594,
+              "EndOffset": 596,
               "Path": 0,
               "Ordinal": 14,
               "Hits": 6
             },
             {
-              "Line": 170,
-              "Offset": 617,
-              "EndOffset": 627,
+              "Line": 165,
+              "Offset": 594,
+              "EndOffset": 604,
               "Path": 1,
               "Ordinal": 15,
               "Hits": 3
             },
             {
-              "Line": 171,
-              "Offset": 652,
-              "EndOffset": 654,
+              "Line": 166,
+              "Offset": 629,
+              "EndOffset": 631,
               "Path": 0,
               "Ordinal": 16,
               "Hits": 2
             },
             {
-              "Line": 173,
-              "Offset": 677,
-              "EndOffset": 679,
+              "Line": 168,
+              "Offset": 654,
+              "EndOffset": 656,
               "Path": 0,
               "Ordinal": 18,
               "Hits": 1
             },
             {
-              "Line": 173,
-              "Offset": 677,
-              "EndOffset": 683,
+              "Line": 168,
+              "Offset": 654,
+              "EndOffset": 660,
               "Path": 1,
               "Ordinal": 19,
               "Hits": 1
             },
             {
-              "Line": 171,
-              "Offset": 652,
-              "EndOffset": 705,
+              "Line": 166,
+              "Offset": 629,
+              "EndOffset": 682,
               "Path": 1,
               "Ordinal": 17,
               "Hits": 9
@@ -3859,26 +4160,26 @@
         },
         "MaichessMatchManagerService.Kafka.ProjectorOutcome MaichessMatchManagerService.Kafka.MatchProjector::OnBotCalculated(MaichessMatchManagerService.Kafka.LiveMatchState,Maichess.Events.V1.MatchEvent,System.Int64,System.Func`1<System.String>)": {
           "Lines": {
-            "188": 3,
+            "183": 3,
+            "184": 3,
+            "185": 3,
             "189": 3,
-            "190": 3,
-            "194": 3,
-            "195": 1,
-            "196": 1,
+            "190": 1,
+            "191": 1,
+            "194": 2,
+            "195": 2,
+            "196": 2,
+            "197": 2,
+            "198": 2,
             "199": 2,
             "200": 2,
             "201": 2,
-            "202": 2,
             "203": 2,
-            "204": 2,
-            "205": 2,
-            "206": 2,
-            "208": 2,
-            "209": 3
+            "204": 3
           },
           "Branches": [
             {
-              "Line": 190,
+              "Line": 185,
               "Offset": 16,
               "EndOffset": 18,
               "Path": 0,
@@ -3886,7 +4187,7 @@
               "Hits": 1
             },
             {
-              "Line": 190,
+              "Line": 185,
               "Offset": 16,
               "EndOffset": 26,
               "Path": 1,
@@ -3894,7 +4195,7 @@
               "Hits": 2
             },
             {
-              "Line": 194,
+              "Line": 189,
               "Offset": 44,
               "EndOffset": 46,
               "Path": 0,
@@ -3902,7 +4203,7 @@
               "Hits": 1
             },
             {
-              "Line": 194,
+              "Line": 189,
               "Offset": 44,
               "EndOffset": 70,
               "Path": 1,
@@ -3913,38 +4214,38 @@
         },
         "Maichess.Events.V1.MatchEvent MaichessMatchManagerService.Kafka.MatchProjector::BotRequest(Maichess.Events.V1.MatchEvent,System.Int64,System.Func`1<System.String>,System.String,System.String,System.Int64,System.Int64)": {
           "Lines": {
+            "208": 4,
+            "209": 4,
+            "210": 4,
+            "211": 4,
+            "212": 4,
             "213": 4,
             "214": 4,
             "215": 4,
             "216": 4,
             "217": 4,
-            "218": 4,
-            "219": 4,
-            "220": 4,
-            "221": 4,
-            "222": 4,
-            "223": 4
+            "218": 4
           },
           "Branches": []
         },
         "System.String MaichessMatchManagerService.Kafka.MatchProjector::ResolveStatus(System.Int64,System.Int64,Maichess.Events.V1.GameResult)": {
           "Lines": {
-            "228": 17,
+            "223": 17,
+            "224": 17,
+            "225": 17,
+            "226": 17,
+            "227": 1,
+            "228": 1,
             "229": 17,
             "230": 17,
             "231": 17,
-            "232": 1,
-            "233": 1,
-            "234": 17,
-            "235": 17,
-            "236": 17,
-            "237": 4,
-            "238": 9,
-            "239": 17
+            "232": 4,
+            "233": 9,
+            "234": 17
           },
           "Branches": [
             {
-              "Line": 228,
+              "Line": 223,
               "Offset": 3,
               "EndOffset": 5,
               "Path": 0,
@@ -3952,7 +4253,7 @@
               "Hits": 1
             },
             {
-              "Line": 228,
+              "Line": 223,
               "Offset": 3,
               "EndOffset": 13,
               "Path": 1,
@@ -3960,7 +4261,7 @@
               "Hits": 16
             },
             {
-              "Line": 228,
+              "Line": 223,
               "Offset": 16,
               "EndOffset": 18,
               "Path": 0,
@@ -3968,7 +4269,7 @@
               "Hits": 1
             },
             {
-              "Line": 228,
+              "Line": 223,
               "Offset": 16,
               "EndOffset": 26,
               "Path": 1,
@@ -3976,7 +4277,7 @@
               "Hits": 15
             },
             {
-              "Line": 230,
+              "Line": 225,
               "Offset": 33,
               "EndOffset": 64,
               "Path": 1,
@@ -3984,7 +4285,7 @@
               "Hits": 1
             },
             {
-              "Line": 230,
+              "Line": 225,
               "Offset": 33,
               "EndOffset": 72,
               "Path": 2,
@@ -3992,7 +4293,7 @@
               "Hits": 1
             },
             {
-              "Line": 230,
+              "Line": 225,
               "Offset": 33,
               "EndOffset": 80,
               "Path": 3,
@@ -4000,7 +4301,7 @@
               "Hits": 4
             },
             {
-              "Line": 230,
+              "Line": 225,
               "Offset": 33,
               "EndOffset": 80,
               "Path": 4,
@@ -4008,7 +4309,7 @@
               "Hits": 4
             },
             {
-              "Line": 230,
+              "Line": 225,
               "Offset": 33,
               "EndOffset": 80,
               "Path": 5,
@@ -4016,7 +4317,7 @@
               "Hits": 4
             },
             {
-              "Line": 230,
+              "Line": 225,
               "Offset": 33,
               "EndOffset": 80,
               "Path": 6,
@@ -4024,7 +4325,7 @@
               "Hits": 4
             },
             {
-              "Line": 230,
+              "Line": 225,
               "Offset": 33,
               "EndOffset": 88,
               "Path": 0,
@@ -4035,20 +4336,20 @@
         },
         "Maichess.Events.V1.EndReason MaichessMatchManagerService.Kafka.MatchProjector::ResolveEndReason(System.Int64,System.Int64,Maichess.Events.V1.GameResult)": {
           "Lines": {
-            "244": 8,
-            "245": 8,
-            "246": 8,
-            "247": 8,
-            "248": 1,
-            "249": 1,
-            "250": 1,
-            "251": 1,
-            "252": 2,
-            "253": 8
+            "239": 8,
+            "240": 8,
+            "241": 8,
+            "242": 8,
+            "243": 1,
+            "244": 1,
+            "245": 1,
+            "246": 1,
+            "247": 2,
+            "248": 8
           },
           "Branches": [
             {
-              "Line": 244,
+              "Line": 239,
               "Offset": 3,
               "EndOffset": 5,
               "Path": 0,
@@ -4056,7 +4357,7 @@
               "Hits": 7
             },
             {
-              "Line": 244,
+              "Line": 239,
               "Offset": 3,
               "EndOffset": 10,
               "Path": 1,
@@ -4064,7 +4365,7 @@
               "Hits": 2
             },
             {
-              "Line": 244,
+              "Line": 239,
               "Offset": 8,
               "EndOffset": 10,
               "Path": 0,
@@ -4072,7 +4373,7 @@
               "Hits": 2
             },
             {
-              "Line": 244,
+              "Line": 239,
               "Offset": 8,
               "EndOffset": 14,
               "Path": 1,
@@ -4080,7 +4381,7 @@
               "Hits": 6
             },
             {
-              "Line": 246,
+              "Line": 241,
               "Offset": 21,
               "EndOffset": 44,
               "Path": 1,
@@ -4088,7 +4389,7 @@
               "Hits": 1
             },
             {
-              "Line": 246,
+              "Line": 241,
               "Offset": 21,
               "EndOffset": 48,
               "Path": 2,
@@ -4096,7 +4397,7 @@
               "Hits": 1
             },
             {
-              "Line": 246,
+              "Line": 241,
               "Offset": 21,
               "EndOffset": 52,
               "Path": 3,
@@ -4104,7 +4405,7 @@
               "Hits": 1
             },
             {
-              "Line": 246,
+              "Line": 241,
               "Offset": 21,
               "EndOffset": 56,
               "Path": 4,
@@ -4112,7 +4413,7 @@
               "Hits": 1
             },
             {
-              "Line": 246,
+              "Line": 241,
               "Offset": 21,
               "EndOffset": 60,
               "Path": 0,
@@ -4123,16 +4424,16 @@
         },
         "Maichess.Events.V1.MatchStatus MaichessMatchManagerService.Kafka.MatchProjector::ToStatus(System.String)": {
           "Lines": {
-            "257": 8,
-            "258": 8,
-            "259": 2,
-            "260": 2,
-            "261": 4,
-            "262": 8
+            "252": 8,
+            "253": 8,
+            "254": 2,
+            "255": 2,
+            "256": 4,
+            "257": 8
           },
           "Branches": [
             {
-              "Line": 257,
+              "Line": 252,
               "Offset": 15,
               "EndOffset": 17,
               "Path": 0,
@@ -4140,7 +4441,7 @@
               "Hits": 6
             },
             {
-              "Line": 257,
+              "Line": 252,
               "Offset": 15,
               "EndOffset": 32,
               "Path": 1,
@@ -4148,7 +4449,7 @@
               "Hits": 2
             },
             {
-              "Line": 257,
+              "Line": 252,
               "Offset": 28,
               "EndOffset": 36,
               "Path": 1,
@@ -4156,7 +4457,7 @@
               "Hits": 2
             },
             {
-              "Line": 257,
+              "Line": 252,
               "Offset": 28,
               "EndOffset": 40,
               "Path": 0,
@@ -4167,21 +4468,21 @@
         },
         "System.String MaichessMatchManagerService.Kafka.MatchProjector::EndReasonToString(Maichess.Events.V1.EndReason)": {
           "Lines": {
-            "266": 10,
-            "267": 10,
-            "268": 2,
+            "261": 10,
+            "262": 10,
+            "263": 2,
+            "264": 1,
+            "265": 1,
+            "266": 1,
+            "267": 1,
+            "268": 1,
             "269": 1,
-            "270": 1,
-            "271": 1,
-            "272": 1,
-            "273": 1,
-            "274": 1,
-            "275": 2,
-            "276": 10
+            "270": 2,
+            "271": 10
           },
           "Branches": [
             {
-              "Line": 266,
+              "Line": 261,
               "Offset": 7,
               "EndOffset": 42,
               "Path": 3,
@@ -4189,7 +4490,7 @@
               "Hits": 2
             },
             {
-              "Line": 266,
+              "Line": 261,
               "Offset": 7,
               "EndOffset": 50,
               "Path": 1,
@@ -4197,7 +4498,7 @@
               "Hits": 1
             },
             {
-              "Line": 266,
+              "Line": 261,
               "Offset": 7,
               "EndOffset": 58,
               "Path": 4,
@@ -4205,7 +4506,7 @@
               "Hits": 1
             },
             {
-              "Line": 266,
+              "Line": 261,
               "Offset": 7,
               "EndOffset": 66,
               "Path": 2,
@@ -4213,7 +4514,7 @@
               "Hits": 1
             },
             {
-              "Line": 266,
+              "Line": 261,
               "Offset": 7,
               "EndOffset": 74,
               "Path": 5,
@@ -4221,7 +4522,7 @@
               "Hits": 1
             },
             {
-              "Line": 266,
+              "Line": 261,
               "Offset": 7,
               "EndOffset": 82,
               "Path": 6,
@@ -4229,7 +4530,7 @@
               "Hits": 1
             },
             {
-              "Line": 266,
+              "Line": 261,
               "Offset": 7,
               "EndOffset": 90,
               "Path": 7,
@@ -4237,7 +4538,7 @@
               "Hits": 1
             },
             {
-              "Line": 266,
+              "Line": 261,
               "Offset": 7,
               "EndOffset": 98,
               "Path": 0,
@@ -4248,6 +4549,11 @@
         },
         "Maichess.Events.V1.OutboundEvent MaichessMatchManagerService.Kafka.MatchProjector::MoveMade(Maichess.Events.V1.MatchEvent,System.String,System.Int64,Maichess.Events.V1.MoveApplied)": {
           "Lines": {
+            "274": 17,
+            "275": 17,
+            "276": 17,
+            "277": 17,
+            "278": 17,
             "279": 17,
             "280": 17,
             "281": 17,
@@ -4255,44 +4561,44 @@
             "283": 17,
             "284": 17,
             "285": 17,
-            "286": 17,
-            "287": 17,
-            "288": 17,
-            "289": 17,
-            "290": 17,
-            "291": 17
+            "286": 17
           },
           "Branches": []
         },
         "Maichess.Events.V1.OutboundEvent MaichessMatchManagerService.Kafka.MatchProjector::MatchEndedPush(Maichess.Events.V1.MatchEvent,System.String,System.Int64,System.String,Maichess.Events.V1.EndReason)": {
           "Lines": {
+            "290": 10,
+            "291": 10,
+            "292": 10,
+            "293": 10,
+            "294": 10,
             "295": 10,
             "296": 10,
             "297": 10,
-            "298": 10,
-            "299": 10,
-            "300": 10,
-            "301": 10,
-            "302": 10,
-            "303": 10
+            "298": 10
           },
           "Branches": []
         },
         "Maichess.Events.V1.OutboundEvent MaichessMatchManagerService.Kafka.MatchProjector::DrawPush(Maichess.Events.V1.MatchEvent,System.String,System.String,Maichess.Events.V1.Player)": {
           "Lines": {
+            "301": 2,
+            "302": 2,
+            "303": 2,
+            "304": 2,
+            "305": 2,
             "306": 2,
             "307": 2,
-            "308": 2,
-            "309": 2,
-            "310": 2,
-            "311": 2,
-            "312": 2,
-            "313": 2
+            "308": 2
           },
           "Branches": []
         },
         "Maichess.Events.V1.OutboundEvent MaichessMatchManagerService.Kafka.MatchProjector::Push(Maichess.Events.V1.MatchEvent,System.String,System.Int64,System.String,System.Collections.Generic.Dictionary`2<System.String,System.Object>)": {
           "Lines": {
+            "312": 29,
+            "313": 29,
+            "314": 29,
+            "315": 29,
+            "316": 29,
             "317": 29,
             "318": 29,
             "319": 29,
@@ -4304,27 +4610,22 @@
             "325": 29,
             "326": 29,
             "327": 29,
-            "328": 29,
-            "329": 29,
-            "330": 29,
-            "331": 29,
-            "332": 29,
-            "333": 29
+            "328": 29
           },
           "Branches": []
         },
         "System.Collections.Generic.Dictionary`2<System.String,System.String> MaichessMatchManagerService.Kafka.MatchProjector::PlayerJson(Maichess.Events.V1.Player)": {
           "Lines": {
-            "335": 19,
-            "336": 19,
-            "337": 17,
-            "338": 1,
-            "339": 1,
-            "340": 19
+            "330": 19,
+            "331": 19,
+            "332": 17,
+            "333": 1,
+            "334": 1,
+            "335": 19
           },
           "Branches": [
             {
-              "Line": 335,
+              "Line": 330,
               "Offset": 13,
               "EndOffset": 17,
               "Path": 0,
@@ -4332,7 +4633,7 @@
               "Hits": 2
             },
             {
-              "Line": 335,
+              "Line": 330,
               "Offset": 13,
               "EndOffset": 23,
               "Path": 1,
@@ -4340,7 +4641,7 @@
               "Hits": 17
             },
             {
-              "Line": 335,
+              "Line": 330,
               "Offset": 19,
               "EndOffset": 49,
               "Path": 1,
@@ -4348,7 +4649,7 @@
               "Hits": 1
             },
             {
-              "Line": 335,
+              "Line": 330,
               "Offset": 19,
               "EndOffset": 75,
               "Path": 0,
@@ -4359,13 +4660,13 @@
         },
         "Maichess.Events.V1.Player MaichessMatchManagerService.Kafka.MatchProjector::ToPlayer(MaichessMatchManagerService.Kafka.PlayerRef)": {
           "Lines": {
-            "343": 19,
-            "344": 19,
-            "345": 19
+            "338": 19,
+            "339": 19,
+            "340": 19
           },
           "Branches": [
             {
-              "Line": 343,
+              "Line": 338,
               "Offset": 6,
               "EndOffset": 8,
               "Path": 0,
@@ -4373,7 +4674,7 @@
               "Hits": 4
             },
             {
-              "Line": 343,
+              "Line": 338,
               "Offset": 14,
               "EndOffset": 16,
               "Path": 0,
@@ -4381,7 +4682,7 @@
               "Hits": 1
             },
             {
-              "Line": 343,
+              "Line": 338,
               "Offset": 14,
               "EndOffset": 23,
               "Path": 1,
@@ -4389,7 +4690,7 @@
               "Hits": 3
             },
             {
-              "Line": 343,
+              "Line": 338,
               "Offset": 6,
               "EndOffset": 43,
               "Path": 1,
@@ -4400,30 +4701,30 @@
         },
         "Maichess.Events.V1.MatchEvent MaichessMatchManagerService.Kafka.MatchProjector::Envelope(Maichess.Events.V1.MatchEvent,System.String,System.Int64,System.String,System.Int64)": {
           "Lines": {
+            "344": 31,
+            "345": 31,
+            "346": 31,
+            "347": 31,
+            "348": 31,
             "349": 31,
             "350": 31,
             "351": 31,
             "352": 31,
             "353": 31,
-            "354": 31,
-            "355": 31,
-            "356": 31,
-            "357": 31,
-            "358": 31,
-            "359": 31
+            "354": 31
           },
           "Branches": []
         },
         "System.Char MaichessMatchManagerService.Kafka.MatchProjector::ActiveColor(System.String)": {
           "Lines": {
-            "362": 32,
-            "363": 32,
-            "364": 32,
-            "365": 32
+            "357": 32,
+            "358": 32,
+            "359": 32,
+            "360": 32
           },
           "Branches": [
             {
-              "Line": 364,
+              "Line": 359,
               "Offset": 15,
               "EndOffset": 17,
               "Path": 0,
@@ -4431,7 +4732,7 @@
               "Hits": 2
             },
             {
-              "Line": 364,
+              "Line": 359,
               "Offset": 15,
               "EndOffset": 21,
               "Path": 1,
@@ -4442,7 +4743,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Kafka\\UserReplicaProjection.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Kafka/UserReplicaProjection.cs": {
       "MaichessMatchManagerService.Kafka.UserReplicaProjection": {
         "MaichessMatchManagerService.Kafka.UserReplicaUpsert MaichessMatchManagerService.Kafka.UserReplicaProjection::Project(Avro.Generic.GenericRecord)": {
           "Lines": {
@@ -4653,7 +4954,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Grpc\\MatchesGrpcService.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Grpc/MatchesGrpcService.cs": {
       "MaichessMatchManagerService.Grpc.MatchesGrpcService": {
         "MaichessMatchManagerService.Entities.PlayerDocument MaichessMatchManagerService.Grpc.MatchesGrpcService::ToPlayerDocument(Maichess.MatchManager.V1.Player)": {
           "Lines": {
@@ -5490,7 +5791,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Events\\ConfluentFraming.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Events/ConfluentFraming.cs": {
       "MaichessMatchManagerService.Events.ConfluentFraming": {
         "System.Nullable`1<System.Int32> MaichessMatchManagerService.Events.ConfluentFraming::TryReadSchemaId(System.ReadOnlySpan`1<System.Byte>)": {
           "Lines": {
@@ -5535,7 +5836,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Events\\CreateMatchInput.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Events/CreateMatchInput.cs": {
       "MaichessMatchManagerService.Events.CreateMatchInput": {
         "System.Void MaichessMatchManagerService.Events.CreateMatchInput::.ctor(MaichessMatchManagerService.Entities.PlayerDocument,MaichessMatchManagerService.Entities.PlayerDocument,MaichessMatchManagerService.Entities.TimeFormatDocument,MaichessMatchManagerService.Entities.PlayerDocument,System.String,System.String,System.String,System.String,System.String)": {
           "Lines": {
@@ -5554,7 +5855,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Events\\MatchCommandAvroReader.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Events/MatchCommandAvroReader.cs": {
       "MaichessMatchManagerService.Events.MatchCommandAvroReader": {
         "System.Boolean MaichessMatchManagerService.Events.MatchCommandAvroReader::TryReadCreateMatch(Avro.Generic.GenericRecord,MaichessMatchManagerService.Events.CreateMatchInput&)": {
           "Lines": {
@@ -5849,7 +6150,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Events\\MatchCommandReader.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Events/MatchCommandReader.cs": {
       "MaichessMatchManagerService.Events.MatchCommandReader": {
         "System.Boolean MaichessMatchManagerService.Events.MatchCommandReader::TryReadCreateMatch(Maichess.Events.V1.MatchCommand,MaichessMatchManagerService.Events.CreateMatchInput&)": {
           "Lines": {
@@ -6197,11 +6498,11 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Entities\\PlayerDocument.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Entities/PlayerDocument.cs": {
       "MaichessMatchManagerService.Entities.PlayerDocument": {
         "System.Boolean MaichessMatchManagerService.Entities.PlayerDocument::get_IsBot()": {
           "Lines": {
-            "11": 47
+            "11": 111
           },
           "Branches": []
         },
@@ -6213,7 +6514,7 @@
         }
       }
     },
-    "C:\\Users\\micro\\source\\MaiChess\\services\\maichess-match-manager-service\\MaichessMatchManagerService\\Data\\UserReplicaRecord.cs": {
+    "/Users/tom/HTWG/semester-5/sw-arch/services/maichess-match-manager-service/MaichessMatchManagerService/Data/UserReplicaRecord.cs": {
       "MaichessMatchManagerService.Data.UserReplicaRecord": {
         "System.Void MaichessMatchManagerService.Data.UserReplicaRecord::.ctor(System.String,System.Nullable`1<System.Double>,System.Nullable`1<System.Double>,System.Nullable`1<System.Double>,System.Nullable`1<System.Int32>,System.Nullable`1<System.Int32>,System.Nullable`1<System.Int32>,System.Nullable`1<System.Int32>,System.Nullable`1<System.Boolean>,System.Nullable`1<System.Boolean>)": {
           "Lines": {

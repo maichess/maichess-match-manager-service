@@ -155,12 +155,7 @@ internal static class MatchProjector
         {
             EndReason reason = ResolveEndReason(white, black, validated.GameResult);
             MatchEvent ended = Envelope(consumed, newId(), consumed.Sequence + 2, "match.MatchEnded", nowMs);
-            ended.MatchEnded = new MatchEnded
-            {
-                Status = ToStatus(status),
-                EndReason = reason,
-                FinishedAtMs = nowMs,
-            };
+            ended.MatchEnded = MatchEndedFactory.Create(state, ToStatus(status), reason, nowMs);
             events.Add(ended);
             pushes.Add(MatchEndedPush(consumed, newId(), nowMs, status, reason));
             return new ProjectorOutcome(MatchProjection.Apply(next, ended)!, events, pushes);

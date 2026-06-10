@@ -33,4 +33,13 @@ internal sealed record LiveMatchState(
     // Tracked from DrawOffered/DrawDeclined so the command side can validate accept/
     // decline against the read model (mirrors MatchDocument.PendingDrawOffererUserId
     // on the retired synchronous path).
-    string? PendingDrawOffererUserId = null);
+    string? PendingDrawOffererUserId = null,
+
+    // Participant/source snapshot stamped onto every MatchEnded for the rating
+    // consumer (kafka task 08): the match source and, per bot side, the
+    // engine-configured elo resolved at creation. Null elo for human sides and
+    // for matches created before the snapshot existed. Defaults keep states
+    // persisted before these fields deserializing safely.
+    string Source = "native",
+    double? WhiteBotElo = null,
+    double? BlackBotElo = null);
