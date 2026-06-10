@@ -140,3 +140,59 @@ baseline.
   not yet wired** (the plan's optional `Rebuild` call) — acceptable while the path is dormant, worth
   doing alongside `06`.
 - The **202** REST write-side change is **task `06`**, not here.
+
+## Match command side + 202 (Kafka task `06`) — DONE
+
+Switched the match write entrypoint from synchronous gRPC to Kafka commands returning
+**202**; the authoritative result arrives over the socket. Build + all **283 tests** green;
+all new/changed included code is 100% line+branch (the only remaining coverage gaps are the
+four pre-existing baseline files noted under task 05: `MatchesGrpcService`,
+`MatchCommandReader`, `MatchCommandAvroReader`, `PlayerDocument`).
+
+### What landed
+
+- **`Kafka/MatchCommands.cs`** — pure command-side decision logic. `(LiveMatchState,
+  userId, move?, nowMs, newId)` → the `match.events.v1` `MatchEvent`
+  (`SubmitMove`→`MoveSubmitted`, `Resign`/`AcceptDraw`→`MatchEnded`, `OfferDraw`→
+  `DrawOffered`, `DeclineDraw`→`DrawDeclined`, `Timeout`→`MatchEnded{TIMEOUT}`); validates
+  participant/turn/draw rules, throwing the existing exceptions. `sequence = state.Sequence + 1`.
+- **`Events/IMatchEventProducer.cs` + `Events/KafkaMatchEventProducer.cs`** — producer seam
+  + live-Kafka glue (idempotent non-transactional produce to `match.events.v1`). Glue is
+  `[ExcludeFromCodeCoverage]` + excluded from Stryker.
+- **`Kafka/LiveMatchState.cs`** — `PendingDrawOffererUserId` for accept/decline validation.
+- **`Services/MatchService.cs`** — `MakeMove`/`Resign`/`OfferDraw`/`AcceptDraw`/`DeclineDraw`
+  load the live read model (cold ⇒ `MatchNotFoundException` ⇒ REST 404), build the event via
+  `MatchCommands`, and produce it. `CreateMatchAsync` emits `MatchCreated` (native) so the
+  projector seeds the read model + inserts the durable doc + kicks the first bot move;
+  external matches keep the direct insert. Removed the synchronous validate/bot-move/
+  broadcast/`RecordMatchResults`/clock code and the `Bots.BotsClient`/`ILogger` ctor deps.
+- **`Kafka/MatchProjector.cs` + `MatchProjection.cs`** — the projector now applies a
+  *consumed*, command-originated `MatchEnded`/`DrawOffered`/`DrawDeclined` and emits the
+  matching socket push (`match_ended`/`draw_offered`/`draw_declined`); its own self-emitted
+  `MatchEnded` is deduped by `sequence <= state.Sequence`, so the push fires once.
+  `EndReasonToString` gained `resignation` + `draw_agreement`.
+- **`Services/MatchService.EnforceTimeoutsAsync`** — scans ongoing matches, reads the
+  authoritative clock from the live read model, and emits exactly one `MatchEnded{TIMEOUT}`
+  per flagged match via the producer (no direct broadcast). `TimeoutWatchdog` unchanged.
+- **`Rest/MatchesEndpoints.cs`** — `/moves`, `/resign`, `/draw-offer`, `/draw-offer/accept`,
+  `DELETE /draw-offer` return **202 Accepted**.
+- **`Grpc/MatchesGrpcService.cs`** — removed the `MakeMove`/`ResignMatch` overrides (no
+  in-cluster caller; the proto RPCs are removed in task `09`). `CreateMatch` returns the
+  in-memory doc built from the request.
+- **`Program.cs`** — registers `IMatchEventProducer` → `KafkaMatchEventProducer`.
+- **Contracts/docs** — `rest/match-manager.md` `/moves` + `/resign` (+ draws) → 202;
+  `event-driven-architecture.md` marks the 202 contract live.
+- **Client** — `app/api/matches/[id]/{moves,resign}/route.ts` forward the empty 202 without
+  parsing JSON; `lib/hooks/useMatch.ts` keeps the optimistic board and reconciles on the
+  `move_made`/`match_ended` socket events (no body read). `npm run lint` + `tsc --noEmit`
+  clean for these files (4 pre-existing lint errors in analysis/game-library hooks remain).
+
+### Decisions / known gaps
+
+- **RecordMatchResult gap (interim):** the event-loop match-end path will **not** record
+  player ratings/stats — that is **task `08`** ("rating events; retire RecordMatchResult").
+  Removing the synchronous `RecordMatchResultsAsync` from the move/resign/draw/timeout
+  paths leaves a rating gap closed by `08`.
+- The command side emits **events** on `match.events.v1` (not the `match.commands.v1`
+  `SubmitMove`/`Resign`/… messages), matching the task's "emit the corresponding
+  event"/"close the loop" and the projector's existing inputs.

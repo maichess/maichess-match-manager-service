@@ -204,12 +204,15 @@ internal static class MatchesEndpoints
         }
     }
 
+    // Submits a move command and returns 202; the authoritative result (move_made /
+    // match_ended, or a rejection) arrives over the socket. Move legality is decided
+    // asynchronously by the validator, so an illegal move is accepted here and rejected
+    // over the socket rather than returning 400.
     private static async Task<IResult> PostMove(
         string id,
         [FromBody] SubmitMoveRequest body,
         ClaimsPrincipal principal,
         MatchService matchService,
-        Bots.BotsClient botsClient,
         CancellationToken ct)
     {
         if (!TryGetUserId(principal, out string? userId))
@@ -219,9 +222,8 @@ internal static class MatchesEndpoints
 
         try
         {
-            MatchDocument match = await matchService.MakeMoveAsync(id, userId, body.Move, ct);
-            MatchResponse response = await ToMatchResponseAsync(match, matchService, botsClient, ct);
-            return Results.Ok(response);
+            await matchService.MakeMoveAsync(id, userId, body.Move, ct);
+            return Results.Accepted();
         }
         catch (MatchNotFoundException)
         {
@@ -235,17 +237,12 @@ internal static class MatchesEndpoints
         {
             return Results.Forbid();
         }
-        catch (IllegalMoveException ex)
-        {
-            return Results.BadRequest(new ErrorResponse(ex.Reason));
-        }
     }
 
     private static async Task<IResult> PostResign(
         string id,
         ClaimsPrincipal principal,
         MatchService matchService,
-        Bots.BotsClient botsClient,
         CancellationToken ct)
     {
         if (!TryGetUserId(principal, out string? userId))
@@ -255,9 +252,8 @@ internal static class MatchesEndpoints
 
         try
         {
-            MatchDocument match = await matchService.ResignMatchAsync(id, userId, ct);
-            MatchResponse response = await ToMatchResponseAsync(match, matchService, botsClient, ct);
-            return Results.Ok(response);
+            await matchService.ResignMatchAsync(id, userId, ct);
+            return Results.Accepted();
         }
         catch (MatchNotFoundException)
         {
@@ -287,7 +283,7 @@ internal static class MatchesEndpoints
         try
         {
             await matchService.OfferDrawAsync(id, userId, ct);
-            return Results.Ok();
+            return Results.Accepted();
         }
         catch (MatchNotFoundException)
         {
@@ -311,7 +307,6 @@ internal static class MatchesEndpoints
         string id,
         ClaimsPrincipal principal,
         MatchService matchService,
-        Bots.BotsClient botsClient,
         CancellationToken ct)
     {
         if (!TryGetUserId(principal, out string? userId))
@@ -321,9 +316,8 @@ internal static class MatchesEndpoints
 
         try
         {
-            MatchDocument match = await matchService.AcceptDrawAsync(id, userId, ct);
-            MatchResponse response = await ToMatchResponseAsync(match, matchService, botsClient, ct);
-            return Results.Ok(response);
+            await matchService.AcceptDrawAsync(id, userId, ct);
+            return Results.Accepted();
         }
         catch (MatchNotFoundException)
         {
@@ -353,7 +347,7 @@ internal static class MatchesEndpoints
         try
         {
             await matchService.DeclineDrawAsync(id, userId, ct);
-            return Results.Ok();
+            return Results.Accepted();
         }
         catch (MatchNotFoundException)
         {

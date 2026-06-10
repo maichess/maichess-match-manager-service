@@ -51,81 +51,8 @@ internal sealed class MatchServiceSteps(MatchServiceContext context)
         context.CurrentMatch!.PendingDrawOffererUserId = userId;
     }
 
-    // ── Make Move When ────────────────────────────────────────────────────────
-
-    [When(@"""([^""]*)"" makes move ""([^""]*)"" on match ""([^""]*)""")]
-    public async Task WhenMakesMove(string userId, string move, string matchId)
-    {
-        context.LastException = null;
-        try
-        {
-            context.LastMatchResult = await context.MatchService.MakeMoveAsync(matchId, userId, move, CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            context.LastException = ex;
-        }
-    }
-
-    // ── Resign When ───────────────────────────────────────────────────────────
-
-    [When(@"""([^""]*)"" resigns from match ""([^""]*)""")]
-    public async Task WhenResignsFromMatch(string userId, string matchId)
-    {
-        context.LastException = null;
-        try
-        {
-            context.LastMatchResult = await context.MatchService.ResignMatchAsync(matchId, userId, CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            context.LastException = ex;
-        }
-    }
-
-    // ── Draw When ────────────────────────────────────────────────────────────
-
-    [When(@"""([^""]*)"" offers a draw on match ""([^""]*)""")]
-    public async Task WhenOffersADraw(string userId, string matchId)
-    {
-        context.LastException = null;
-        try
-        {
-            await context.MatchService.OfferDrawAsync(matchId, userId, CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            context.LastException = ex;
-        }
-    }
-
-    [When(@"""([^""]*)"" accepts draw on match ""([^""]*)""")]
-    public async Task WhenAcceptsDraw(string userId, string matchId)
-    {
-        context.LastException = null;
-        try
-        {
-            context.LastMatchResult = await context.MatchService.AcceptDrawAsync(matchId, userId, CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            context.LastException = ex;
-        }
-    }
-
-    [When(@"""([^""]*)"" declines draw on match ""([^""]*)""")]
-    public async Task WhenDeclinesDraw(string userId, string matchId)
-    {
-        context.LastException = null;
-        try
-        {
-            await context.MatchService.DeclineDrawAsync(matchId, userId, CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            context.LastException = ex;
-        }
-    }
+    // Move/resign/draw command-side behaviour is covered by MatchCommandsTests +
+    // MatchServiceCommandTests (Kafka task 06 retired the synchronous-mutation steps).
 
     // ── Get Position When ────────────────────────────────────────────────────
 
@@ -160,13 +87,6 @@ internal sealed class MatchServiceSteps(MatchServiceContext context)
     [Then(@"a NotYourTurnException is thrown")]
     public void ThenNotYourTurnExceptionIsThrown() =>
         Assert.IsType<NotYourTurnException>(context.LastException);
-
-    [Then(@"an IllegalMoveException is thrown with reason ""([^""]*)""")]
-    public void ThenIllegalMoveExceptionIsThrown(string reason)
-    {
-        var ex = Assert.IsType<IllegalMoveException>(context.LastException);
-        Assert.Equal(reason, ex.Reason);
-    }
 
     [Then(@"a DrawOfferAlreadyPendingException is thrown")]
     public void ThenDrawOfferAlreadyPendingExceptionIsThrown() =>

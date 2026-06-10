@@ -86,6 +86,11 @@ else
 // and materialize the match with the caller-minted id (replaces inbound gRPC CreateMatch).
 builder.Services.AddHostedService<MatchCommandConsumer>();
 
+// Command side (Kafka task 06): the move/resign/draw write path and creation emit facts
+// to match.events.v1 through this producer; the validator + projector + engine loop and
+// the socket fan-out carry the authoritative result back to clients.
+builder.Services.AddSingleton<IMatchEventProducer, KafkaMatchEventProducer>();
+
 // Application services
 builder.Services.AddSingleton<MatchService>();
 builder.Services.AddHostedService<TimeoutWatchdog>();

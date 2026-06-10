@@ -11,8 +11,10 @@ namespace MaichessMatchManagerService.Kafka;
 //   MoveApplied   -> current fen, authoritative clocks, move index, last-move time;
 //                    clears the pending move now that it has been applied
 //   MoveRejected  -> clears the pending move (the submission did not take)
+//   DrawOffered   -> records the pending offerer's user id
+//   DrawDeclined  -> clears the pending offerer
 //   MatchEnded    -> terminal status; clears position_history
-// The remaining transient payloads (BotMove*/Draw*) carry nothing the read model
+// The remaining transient payloads (BotMove*) carry nothing the read model
 // reconstructs, so they leave the state unchanged. Driving an event before
 // MatchCreated (no state yet) is ignored, keeping replay from a partial log safe.
 // The consumer that calls this and writes Redis is the only impure part.
@@ -26,6 +28,8 @@ internal static class MatchProjection
             MatchEvent.PayloadOneofCase.MoveValidated => state is null ? null : WithHistory(state, ev),
             MatchEvent.PayloadOneofCase.MoveRejected => state is null ? null : WithRejected(state, ev),
             MatchEvent.PayloadOneofCase.MoveApplied => state is null ? null : WithMove(state, ev, ev.MoveApplied),
+            MatchEvent.PayloadOneofCase.DrawOffered => state is null ? null : WithDrawOffered(state, ev),
+            MatchEvent.PayloadOneofCase.DrawDeclined => state is null ? null : WithDrawDeclined(state, ev),
             MatchEvent.PayloadOneofCase.MatchEnded => state is null ? null : WithEnd(state, ev, ev.MatchEnded),
             _ => state,
         };
@@ -88,6 +92,22 @@ internal static class MatchProjection
             MoveIndex = applied.Index,
             LastMoveAtMs = applied.AppliedAtMs,
             PendingMoveUci = null,
+            Sequence = ev.Sequence,
+        };
+
+    private static LiveMatchState WithDrawOffered(LiveMatchState state, MatchEvent ev) =>
+        state with
+        {
+            PendingDrawOffererUserId = ev.DrawOffered.By.IdentityCase == Player.IdentityOneofCase.UserId
+                ? ev.DrawOffered.By.UserId
+                : null,
+            Sequence = ev.Sequence,
+        };
+
+    private static LiveMatchState WithDrawDeclined(LiveMatchState state, MatchEvent ev) =>
+        state with
+        {
+            PendingDrawOffererUserId = null,
             Sequence = ev.Sequence,
         };
 

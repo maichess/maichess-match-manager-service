@@ -129,56 +129,10 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
         return response;
     }
 
-    public override async Task<MakeMoveResponse> MakeMove(
-        MakeMoveRequest request, ServerCallContext context)
-    {
-        try
-        {
-            MatchDocument match = await matchService.MakeMoveAsync(
-                request.MatchId, request.UserId, request.Move, context.CancellationToken);
-            return new MakeMoveResponse { Match = ToProtoMatch(match) };
-        }
-        catch (MatchNotFoundException ex)
-        {
-            throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
-        }
-        catch (MatchAlreadyEndedException ex)
-        {
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
-        }
-        catch (Exception ex) when (ex is NotParticipantException or NotYourTurnException)
-        {
-            throw new RpcException(new Status(StatusCode.PermissionDenied, "Forbidden"));
-        }
-        catch (IllegalMoveException ex)
-        {
-            throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Reason));
-        }
-    }
-
-    public override async Task<ResignMatchResponse> ResignMatch(
-        ResignMatchRequest request, ServerCallContext context)
-    {
-        try
-        {
-            MatchDocument match = await matchService.ResignMatchAsync(
-                request.MatchId, request.UserId, context.CancellationToken);
-            return new ResignMatchResponse { Match = ToProtoMatch(match) };
-        }
-        catch (MatchNotFoundException ex)
-        {
-            throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
-        }
-        catch (MatchAlreadyEndedException ex)
-        {
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, ex.Message));
-        }
-        catch (NotParticipantException)
-        {
-            throw new RpcException(new Status(StatusCode.PermissionDenied, "Forbidden"));
-        }
-    }
-
+    // Matches.MakeMove / Matches.ResignMatch are retired with the synchronous move path
+    // (Kafka task 06): moves are submitted over REST and ride match.events.v1. The RPC
+    // definitions are removed from the proto in task 09; until then the base
+    // implementations return UNIMPLEMENTED (no in-cluster caller remains).
     public override async Task<GetMatchPositionResponse> GetMatchPosition(
         GetMatchPositionRequest request, ServerCallContext context)
     {

@@ -45,8 +45,40 @@ internal static class MatchProjector
                     OnValidated(state, consumed, nowMs, newId),
                 MatchEvent.PayloadOneofCase.BotMoveCalculated when state is not null =>
                     OnBotCalculated(state, consumed, nowMs, newId),
+                MatchEvent.PayloadOneofCase.MatchEnded when state is not null =>
+                    OnEnded(state, consumed, newId),
+                MatchEvent.PayloadOneofCase.DrawOffered when state is not null =>
+                    OnDrawOffered(state, consumed, newId),
+                MatchEvent.PayloadOneofCase.DrawDeclined when state is not null =>
+                    OnDrawDeclined(state, consumed, newId),
                 _ => new ProjectorOutcome(MatchProjection.Apply(state, consumed), [], []),
             };
+    }
+
+    // A command-originated MatchEnded (resign / accept-draw / timeout) arrives on the
+    // topic and is applied here: fold the terminal status and push match_ended. The
+    // projector's own MatchEnded (from OnValidated) is deduped before reaching this case
+    // (its sequence does not advance past the read model), so the push fires exactly once.
+    private static ProjectorOutcome OnEnded(LiveMatchState state, MatchEvent consumed, Func<string> newId)
+    {
+        LiveMatchState next = MatchProjection.Apply(state, consumed)!;
+        string status = MatchProjection.StatusToString(consumed.MatchEnded.Status);
+        OutboundEvent push = MatchEndedPush(consumed, newId(), consumed.OccurredAt, status, consumed.MatchEnded.EndReason);
+        return new ProjectorOutcome(next, [], [push]);
+    }
+
+    private static ProjectorOutcome OnDrawOffered(LiveMatchState state, MatchEvent consumed, Func<string> newId)
+    {
+        LiveMatchState next = MatchProjection.Apply(state, consumed)!;
+        OutboundEvent push = DrawPush(consumed, newId(), "draw_offered", consumed.DrawOffered.By);
+        return new ProjectorOutcome(next, [], [push]);
+    }
+
+    private static ProjectorOutcome OnDrawDeclined(LiveMatchState state, MatchEvent consumed, Func<string> newId)
+    {
+        LiveMatchState next = MatchProjection.Apply(state, consumed)!;
+        OutboundEvent push = DrawPush(consumed, newId(), "draw_declined", consumed.DrawDeclined.By);
+        return new ProjectorOutcome(next, [], [push]);
     }
 
     private static ProjectorOutcome OnCreated(MatchEvent consumed, long nowMs, Func<string> newId)
@@ -234,6 +266,8 @@ internal static class MatchProjector
     private static string EndReasonToString(EndReason reason) => reason switch
     {
         EndReason.Timeout => "timeout",
+        EndReason.Resignation => "resignation",
+        EndReason.DrawAgreement => "draw_agreement",
         EndReason.Stalemate => "stalemate",
         EndReason.FiftyMoveRule => "fifty_move_rule",
         EndReason.ThreefoldRepetition => "threefold_repetition",
@@ -266,6 +300,16 @@ internal static class MatchProjector
             ["reason"] = EndReasonToString(reason),
         };
         return Push(source, eventId, nowMs, "match_ended", payload);
+    }
+
+    private static OutboundEvent DrawPush(MatchEvent source, string eventId, string eventName, Player by)
+    {
+        Dictionary<string, object?> payload = new()
+        {
+            ["match_id"] = source.AggregateId,
+            ["player"] = PlayerJson(by),
+        };
+        return Push(source, eventId, source.OccurredAt, eventName, payload);
     }
 
     private static OutboundEvent Push(

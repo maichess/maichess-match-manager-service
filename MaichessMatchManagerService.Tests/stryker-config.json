@@ -26,13 +26,12 @@
       "!**/Data/RedisLiveMatchState.cs",
       "!**/Kafka/UserReplicaConsumer.cs",
       "!**/Events/MatchEventProjectorConsumer.cs",
+      "!**/Events/KafkaMatchEventProducer.cs",
       "!**/Services/*Exception.cs"
     ],
     "ignore-methods": [
       "*Log*",
-      "Console.Write*",
-      "TriggerBotMoveIfNeeded",
-      "ProcessBotMoveAsync"
+      "Console.Write*"
     ]
   }
 }

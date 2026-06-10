@@ -62,49 +62,8 @@ public sealed class UserReplicaResolutionTests
         Assert.Equal("rpc-u3", username);
     }
 
-    [Fact]
-    public async Task OpponentRating_ReplicaHit_UsesReplicaRatingNotRpc()
-    {
-        var ctx = new MatchServiceContext();
-        var match = MatchServiceContext.BuildHumanMatch("m1", "white", "black");
-        match.WhiteTimeMs = 1;
-        match.BlackTimeMs = 1;
-        match.LastMoveAt = DateTimeOffset.UtcNow.AddSeconds(-5);
-        ctx.SetupMatch(match);
-        ctx.SetupOngoingMatches([match]);
-
-        // GetUser would report 1000/100 for white; the replica reports 2222/33 and wins.
-        ctx.SetupUserRating("white", 1000, 100);
-        ctx.SetupUserReplica("white", Record(rating: 2222, rd: 33));
-
-        await ctx.MatchService.EnforceTimeoutsAsync(CancellationToken.None);
-
-        // black's opponent is white, so black's recorded opponent rating is the replica's.
-        Assert.Contains(
-            ctx.RecordedResults,
-            r => r.UserId == "black" && r.OpponentRating == 2222 && r.OpponentRd == 33);
-    }
-
-    [Fact]
-    public async Task OpponentRating_ReplicaMissingRating_FallsBackToGetUser()
-    {
-        var ctx = new MatchServiceContext();
-        var match = MatchServiceContext.BuildHumanMatch("m2", "white", "black");
-        match.WhiteTimeMs = 1;
-        match.BlackTimeMs = 1;
-        match.LastMoveAt = DateTimeOffset.UtcNow.AddSeconds(-5);
-        ctx.SetupMatch(match);
-        ctx.SetupOngoingMatches([match]);
-
-        // Replica row exists for white but carries no rating yet (only a username from a
-        // UserRegistered snapshot) → resolution must defer to GetUser, not rate at zero.
-        ctx.SetupUserRating("white", 1777, 44);
-        ctx.SetupUserReplica("white", Record(username: "whitey"));
-
-        await ctx.MatchService.EnforceTimeoutsAsync(CancellationToken.None);
-
-        Assert.Contains(
-            ctx.RecordedResults,
-            r => r.UserId == "black" && r.OpponentRating == 1777 && r.OpponentRd == 44);
-    }
+    // Opponent-rating enrichment moved off the synchronous match-end path with the
+    // RecordMatchResult retirement (Kafka task 06 removes the call; task 08 re-homes
+    // rating updates onto user.events). The replica-first username resolution above is
+    // the part that remains in MatchService.
 }

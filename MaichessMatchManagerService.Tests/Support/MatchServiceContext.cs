@@ -1,5 +1,6 @@
 using Grpc.Core;
 using Maichess.Engine.V1;
+using Maichess.Events.V1;
 using Maichess.MoveValidator.V1;
 using Maichess.User.V1;
 using MaichessMatchManagerService.Data;
@@ -29,6 +30,11 @@ internal sealed class MatchServiceContext
     internal Users.UsersClient UserService { get; } = Substitute.For<Users.UsersClient>();
 
     internal IUserReplica UserReplica { get; } = Substitute.For<IUserReplica>();
+
+    internal IMatchEventProducer EventProducer { get; } = Substitute.For<IMatchEventProducer>();
+
+    // Captures every MatchEvent the command side produces to match.events.v1, in order.
+    internal List<MatchEvent> ProducedEvents { get; } = [];
 
     internal List<RecordMatchResultRequest> RecordedResults { get; } = [];
 
@@ -63,10 +69,17 @@ internal sealed class MatchServiceContext
             LiveState,
             UserReplica,
             MoveValidator,
-            Engine,
             UserService,
             SocketNotifier,
-            NullLogger<MatchService>.Instance);
+            EventProducer);
+
+        // Capture produced match-events so command-side tests can assert what was emitted.
+        EventProducer.ProduceAsync(Arg.Any<MatchEvent>(), Arg.Any<CancellationToken>())
+            .Returns(ci =>
+            {
+                ProducedEvents.Add(ci.Arg<MatchEvent>());
+                return Task.CompletedTask;
+            });
 
         // Default to a cold live-model miss so GetMatchForReadAsync falls back to the
         // durable document; the overlay path is exercised by SetupLiveState.
@@ -212,7 +225,8 @@ internal sealed class MatchServiceContext
             .Returns(GrpcHelper.GrpcCall(response));
     }
 
-    internal void SetupMoveValidatorAcceptsWithGameResult(string move, string resultingFen, GameResult gameResult)
+    internal void SetupMoveValidatorAcceptsWithGameResult(
+        string move, string resultingFen, Maichess.MoveValidator.V1.GameResult gameResult)
     {
         ValidateMoveResponse response = new()
         {

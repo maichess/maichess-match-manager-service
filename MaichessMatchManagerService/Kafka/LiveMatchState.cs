@@ -27,4 +27,10 @@ internal sealed record LiveMatchState(
     // The UCI move accepted into the pipeline but not yet applied — stashed from
     // MoveSubmitted because MoveValidated (which drives MoveApplied) does not carry
     // it. Null between moves. The only transient projector state in the read model.
-    string? PendingMoveUci = null);
+    string? PendingMoveUci = null,
+
+    // The user id of an outstanding draw offerer, or null when no offer is pending.
+    // Tracked from DrawOffered/DrawDeclined so the command side can validate accept/
+    // decline against the read model (mirrors MatchDocument.PendingDrawOffererUserId
+    // on the retired synchronous path).
+    string? PendingDrawOffererUserId = null);

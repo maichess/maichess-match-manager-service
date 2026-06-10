@@ -1,4 +1,3 @@
-using Maichess.MoveValidator.V1;
 using MaichessMatchManagerService.Entities;
 using MaichessMatchManagerService.Services;
 using MaichessMatchManagerService.Tests.Support;
@@ -145,75 +144,10 @@ public sealed class MatchCachingTests
     }
 
     // ── Event-driven invalidation on match end ───────────────────────────────
-
-    [Fact]
-    public async Task Resign_caches_the_finished_doc_and_evicts_both_participants_pages()
-    {
-        MatchServiceContext context = new();
-        MatchDocument match = MatchServiceContext.BuildHumanMatch("m1", "alice", "bob", "ongoing");
-        context.SetupMatch(match);
-
-        await context.MatchService.ResignMatchAsync("m1", "alice", CancellationToken.None);
-
-        await context.Cache.Received(1).SetMatchAsync(
-            Arg.Is<MatchDocument>(m => m.Id == "m1" && m.Status == "black_won"), Arg.Any<CancellationToken>());
-        await context.Cache.Received(1).InvalidateUserPagesAsync("alice", Arg.Any<CancellationToken>());
-        await context.Cache.Received(1).InvalidateUserPagesAsync("bob", Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task AcceptDraw_evicts_both_participants_pages()
-    {
-        MatchServiceContext context = new();
-        MatchDocument match = MatchServiceContext.BuildHumanMatch("m1", "alice", "bob", "ongoing");
-        match.PendingDrawOffererUserId = "alice";
-        context.SetupMatch(match);
-
-        await context.MatchService.AcceptDrawAsync("m1", "bob", CancellationToken.None);
-
-        await context.Cache.Received(1).SetMatchAsync(
-            Arg.Is<MatchDocument>(m => m.Status == "draw"), Arg.Any<CancellationToken>());
-        await context.Cache.Received(1).InvalidateUserPagesAsync("alice", Arg.Any<CancellationToken>());
-        await context.Cache.Received(1).InvalidateUserPagesAsync("bob", Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task A_game_ending_move_evicts_each_distinct_participant_once_including_created_by()
-    {
-        MatchServiceContext context = new();
-        MatchDocument match = MatchServiceContext.BuildMatch(
-            "m1",
-            new PlayerDocument { UserId = "alice" },
-            new PlayerDocument { UserId = "bob" },
-            status: "ongoing",
-            createdBy: new PlayerDocument { UserId = "alice" });
-        context.SetupMatch(match);
-        context.SetupMoveValidatorAcceptsWithGameResult("g4h5", EndingFen, GameResult.WhiteWon);
-
-        await context.MatchService.MakeMoveAsync("m1", "alice", "g4h5", CancellationToken.None);
-
-        // created_by ("alice") collapses into the white id: each user evicted once.
-        await context.Cache.Received(1).InvalidateUserPagesAsync("alice", Arg.Any<CancellationToken>());
-        await context.Cache.Received(1).InvalidateUserPagesAsync("bob", Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task Timeout_enforcement_caches_the_finished_doc_and_evicts_pages()
-    {
-        MatchServiceContext context = new();
-        MatchDocument match = MatchServiceContext.BuildHumanMatch("m1", "alice", "bob", "ongoing");
-        match.WhiteTimeMs = 0;
-        match.LastMoveAt = DateTimeOffset.UtcNow.AddMinutes(-5);
-        context.SetupMatch(match);
-        context.SetupOngoingMatches([match]);
-
-        await context.MatchService.EnforceTimeoutsAsync(CancellationToken.None);
-
-        await context.Cache.Received(1).SetMatchAsync(
-            Arg.Is<MatchDocument>(m => m.Id == "m1" && m.Status == "black_won"), Arg.Any<CancellationToken>());
-        await context.Cache.Received(1).InvalidateUserPagesAsync("alice", Arg.Any<CancellationToken>());
-        await context.Cache.Received(1).InvalidateUserPagesAsync("bob", Arg.Any<CancellationToken>());
-    }
+    // The native move/resign/draw/timeout end paths now flow through the projector's
+    // write-through (Kafka task 06), which refreshes the finished-match cache and evicts
+    // participant pages off the event log — exercised via the projector tests, not here.
+    // Only the external-match sync path still ends a match synchronously in MatchService.
 
     [Fact]
     public async Task Syncing_an_external_match_to_an_ended_state_evicts_only_the_initiators_pages()
