@@ -201,18 +201,45 @@ four pre-existing baseline files noted under task 05: `MatchesGrpcService`,
 
 ---
 
+## SearchMatches — Dev "All games" browser (task 07) — pending publish (v0.9.0)
+
+`matches.proto` gains `rpc SearchMatches(SearchMatchesRequest) returns (SearchMatchesResponse)`
+(global, cross-user, chronological match browse with participant/initiator/status/source/
+time-range filters) and `rest/match-manager.md` documents `GET /matches/search`. Implemented in
+`MatchService.SearchMatchesAsync` (filter-building + ordering/paging, fully tested), wired through
+`MatchesGrpcService.SearchMatches` and the excluded `MatchesEndpoints` `GET /matches/search`;
+`MatchRepository.SearchAsync` is the excluded candidate-set push-down.
+
+- **Architecture fit (post-Kafka):** `SearchMatches` is a **read**, and reads stay synchronous in
+  the event-driven design (durable history is materialised to match-db by the projector). It mirrors
+  the already-shipped `ListUserMatches`/`ListMatches` and reuses the extracted `OrderAndPage` helper.
+  The browse list intentionally **does not overlay the Redis live read model** — rows link into the
+  match/Watch viewer, which performs the live overlay. No part of this contradicts the CQRS split.
+- **Relationship to maichess-search-service:** complementary, not duplicative. search-service
+  `GET /search/matches` is per-user faceted/full-text/position search over the Elasticsearch read
+  model with best-effort id labels; this is a cross-user chronological feed with match-manager-
+  resolved player labels (usernames + bot names) and first-class initiator attribution. The Dev UI
+  cross-links the two.
+- **Blocker:** these stubs require the published `Maichess.PlatformProtos` **0.9.0**. All consuming
+  `*.csproj` and the two Scala `build.sbt` coordinates are bumped 0.8.0 → 0.9.0. Per the versioning
+  handoff, the contracts repo must be committed, tagged `v0.9.0`, and pushed before this service can
+  restore/build/verify (Claude's shell cannot restore the freshly published package — 401).
+
+---
+
 ## Kafka task 09 — `MakeMove`/`ResignMatch` removed from `matches.proto` → PUBLISH HANDOFF
 
 `matches.proto` drops the `MakeMove` + `ResignMatch` RPCs and their `*Request`/`*Response`
-messages (`CreateMatch`, `GetMatch`, `ListMatches`, `ListUserMatches`, `GetMatchPosition`,
-`SyncExternalMatch` stay). The move/resign write path is already event-sourced (REST → command on
-`match.commands.v1`; the move loop runs on `match.events.v1`), so the `MatchesGrpcService` no longer
-overrode these RPCs and **no match-manager code references the deleted types** — the REST
-`/moves`/`/resign` handlers and the internal `MatchService` move helpers are unaffected. The socket
-fan-out moved off `Socket.BroadcastMatchEvent` to `socket.outbound.v1` (the legacy `SocketNotifier`
-gRPC impl + `Socket:Transport` flag are deleted). `buf breaking` reports only the intended deletions.
+messages (`CreateMatch`, `GetMatch`, `ListMatches`, `ListUserMatches`, `SearchMatches`,
+`GetMatchPosition`, `SyncExternalMatch` stay). The move/resign write path is already event-sourced
+(REST → command on `match.commands.v1`; the move loop runs on `match.events.v1`), so the
+`MatchesGrpcService` no longer overrode these RPCs and **no match-manager code references the deleted
+types** — the REST `/moves`/`/resign` handlers and the internal `MatchService` move helpers are
+unaffected. The socket fan-out moved off `Socket.BroadcastMatchEvent` to `socket.outbound.v1` (the
+legacy `SocketNotifier` gRPC impl + `Socket:Transport` flag are deleted). `buf breaking` reports only
+the intended deletions.
 
-**Blocked on a contract publish** (shared with engine/socket): the user commits the proto change,
-tags `vX.Y.Z`, pushes. **Post-publish:** bump `Maichess.PlatformProtos` in the `.csproj` to the new
-version and rebuild/test (`dotnet test`, 286 tests). No code change expected here — the version bump
-alone should stay green.
+**Blocked on the same v0.9.0 publish as SearchMatches above** (shared with engine/socket). The
+contracts repo bundles both the SearchMatches addition and these task-09 removals into v0.9.0.
+**Post-publish:** the `.csproj` is already bumped to 0.9.0; just rebuild/test (`dotnet test`, 286
+tests). No code change expected here — the version bump alone should stay green.

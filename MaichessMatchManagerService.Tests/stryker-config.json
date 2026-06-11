@@ -25,6 +25,7 @@
       "!**/Data/RedisUserReplica.cs",
       "!**/Data/RedisLiveMatchState.cs",
       "!**/Kafka/UserReplicaConsumer.cs",
+      "!**/Kafka/CheatFlagConsumer.cs",
       "!**/Events/MatchEventProjectorConsumer.cs",
       "!**/Events/KafkaMatchEventProducer.cs",
       "!**/Services/*Exception.cs"

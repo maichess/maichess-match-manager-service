@@ -67,6 +67,7 @@ Match clock rules are described by a `TimeFormat` value object: `{ id, base_ms, 
   - `MatchRepository` class (requires MongoDB)
   - `RedisMatchCache`, `RedisUserReplica`, and `RedisLiveMatchState` (require live Redis)
   - `UserReplicaConsumer` (live-Kafka consumer shell; the pure `UserReplicaProjection` it delegates to is unit-tested)
+  - `CheatFlagConsumer` (live-Kafka consumer shell folding compacted `cheat.events.v1` into the replica's `flagged` bit; the pure `CheatFlagProjection` it delegates to is unit-tested — `PlayerFlagged`/`PlayerUnflagged` set the bit, the advisory `LiveSuspicionRaised` is ignored by contract)
   - `MatchEventProjectorConsumer` (live-Kafka consume→produce shell; the pure `MatchProjector` + `MatchHistoryProjection` it delegates to are unit-tested)
   - `KafkaMatchEventProducer` (live-Kafka producer shell for the command side; the pure `MatchCommands` it emits are unit-tested)
   - Pure read-model data records (`LiveMatchState`, `PlayerRef`, `ProjectorOutcome`)

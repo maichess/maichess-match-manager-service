@@ -633,6 +633,215 @@ public sealed class MatchesGrpcServiceTests
         Assert.Equal(100, response.PageSize);
     }
 
+    // ── SearchMatches ───────────────────────────────────────────────────────
+
+    private static MatchDocument SearchCandidate(
+        string id,
+        string white,
+        string black,
+        string status = "white_won",
+        long finishedAt = 0,
+        string source = "native",
+        string externalProvider = "")
+    {
+        MatchDocument match = MatchServiceContext.BuildMatch(
+            id,
+            new PlayerDocument { UserId = white },
+            new PlayerDocument { UserId = black },
+            status: status,
+            finishedAtMs: finishedAt);
+        match.Source = source;
+        match.ExternalProvider = externalProvider;
+        return match;
+    }
+
+    [Fact]
+    public async Task SearchMatches_NoFilters_ReturnsAllNewestFirst()
+    {
+        GrpcServiceContext ctx = new();
+        ctx.SetupSearch(
+        [
+            SearchCandidate("m1", "alice", "bob", finishedAt: 1000),
+            SearchCandidate("m2", "carol", "dave", finishedAt: 3000),
+            SearchCandidate("m3", "erin", "frank", finishedAt: 2000),
+        ]);
+
+        SearchMatchesResponse response = await ctx.Service.SearchMatches(
+            new SearchMatchesRequest { Page = 1, PageSize = 20 },
+            ctx.CallContext);
+
+        Assert.Equal(3, response.Total);
+        Assert.Equal(new[] {"m2", "m3", "m1" }, response.Matches.Select(m => m.Id));
+    }
+
+    [Fact]
+    public async Task SearchMatches_DefaultsPageAndSizeWhenZero()
+    {
+        GrpcServiceContext ctx = new();
+        ctx.SetupSearch([]);
+
+        SearchMatchesResponse response = await ctx.Service.SearchMatches(
+            new SearchMatchesRequest(),
+            ctx.CallContext);
+
+        Assert.Equal(1, response.Page);
+        Assert.Equal(20, response.PageSize);
+    }
+
+    [Fact]
+    public async Task SearchMatches_CapsPageSizeAt100()
+    {
+        GrpcServiceContext ctx = new();
+        ctx.SetupSearch([]);
+
+        SearchMatchesResponse response = await ctx.Service.SearchMatches(
+            new SearchMatchesRequest { Page = 1, PageSize = 500 },
+            ctx.CallContext);
+
+        Assert.Equal(100, response.PageSize);
+    }
+
+    [Fact]
+    public async Task SearchMatches_EndedStatus_ExcludesOngoing()
+    {
+        GrpcServiceContext ctx = new();
+        ctx.SetupSearch(
+        [
+            SearchCandidate("m1", "alice", "bob", status: "white_won", finishedAt: 1000),
+            SearchCandidate("m2", "carol", "dave", status: "ongoing"),
+        ]);
+
+        SearchMatchesResponse response = await ctx.Service.SearchMatches(
+            new SearchMatchesRequest { Status = MatchStatusFilter.Ended },
+            ctx.CallContext);
+
+        Assert.Equal(new[] {"m1" }, response.Matches.Select(m => m.Id));
+    }
+
+    [Fact]
+    public async Task SearchMatches_OngoingStatus_ExcludesEnded()
+    {
+        GrpcServiceContext ctx = new();
+        ctx.SetupSearch(
+        [
+            SearchCandidate("m1", "alice", "bob", status: "white_won", finishedAt: 1000),
+            SearchCandidate("m2", "carol", "dave", status: "ongoing"),
+        ]);
+
+        SearchMatchesResponse response = await ctx.Service.SearchMatches(
+            new SearchMatchesRequest { Status = MatchStatusFilter.Ongoing },
+            ctx.CallContext);
+
+        Assert.Equal(new[] {"m2" }, response.Matches.Select(m => m.Id));
+    }
+
+    [Fact]
+    public async Task SearchMatches_UnspecifiedStatus_ReturnsAll()
+    {
+        GrpcServiceContext ctx = new();
+        ctx.SetupSearch(
+        [
+            SearchCandidate("m1", "alice", "bob", status: "white_won", finishedAt: 1000),
+            SearchCandidate("m2", "carol", "dave", status: "ongoing"),
+        ]);
+
+        SearchMatchesResponse response = await ctx.Service.SearchMatches(
+            new SearchMatchesRequest { Status = MatchStatusFilter.Unspecified },
+            ctx.CallContext);
+
+        Assert.Equal(2, response.Total);
+    }
+
+    [Fact]
+    public async Task SearchMatches_NativeSource_ExcludesExternal()
+    {
+        GrpcServiceContext ctx = new();
+        ctx.SetupSearch(
+        [
+            SearchCandidate("m1", "alice", "bob", finishedAt: 1000, source: "native"),
+            SearchCandidate("m2", "carol", "dave", finishedAt: 2000, source: "external", externalProvider: "lichess"),
+        ]);
+
+        SearchMatchesResponse response = await ctx.Service.SearchMatches(
+            new SearchMatchesRequest { Source = MatchSource.Native },
+            ctx.CallContext);
+
+        Assert.Equal(new[] {"m1" }, response.Matches.Select(m => m.Id));
+    }
+
+    [Fact]
+    public async Task SearchMatches_ExternalSource_MapsProviderAndExcludesNative()
+    {
+        GrpcServiceContext ctx = new();
+        ctx.SetupSearch(
+        [
+            SearchCandidate("m1", "alice", "bob", finishedAt: 1000, source: "native"),
+            SearchCandidate("m2", "carol", "dave", finishedAt: 2000, source: "external", externalProvider: "lichess"),
+        ]);
+
+        SearchMatchesResponse response = await ctx.Service.SearchMatches(
+            new SearchMatchesRequest { Source = MatchSource.External },
+            ctx.CallContext);
+
+        Assert.Single(response.Matches);
+        Assert.Equal("m2", response.Matches[0].Id);
+        Assert.Equal(MatchSource.External, response.Matches[0].Source);
+        Assert.Equal("lichess", response.Matches[0].ExternalProvider);
+    }
+
+    [Fact]
+    public async Task SearchMatches_Ascending_ReturnsOldestFirst()
+    {
+        GrpcServiceContext ctx = new();
+        ctx.SetupSearch(
+        [
+            SearchCandidate("m1", "alice", "bob", finishedAt: 1000),
+            SearchCandidate("m2", "carol", "dave", finishedAt: 3000),
+            SearchCandidate("m3", "erin", "frank", finishedAt: 2000),
+        ]);
+
+        SearchMatchesResponse response = await ctx.Service.SearchMatches(
+            new SearchMatchesRequest { Ascending = true },
+            ctx.CallContext);
+
+        Assert.Equal(new[] {"m1", "m3", "m2" }, response.Matches.Select(m => m.Id));
+    }
+
+    [Fact]
+    public async Task SearchMatches_TimeRange_BoundsOnFinishedAt()
+    {
+        GrpcServiceContext ctx = new();
+        ctx.SetupSearch(
+        [
+            SearchCandidate("m1", "alice", "bob", finishedAt: 1000),
+            SearchCandidate("m2", "carol", "dave", finishedAt: 2000),
+            SearchCandidate("m3", "erin", "frank", finishedAt: 3000),
+        ]);
+
+        SearchMatchesResponse response = await ctx.Service.SearchMatches(
+            new SearchMatchesRequest { SinceMs = 2000, UntilMs = 2000 },
+            ctx.CallContext);
+
+        Assert.Equal(new[] {"m2" }, response.Matches.Select(m => m.Id));
+    }
+
+    [Fact]
+    public async Task SearchMatches_PlayerAndInitiatorFilters_AreForwarded()
+    {
+        GrpcServiceContext ctx = new();
+        ctx.SetupSearch(
+        [
+            SearchCandidate("m1", "alice", "bob", finishedAt: 1000),
+            SearchCandidate("mX", "carol", "dave", finishedAt: 2000),
+        ]);
+
+        SearchMatchesResponse response = await ctx.Service.SearchMatches(
+            new SearchMatchesRequest { PlayerId = "alice" },
+            ctx.CallContext);
+
+        Assert.Equal(new[] {"m1" }, response.Matches.Select(m => m.Id));
+    }
+
     // Matches.MakeMove / Matches.ResignMatch gRPC RPCs were retired in Kafka task 06
     // (moves ride match.events.v1; the synchronous gRPC move path is gone). The
     // command-side behaviour is covered by MatchCommandsTests + MatchServiceCommandTests.
