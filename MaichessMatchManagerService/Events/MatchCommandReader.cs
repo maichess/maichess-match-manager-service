@@ -3,9 +3,7 @@ using MaichessMatchManagerService.Entities;
 
 namespace MaichessMatchManagerService.Events;
 
-// Pure projection of a Protobuf MatchCommand envelope onto CreateMatchInput. Mirrors
-// the Avro GenericRecord reader in MatchCommandConsumer field-for-field so the two
-// arms stay observably identical during dual-read.
+// Pure projection of a Protobuf MatchCommand envelope onto CreateMatchInput.
 internal static class MatchCommandReader
 {
     internal static bool TryReadCreateMatch(MatchCommand envelope, out CreateMatchInput input)

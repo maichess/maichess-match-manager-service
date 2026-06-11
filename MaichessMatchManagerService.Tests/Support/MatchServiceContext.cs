@@ -8,10 +8,7 @@ using MaichessMatchManagerService.Entities;
 using MaichessMatchManagerService.Events;
 using MaichessMatchManagerService.Kafka;
 using MaichessMatchManagerService.Services;
-using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
-
-using SocketSvc = Socket.V1.Socket;
 
 namespace MaichessMatchManagerService.Tests.Support;
 
@@ -42,8 +39,7 @@ internal sealed class MatchServiceContext
 
     private readonly List<Bot> _bots = [];
 
-    internal SocketNotifier SocketNotifier { get; } =
-        new SocketNotifier(Substitute.For<SocketSvc.SocketClient>(), NullLogger<SocketNotifier>.Instance);
+    internal ISocketBroadcaster SocketBroadcaster { get; } = Substitute.For<ISocketBroadcaster>();
 
     internal MatchService MatchService { get; }
 
@@ -71,7 +67,7 @@ internal sealed class MatchServiceContext
             MoveValidator,
             UserService,
             Engine,
-            SocketNotifier,
+            SocketBroadcaster,
             EventProducer);
 
         // Capture produced match-events so command-side tests can assert what was emitted.

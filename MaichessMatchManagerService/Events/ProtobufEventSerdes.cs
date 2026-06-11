@@ -1,35 +1,42 @@
 using System.Diagnostics.CodeAnalysis;
 using Confluent.Kafka;
-using Confluent.Kafka.SyncOverAsync;
-using Confluent.SchemaRegistry;
-using Confluent.SchemaRegistry.Serdes;
 using Google.Protobuf;
 
 namespace MaichessMatchManagerService.Events;
 
-// Confluent Protobuf serde factory for the maichess.events.v1 generated messages
-// (OutboundEvent, MatchEvent, MatchCommand, UserEvent, …). This sits next to the
-// Avro serde used by KafkaSocketNotifier / MatchCommandConsumer during the
-// per-topic migration: nothing is switched to it yet (the producers/consumers
-// keep their Avro serde). Task 02 onwards wires it in — consumers dual-read, then
-// producers cut over — so the swap stays a one-line change at each call site.
-//
-// Reuses the existing protobuf tooling: the generated types ship in the same
-// Maichess.PlatformProtos package as the gRPC stubs (Google.Protobuf runtime),
-// so the only new dependency is Confluent.SchemaRegistry.Serdes.Protobuf.
+// Raw-Protobuf Kafka serdes for the maichess.events.v1 generated messages
+// (OutboundEvent, MatchEvent, MatchCommand, …). Kafka task 09 removed the Confluent
+// Schema Registry: the wire format is now the bare Protobuf bytes
+// (msg.ToByteArray() / Parser.ParseFrom(bytes)) with the schemas owned solely by
+// maichess-api-contracts. This matches the Scala engine / move-validator serde, which
+// has always used raw bytes — so the C# and Scala sides now interoperate on the shared
+// match.events.v1 / match.commands.v1 topics without a registry mediating the encoding.
 [ExcludeFromCodeCoverage]
 internal static class ProtobufEventSerdes
 {
     // Value serializer for a generated proto envelope; pass to
-    // ProducerBuilder.SetValueSerializer (it accepts IAsyncSerializer<T>, exactly
-    // as the Avro path passes AvroSerializer<GenericRecord>).
-    public static IAsyncSerializer<T> Serializer<T>(ISchemaRegistryClient registry)
-        where T : class, IMessage<T>, new()
-        => new ProtobufSerializer<T>(registry);
+    // ProducerBuilder.SetValueSerializer.
+    public static ISerializer<T> Serializer<T>()
+        where T : IMessage<T>
+        => new RawSerializer<T>();
 
-    // Sync value deserializer for the existing synchronous consumer loops
-    // (mirrors AvroDeserializer<GenericRecord>(registry).AsSyncOverAsync()).
+    // Value deserializer for the synchronous consumer loops.
     public static IDeserializer<T> Deserializer<T>()
-        where T : class, IMessage<T>, new()
-        => new ProtobufDeserializer<T>().AsSyncOverAsync();
+        where T : IMessage<T>, new()
+        => new RawDeserializer<T>();
+
+    private sealed class RawSerializer<T> : ISerializer<T>
+        where T : IMessage<T>
+    {
+        public byte[] Serialize(T data, SerializationContext context) => data.ToByteArray();
+    }
+
+    private sealed class RawDeserializer<T> : IDeserializer<T>
+        where T : IMessage<T>, new()
+    {
+        private static readonly MessageParser<T> Parser = new(() => new T());
+
+        public T Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context) =>
+            isNull ? new T() : Parser.ParseFrom(data);
+    }
 }

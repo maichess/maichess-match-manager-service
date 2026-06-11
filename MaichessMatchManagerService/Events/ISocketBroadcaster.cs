@@ -2,9 +2,9 @@ using MaichessMatchManagerService.Entities;
 
 namespace MaichessMatchManagerService.Events;
 
-// Abstraction over real-time event delivery. Implemented by SocketNotifier
-// (legacy gRPC transport) and KafkaSocketNotifier (socket.outbound.v1 topic).
-// The transport is selected at startup via the Socket:Transport setting.
+// Abstraction over real-time event delivery. Implemented by KafkaSocketNotifier,
+// which publishes to the socket.outbound.v1 topic. The legacy gRPC transport
+// (SocketNotifier → Socket.BroadcastMatchEvent) was removed in Kafka task 09.
 internal interface ISocketBroadcaster
 {
     void BroadcastMoveMade(

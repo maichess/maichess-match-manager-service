@@ -1,10 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
-using Avro.Generic;
 using Confluent.Kafka;
-using Confluent.Kafka.SyncOverAsync;
-using Confluent.SchemaRegistry;
-using Confluent.SchemaRegistry.Serdes;
+using Maichess.Events.V1;
 using MaichessMatchManagerService.Data;
+using MaichessMatchManagerService.Events;
 
 namespace MaichessMatchManagerService.Kafka;
 
@@ -24,8 +22,7 @@ internal sealed class UserReplicaConsumer : BackgroundService
 
     private readonly IUserReplica replica;
     private readonly ILogger<UserReplicaConsumer> logger;
-    private readonly CachedSchemaRegistryClient registry;
-    private readonly IConsumer<string, GenericRecord> consumer;
+    private readonly IConsumer<string, UserEvent> consumer;
 
     public UserReplicaConsumer(IUserReplica replica, ILogger<UserReplicaConsumer> logger)
     {
@@ -33,24 +30,20 @@ internal sealed class UserReplicaConsumer : BackgroundService
         this.logger = logger;
 
         string bootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP") ?? "kafka:9092";
-        string registryUrl = Environment.GetEnvironmentVariable("SCHEMA_REGISTRY_URL")
-            ?? "http://schema-registry:8081";
 
-        registry = new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = registryUrl });
-        consumer = new ConsumerBuilder<string, GenericRecord>(new ConsumerConfig
+        consumer = new ConsumerBuilder<string, UserEvent>(new ConsumerConfig
         {
             BootstrapServers = bootstrap,
             GroupId = GroupId,
             AutoOffsetReset = AutoOffsetReset.Earliest,
         })
-            .SetValueDeserializer(new AvroDeserializer<GenericRecord>(registry).AsSyncOverAsync())
+            .SetValueDeserializer(ProtobufEventSerdes.Deserializer<UserEvent>())
             .Build();
     }
 
     public override void Dispose()
     {
         consumer.Dispose();
-        registry.Dispose();
         base.Dispose();
     }
 
@@ -67,7 +60,7 @@ internal sealed class UserReplicaConsumer : BackgroundService
             {
                 try
                 {
-                    ConsumeResult<string, GenericRecord> result = consumer.Consume(ct);
+                    ConsumeResult<string, UserEvent> result = consumer.Consume(ct);
                     if (result?.Message?.Value is { } envelope)
                     {
                         Apply(envelope, ct);
@@ -94,7 +87,7 @@ internal sealed class UserReplicaConsumer : BackgroundService
     }
 #pragma warning restore CA1031
 
-    private void Apply(GenericRecord envelope, CancellationToken ct)
+    private void Apply(UserEvent envelope, CancellationToken ct)
     {
         UserReplicaUpsert? upsert = UserReplicaProjection.Project(envelope);
         if (upsert is not null)

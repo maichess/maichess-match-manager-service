@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using Confluent.Kafka;
-using Confluent.SchemaRegistry;
 using Maichess.Events.V1;
 
 namespace MaichessMatchManagerService.Events;
@@ -20,7 +19,6 @@ internal sealed class KafkaMatchEventProducer : IMatchEventProducer, IDisposable
     private const string Topic = "match.events.v1";
 
     private readonly IProducer<string, MatchEvent> producer;
-    private readonly CachedSchemaRegistryClient registry;
     private readonly ILogger<KafkaMatchEventProducer> logger;
 
     public KafkaMatchEventProducer(ILogger<KafkaMatchEventProducer> logger)
@@ -28,13 +26,10 @@ internal sealed class KafkaMatchEventProducer : IMatchEventProducer, IDisposable
         this.logger = logger;
 
         string bootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP") ?? "kafka:9092";
-        string registryUrl = Environment.GetEnvironmentVariable("SCHEMA_REGISTRY_URL")
-            ?? "http://schema-registry:8081";
 
-        registry = new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = registryUrl });
         producer = new ProducerBuilder<string, MatchEvent>(
                 new ProducerConfig { BootstrapServers = bootstrap, EnableIdempotence = true })
-            .SetValueSerializer(ProtobufEventSerdes.Serializer<MatchEvent>(registry))
+            .SetValueSerializer(ProtobufEventSerdes.Serializer<MatchEvent>())
             .Build();
     }
 
@@ -56,6 +51,5 @@ internal sealed class KafkaMatchEventProducer : IMatchEventProducer, IDisposable
     {
         producer.Flush(TimeSpan.FromSeconds(5));
         producer.Dispose();
-        registry.Dispose();
     }
 }

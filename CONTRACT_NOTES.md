@@ -198,3 +198,21 @@ four pre-existing baseline files noted under task 05: `MatchesGrpcService`,
 - The command side emits **events** on `match.events.v1` (not the `match.commands.v1`
   `SubmitMove`/`Resign`/… messages), matching the task's "emit the corresponding
   event"/"close the loop" and the projector's existing inputs.
+
+---
+
+## Kafka task 09 — `MakeMove`/`ResignMatch` removed from `matches.proto` → PUBLISH HANDOFF
+
+`matches.proto` drops the `MakeMove` + `ResignMatch` RPCs and their `*Request`/`*Response`
+messages (`CreateMatch`, `GetMatch`, `ListMatches`, `ListUserMatches`, `GetMatchPosition`,
+`SyncExternalMatch` stay). The move/resign write path is already event-sourced (REST → command on
+`match.commands.v1`; the move loop runs on `match.events.v1`), so the `MatchesGrpcService` no longer
+overrode these RPCs and **no match-manager code references the deleted types** — the REST
+`/moves`/`/resign` handlers and the internal `MatchService` move helpers are unaffected. The socket
+fan-out moved off `Socket.BroadcastMatchEvent` to `socket.outbound.v1` (the legacy `SocketNotifier`
+gRPC impl + `Socket:Transport` flag are deleted). `buf breaking` reports only the intended deletions.
+
+**Blocked on a contract publish** (shared with engine/socket): the user commits the proto change,
+tags `vX.Y.Z`, pushes. **Post-publish:** bump `Maichess.PlatformProtos` in the `.csproj` to the new
+version and rebuild/test (`dotnet test`, 286 tests). No code change expected here — the version bump
+alone should stay green.

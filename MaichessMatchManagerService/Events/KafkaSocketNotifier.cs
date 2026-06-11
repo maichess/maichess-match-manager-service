@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Confluent.Kafka;
-using Confluent.SchemaRegistry;
 using Maichess.Events.V1;
 using MaichessMatchManagerService.Entities;
 
@@ -12,9 +11,7 @@ namespace MaichessMatchManagerService.Events;
 // Socket.BroadcastMatchEvent gRPC call. Payloads are JSON-encoded in payload_json
 // so the shape delivered to clients is identical to the legacy gRPC path.
 //
-// Serialized with Protobuf via the Confluent Protobuf serde (Kafka task 02 —
-// socket.outbound.v1 migrated off Avro). The socket consumer dual-reads, so the
-// cutover is reversible.
+// Serialized as raw Protobuf bytes (Kafka task 09 removed the Schema Registry).
 [ExcludeFromCodeCoverage]
 internal sealed class KafkaSocketNotifier : ISocketBroadcaster, IDisposable
 {
@@ -22,7 +19,6 @@ internal sealed class KafkaSocketNotifier : ISocketBroadcaster, IDisposable
     private const string ProducerName = "match-manager-service";
 
     private readonly IProducer<string, OutboundEvent> producer;
-    private readonly CachedSchemaRegistryClient registry;
     private readonly ILogger<KafkaSocketNotifier> logger;
 
     public KafkaSocketNotifier(ILogger<KafkaSocketNotifier> logger)
@@ -30,13 +26,10 @@ internal sealed class KafkaSocketNotifier : ISocketBroadcaster, IDisposable
         this.logger = logger;
 
         string bootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP") ?? "kafka:9092";
-        string registryUrl = Environment.GetEnvironmentVariable("SCHEMA_REGISTRY_URL")
-            ?? "http://schema-registry:8081";
 
-        registry = new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = registryUrl });
         producer = new ProducerBuilder<string, OutboundEvent>(
                 new ProducerConfig { BootstrapServers = bootstrap })
-            .SetValueSerializer(ProtobufEventSerdes.Serializer<OutboundEvent>(registry))
+            .SetValueSerializer(ProtobufEventSerdes.Serializer<OutboundEvent>())
             .Build();
     }
 
@@ -97,7 +90,6 @@ internal sealed class KafkaSocketNotifier : ISocketBroadcaster, IDisposable
     {
         producer.Flush(TimeSpan.FromSeconds(5));
         producer.Dispose();
-        registry.Dispose();
     }
 
     private static Dictionary<string, string> PlayerJson(PlayerDocument player) =>

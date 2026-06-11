@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Confluent.Kafka;
-using Confluent.SchemaRegistry;
+using Google.Protobuf;
 using Maichess.Events.V1;
 using MaichessMatchManagerService.Data;
 using MaichessMatchManagerService.Entities;
@@ -34,11 +34,8 @@ internal sealed class MatchEventProjectorConsumer : BackgroundService
     private readonly IMatchRepository repository;
     private readonly IMatchCache cache;
     private readonly ILogger<MatchEventProjectorConsumer> logger;
-    private readonly CachedSchemaRegistryClient registry;
     private readonly IConsumer<string, MatchEvent> consumer;
     private readonly IProducer<string, byte[]> producer;
-    private readonly IAsyncSerializer<MatchEvent> eventSerializer;
-    private readonly IAsyncSerializer<OutboundEvent> pushSerializer;
 
     public MatchEventProjectorConsumer(
         ILiveMatchState liveState,
@@ -52,10 +49,7 @@ internal sealed class MatchEventProjectorConsumer : BackgroundService
         this.logger = logger;
 
         string bootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP") ?? "kafka:9092";
-        string registryUrl = Environment.GetEnvironmentVariable("SCHEMA_REGISTRY_URL")
-            ?? "http://schema-registry:8081";
 
-        registry = new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = registryUrl });
         consumer = new ConsumerBuilder<string, MatchEvent>(new ConsumerConfig
         {
             BootstrapServers = bootstrap,
@@ -71,15 +65,12 @@ internal sealed class MatchEventProjectorConsumer : BackgroundService
             TransactionalId = $"{GroupId}-{Guid.NewGuid()}",
             EnableIdempotence = true,
         }).Build();
-        eventSerializer = ProtobufEventSerdes.Serializer<MatchEvent>(registry);
-        pushSerializer = ProtobufEventSerdes.Serializer<OutboundEvent>(registry);
     }
 
     public override void Dispose()
     {
         consumer.Dispose();
         producer.Dispose();
-        registry.Dispose();
         base.Dispose();
     }
 
@@ -136,7 +127,7 @@ internal sealed class MatchEventProjectorConsumer : BackgroundService
         long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         ProjectorOutcome outcome = MatchProjector.Decide(state, ev, now, () => Guid.NewGuid().ToString());
 
-        await ProduceTransaction(result, outcome);
+        ProduceTransaction(result, outcome);
 
         if (outcome.State is not null)
         {
@@ -146,7 +137,7 @@ internal sealed class MatchEventProjectorConsumer : BackgroundService
         await WriteThrough(ev, ct);
     }
 
-    private async Task ProduceTransaction(ConsumeResult<string, MatchEvent> result, ProjectorOutcome outcome)
+    private void ProduceTransaction(ConsumeResult<string, MatchEvent> result, ProjectorOutcome outcome)
     {
         producer.BeginTransaction();
         try
@@ -154,16 +145,16 @@ internal sealed class MatchEventProjectorConsumer : BackgroundService
 #pragma warning disable CA1849 // Buffered produce is the transactional idiom — CommitTransaction flushes.
             foreach (MatchEvent emit in outcome.Events)
             {
-                byte[] value = await eventSerializer.SerializeAsync(
-                    emit, new SerializationContext(MessageComponentType.Value, Topic));
-                producer.Produce(Topic, new Message<string, byte[]> { Key = emit.AggregateId, Value = value });
+                producer.Produce(
+                    Topic,
+                    new Message<string, byte[]> { Key = emit.AggregateId, Value = emit.ToByteArray() });
             }
 
             foreach (OutboundEvent push in outcome.Pushes)
             {
-                byte[] value = await pushSerializer.SerializeAsync(
-                    push, new SerializationContext(MessageComponentType.Value, SocketTopic));
-                producer.Produce(SocketTopic, new Message<string, byte[]> { Key = push.AggregateId, Value = value });
+                producer.Produce(
+                    SocketTopic,
+                    new Message<string, byte[]> { Key = push.AggregateId, Value = push.ToByteArray() });
             }
 #pragma warning restore CA1849
 

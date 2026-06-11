@@ -16,8 +16,6 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
 
-using SocketSvc = Socket.V1.Socket;
-
 DotNetEnv.Env.Load();
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -58,29 +56,16 @@ string moveValidatorUrl = builder.Configuration["Services:MoveValidatorService"]
     ?? throw new InvalidOperationException("Services:MoveValidatorService is not configured");
 string engineUrl = builder.Configuration["Services:EngineService"]
     ?? throw new InvalidOperationException("Services:EngineService is not configured");
-string socketServiceUrl = builder.Configuration["Services:SocketService"]
-    ?? throw new InvalidOperationException("Services:SocketService is not configured");
-
 builder.Services.AddSingleton(
     new Users.UsersClient(GrpcChannel.ForAddress(userServiceUrl)));
 builder.Services.AddSingleton(
     new Moves.MovesClient(GrpcChannel.ForAddress(moveValidatorUrl)));
 builder.Services.AddSingleton(
     new Bots.BotsClient(GrpcChannel.ForAddress(engineUrl)));
-builder.Services.AddSingleton(
-    new SocketSvc.SocketClient(GrpcChannel.ForAddress(socketServiceUrl)));
 
-// Real-time transport: "kafka" publishes to socket.outbound.v1 (default);
-// "grpc" falls back to the legacy Socket.BroadcastMatchEvent path.
-string socketTransport = builder.Configuration["Socket:Transport"] ?? "kafka";
-if (string.Equals(socketTransport, "grpc", StringComparison.OrdinalIgnoreCase))
-{
-    builder.Services.AddSingleton<ISocketBroadcaster, SocketNotifier>();
-}
-else
-{
-    builder.Services.AddSingleton<ISocketBroadcaster, KafkaSocketNotifier>();
-}
+// Real-time fan-out always publishes to socket.outbound.v1; the legacy
+// Socket.BroadcastMatchEvent gRPC path was removed in Kafka task 09.
+builder.Services.AddSingleton<ISocketBroadcaster, KafkaSocketNotifier>();
 
 // Match creation is event-sourced: consume CreateMatchCommand from match.commands.v1
 // and materialize the match with the caller-minted id (replaces inbound gRPC CreateMatch).
