@@ -129,6 +129,34 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
         return response;
     }
 
+    public override async Task<SearchMatchesResponse> SearchMatches(
+        SearchMatchesRequest request, ServerCallContext context)
+    {
+        string status = ToSearchStatusString(request.Status);
+        string source = ToSourceFilterString(request.Source);
+
+        (IReadOnlyList<MatchDocument> matches, int total) = await matchService.SearchMatchesAsync(
+            request.PlayerId,
+            request.InitiatorId,
+            status,
+            source,
+            request.SinceMs,
+            request.UntilMs,
+            request.Ascending,
+            request.Page,
+            request.PageSize,
+            context.CancellationToken);
+
+        SearchMatchesResponse response = new()
+        {
+            Total = total,
+            Page = request.Page < 1 ? 1 : request.Page,
+            PageSize = request.PageSize <= 0 ? 20 : Math.Min(request.PageSize, 100),
+        };
+        response.Matches.AddRange(matches.Select(ToProtoMatch));
+        return response;
+    }
+
     // Matches.MakeMove / Matches.ResignMatch are retired with the synchronous move path
     // (Kafka task 06): moves are submitted over REST and ride match.events.v1. The RPC
     // definitions are removed from the proto in task 09; until then the base
@@ -186,6 +214,22 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
     {
         MatchStatusFilter.Ongoing => "ongoing",
         _ => "ended",
+    };
+
+    // Unlike the user-history filter (which defaults UNSPECIFIED to ended), the
+    // global browse treats UNSPECIFIED as "any status".
+    private static string ToSearchStatusString(MatchStatusFilter filter) => filter switch
+    {
+        MatchStatusFilter.Ongoing => "ongoing",
+        MatchStatusFilter.Ended => "ended",
+        _ => "all",
+    };
+
+    private static string ToSourceFilterString(MatchSource source) => source switch
+    {
+        MatchSource.Native => "native",
+        MatchSource.External => "external",
+        _ => "all",
     };
 
     private static TimeFormatDocument ToTimeFormatDocument(TimeFormat tf)

@@ -82,6 +82,57 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
         return merged;
     }
 
+    public async Task<IReadOnlyList<MatchDocument>> SearchAsync(
+        string? playerId,
+        string? initiatorId,
+        CancellationToken ct)
+    {
+        // No participant/initiator scope → the whole collection is the candidate
+        // set; the service applies status/source/time/ordering/paging. With a
+        // scope, run the cheap equality lookups and merge by id (white OR black
+        // for a participant, created_by for an initiator).
+        if (string.IsNullOrEmpty(playerId) && string.IsNullOrEmpty(initiatorId))
+        {
+            ListResponse all = await db.ListAsync(
+                new ListRequest { Collection = Collection },
+                cancellationToken: ct);
+            return [.. all.Records.Select(FromStruct)];
+        }
+
+        List<(string Field, string Value)> lookups = [];
+        if (!string.IsNullOrEmpty(playerId))
+        {
+            lookups.Add(("white_user_id", playerId));
+            lookups.Add(("black_user_id", playerId));
+        }
+
+        if (!string.IsNullOrEmpty(initiatorId))
+        {
+            lookups.Add(("created_by_user_id", initiatorId));
+        }
+
+        List<MatchDocument> merged = [];
+        HashSet<string> seen = [];
+        foreach ((string field, string value) in lookups)
+        {
+            Struct filter = new();
+            filter.Fields[field] = Value.ForString(value);
+            ListResponse response = await db.ListAsync(
+                new ListRequest { Collection = Collection, Filter = filter },
+                cancellationToken: ct);
+            foreach (Struct record in response.Records)
+            {
+                MatchDocument match = FromStruct(record);
+                if (seen.Add(match.Id))
+                {
+                    merged.Add(match);
+                }
+            }
+        }
+
+        return merged;
+    }
+
     public async Task<(IReadOnlyList<MatchDocument> Matches, int Total)> ListAsync(
         string status,
         string? category,

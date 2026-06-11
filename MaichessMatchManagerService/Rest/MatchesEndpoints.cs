@@ -17,6 +17,7 @@ internal static class MatchesEndpoints
         RouteGroupBuilder group = routes.MapGroup("/matches").RequireAuthorization();
 
         group.MapGet(string.Empty, ListMatches);
+        group.MapGet("/search", SearchMatches);
         group.MapGet("/{id}", GetMatch);
         group.MapGet("/{id}/positions/{index}", GetPosition);
         group.MapGet("/{id}/legal-moves", GetLegalMoves);
@@ -59,6 +60,65 @@ internal static class MatchesEndpoints
 
         (IReadOnlyList<MatchDocument> matches, int total) = await matchService.ListUserMatchesAsync(
             userId, normalizedStatus, page, page_size, ct);
+
+        int normalizedPage = page < 1 ? 1 : page;
+        int normalizedSize = page_size <= 0 ? 20 : Math.Min(page_size, 100);
+
+        List<MatchSummaryResponse> summaries = [];
+        foreach (MatchDocument match in matches)
+        {
+            summaries.Add(await ToMatchSummaryAsync(match, matchService, botsClient, ct));
+        }
+
+        return Results.Ok(new MatchListResponse(summaries, total, normalizedPage, normalizedSize));
+    }
+
+    // Global, filterable, chronological browse over every match (Dev "All games").
+    // dev_mode gating lives at the client proxy; here a valid bearer token suffices,
+    // consistent with the existing public-match access model.
+    private static async Task<IResult> SearchMatches(
+        [FromQuery] string? player_id,
+        [FromQuery] string? initiator_id,
+        [FromQuery] string? status,
+        [FromQuery] string? source,
+        [FromQuery] long since_ms,
+        [FromQuery] long until_ms,
+        [FromQuery] bool ascending,
+        [FromQuery] int page,
+        [FromQuery] int page_size,
+        ClaimsPrincipal principal,
+        MatchService matchService,
+        Bots.BotsClient botsClient,
+        CancellationToken ct)
+    {
+        if (!TryGetUserId(principal, out _))
+        {
+            return Results.Unauthorized();
+        }
+
+        string normalizedStatus = status ?? "all";
+        if (normalizedStatus is not ("all" or "ongoing" or "ended"))
+        {
+            return Results.BadRequest(new ErrorResponse("unsupported status"));
+        }
+
+        string normalizedSource = source ?? "all";
+        if (normalizedSource is not ("all" or "native" or "external"))
+        {
+            return Results.BadRequest(new ErrorResponse("unsupported source"));
+        }
+
+        (IReadOnlyList<MatchDocument> matches, int total) = await matchService.SearchMatchesAsync(
+            player_id,
+            initiator_id,
+            normalizedStatus,
+            normalizedSource,
+            since_ms,
+            until_ms,
+            ascending,
+            page,
+            page_size,
+            ct);
 
         int normalizedPage = page < 1 ? 1 : page;
         int normalizedSize = page_size <= 0 ? 20 : Math.Min(page_size, 100);

@@ -198,3 +198,27 @@ four pre-existing baseline files noted under task 05: `MatchesGrpcService`,
 - The command side emits **events** on `match.events.v1` (not the `match.commands.v1`
   `SubmitMove`/`Resign`/… messages), matching the task's "emit the corresponding
   event"/"close the loop" and the projector's existing inputs.
+
+## SearchMatches — Dev "All games" browser (task 07) — pending publish (v0.9.0)
+
+`matches.proto` gains `rpc SearchMatches(SearchMatchesRequest) returns (SearchMatchesResponse)`
+(global, cross-user, chronological match browse with participant/initiator/status/source/
+time-range filters) and `rest/match-manager.md` documents `GET /matches/search`. Implemented in
+`MatchService.SearchMatchesAsync` (filter-building + ordering/paging, fully tested), wired through
+`MatchesGrpcService.SearchMatches` and the excluded `MatchesEndpoints` `GET /matches/search`;
+`MatchRepository.SearchAsync` is the excluded candidate-set push-down.
+
+- **Architecture fit (post-Kafka):** `SearchMatches` is a **read**, and reads stay synchronous in
+  the event-driven design (durable history is materialised to match-db by the projector). It mirrors
+  the already-shipped `ListUserMatches`/`ListMatches` and reuses the extracted `OrderAndPage` helper.
+  The browse list intentionally **does not overlay the Redis live read model** — rows link into the
+  match/Watch viewer, which performs the live overlay. No part of this contradicts the CQRS split.
+- **Relationship to maichess-search-service:** complementary, not duplicative. search-service
+  `GET /search/matches` is per-user faceted/full-text/position search over the Elasticsearch read
+  model with best-effort id labels; this is a cross-user chronological feed with match-manager-
+  resolved player labels (usernames + bot names) and first-class initiator attribution. The Dev UI
+  cross-links the two.
+- **Blocker:** these stubs require the published `Maichess.PlatformProtos` **0.9.0**. All consuming
+  `*.csproj` and the two Scala `build.sbt` coordinates are bumped 0.8.0 → 0.9.0. Per the versioning
+  handoff, the contracts repo must be committed, tagged `v0.9.0`, and pushed before this service can
+  restore/build/verify (Claude's shell cannot restore the freshly published package — 401).

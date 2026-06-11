@@ -176,6 +176,12 @@ internal sealed class MatchServiceContext
             .Returns(Task.FromResult<IReadOnlyList<MatchDocument>>([.. matches]));
     }
 
+    internal void SetupSearch(IEnumerable<MatchDocument> matches)
+    {
+        Repository.SearchAsync(Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<MatchDocument>>([.. matches]));
+    }
+
     internal void SetupMatch(MatchDocument match)
     {
         CurrentMatch = match;

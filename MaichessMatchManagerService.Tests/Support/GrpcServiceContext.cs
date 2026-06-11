@@ -29,4 +29,7 @@ internal sealed class GrpcServiceContext
 
     internal void SetupFindForUser(IEnumerable<MatchDocument> matches) =>
         ServiceContext.SetupFindForUser(matches);
+
+    internal void SetupSearch(IEnumerable<MatchDocument> matches) =>
+        ServiceContext.SetupSearch(matches);
 }

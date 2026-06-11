@@ -285,14 +285,10 @@ internal sealed class MatchService(
         IReadOnlyList<MatchDocument> candidates = await repository.FindForUserAsync(canonicalUserId, ct);
 
         IEnumerable<MatchDocument> filtered = candidates.Where(m => IsForUser(m, canonicalUserId));
-        filtered = status == "ongoing"
-            ? filtered.Where(m => m.Status == "ongoing")
-            : filtered.Where(m => m.Status != "ongoing");
+        filtered = FilterByStatus(filtered, status);
 
-        List<MatchDocument> ordered = [.. filtered.OrderByDescending(m => m.FinishedAtMs)];
-        int total = ordered.Count;
-        IReadOnlyList<MatchDocument> pageItems =
-            [.. ordered.Skip((normalizedPage - 1) * normalizedSize).Take(normalizedSize)];
+        (IReadOnlyList<MatchDocument> pageItems, int total) =
+            OrderAndPage(filtered, ascending: false, normalizedPage, normalizedSize);
 
         if (isEndedQuery)
         {
@@ -301,6 +297,68 @@ internal sealed class MatchService(
         }
 
         return (pageItems, total);
+    }
+
+    // Global, filterable, chronological match browse behind the Dev "All games"
+    // browser. The repository returns a candidate set (scoped to the participant
+    // or initiator id when supplied, else the whole collection); this applies the
+    // authoritative membership, status, source, and time-range filters, then orders
+    // by finished_at_ms and pages. Player and initiator filters are ANDed. Reads the
+    // durable store directly — a browse list never overlays the live read model
+    // (rows link into the viewer, which does the live overlay). Not cached: it is a
+    // low-volume cross-user dev query whose result space is too wide to key usefully.
+    internal async Task<(IReadOnlyList<MatchDocument> Matches, int Total)> SearchMatchesAsync(
+        string? playerId,
+        string? initiatorId,
+        string status,
+        string source,
+        long sinceMs,
+        long untilMs,
+        bool ascending,
+        int page,
+        int pageSize,
+        CancellationToken ct)
+    {
+        int normalizedPage = page < 1 ? 1 : page;
+        int normalizedSize = pageSize <= 0 ? DefaultPageSize : Math.Min(pageSize, MaxPageSize);
+
+        // Filter on the canonical id form so an id that differs only in
+        // representation from the stored white/black/created_by values still matches.
+        string? canonicalPlayer = string.IsNullOrEmpty(playerId) ? null : CanonicalizeUserId(playerId);
+        string? canonicalInitiator = string.IsNullOrEmpty(initiatorId) ? null : CanonicalizeUserId(initiatorId);
+
+        IReadOnlyList<MatchDocument> candidates =
+            await repository.SearchAsync(canonicalPlayer, canonicalInitiator, ct);
+
+        IEnumerable<MatchDocument> filtered = candidates;
+        if (canonicalPlayer is not null)
+        {
+            filtered = filtered.Where(m => IsParticipant(m, canonicalPlayer));
+        }
+
+        if (canonicalInitiator is not null)
+        {
+            filtered = filtered.Where(m => IsInitiator(m, canonicalInitiator));
+        }
+
+        filtered = FilterByStatus(filtered, status);
+
+        if (source is "native" or "external")
+        {
+            filtered = filtered.Where(m => m.Source == source);
+        }
+
+        if (sinceMs > 0)
+        {
+            filtered = filtered.Where(m => m.FinishedAtMs >= sinceMs);
+        }
+
+        if (untilMs > 0)
+        {
+            filtered = filtered.Where(m => m.FinishedAtMs <= untilMs);
+        }
+
+        return OrderAndPage(filtered, ascending, normalizedPage, normalizedSize);
     }
 
     // POST /matches/{id}/moves: validate the move against the live read model and emit
@@ -472,9 +530,42 @@ internal sealed class MatchService(
     // A match belongs to a user's history when they played either colour or
     // initiated it (created_by) — the latter covers bot-vs-bot games they spawned.
     private static bool IsForUser(MatchDocument match, string canonicalUserId) =>
+        IsParticipant(match, canonicalUserId) || IsInitiator(match, canonicalUserId);
+
+    // The user occupied a colour (white or black) in this match.
+    private static bool IsParticipant(MatchDocument match, string canonicalUserId) =>
         CanonicalizeUserId(match.White.UserId) == canonicalUserId ||
-        CanonicalizeUserId(match.Black.UserId) == canonicalUserId ||
+        CanonicalizeUserId(match.Black.UserId) == canonicalUserId;
+
+    // The user initiated this match (created_by) — covers bot-vs-bot games they
+    // spawned, where they occupied neither colour.
+    private static bool IsInitiator(MatchDocument match, string canonicalUserId) =>
         CanonicalizeUserId(match.CreatedBy?.UserId) == canonicalUserId;
+
+    // Applies the ongoing/ended status filter; any other value (e.g. "all") leaves
+    // the sequence untouched so both ongoing and ended matches pass through.
+    private static IEnumerable<MatchDocument> FilterByStatus(
+        IEnumerable<MatchDocument> matches, string status) => status switch
+    {
+        "ongoing" => matches.Where(m => m.Status == "ongoing"),
+        "ended" => matches.Where(m => m.Status != "ongoing"),
+        _ => matches,
+    };
+
+    // Shared chronological order + page step for the history/browse queries: orders
+    // by finished_at_ms (descending unless ascending) and returns the requested
+    // slice alongside the full pre-page total.
+    private static (IReadOnlyList<MatchDocument> Matches, int Total) OrderAndPage(
+        IEnumerable<MatchDocument> filtered, bool ascending, int page, int pageSize)
+    {
+        List<MatchDocument> ordered = [.. ascending
+            ? filtered.OrderBy(m => m.FinishedAtMs)
+            : filtered.OrderByDescending(m => m.FinishedAtMs)];
+        int total = ordered.Count;
+        IReadOnlyList<MatchDocument> pageItems =
+            [.. ordered.Skip((page - 1) * pageSize).Take(pageSize)];
+        return (pageItems, total);
+    }
 
     // A match in any status other than "ongoing" has reached a terminal,
     // immutable state and is safe to cache with no expiry.
