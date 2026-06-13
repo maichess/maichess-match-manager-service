@@ -45,6 +45,11 @@ public sealed class MatchEndedFactoryTests
         Assert.Equal(MatchSource.Native, ended.Source);
         Assert.False(ended.HasWhiteBotElo);
         Assert.False(ended.HasBlackBotElo);
+
+        // Final clocks/FEN carried from the live read model (contracts 0.11.0).
+        Assert.Equal(1, ended.WhiteTimeMs);
+        Assert.Equal(1, ended.BlackTimeMs);
+        Assert.Equal("fen", ended.FinalFen);
     }
 
     [Fact]

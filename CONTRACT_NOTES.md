@@ -198,6 +198,11 @@ four pre-existing baseline files noted under task 05: `MatchesGrpcService`,
 - The command side emits **events** on `match.events.v1` (not the `match.commands.v1`
   `SubmitMove`/`Resign`/… messages), matching the task's "emit the corresponding
   event"/"close the loop" and the projector's existing inputs.
+- **`MatchEnded` final clocks/FEN (contracts 0.11.0):** `match_events.proto` `MatchEnded`
+  gained `white_time_ms = 9`, `black_time_ms = 10`, `final_fen = 11` (backward-compatible,
+  zero/empty on pre-0.11.0 events). `Kafka/MatchEndedFactory` populates them from the
+  `LiveMatchState` it already holds at every end path, so downstream consumers — the bot
+  arena's tie-breaks (task 18) in particular — no longer need a synchronous `GetMatch` read.
 
 ---
 
