@@ -245,6 +245,88 @@ public sealed class MatchServiceCommandTests
             Arg.Any<CancellationToken>());
     }
 
+    // ── Bot-roster cache (task 17) ───────────────────────────────────────────
+
+    [Fact]
+    public async Task CreateMatch_Bot_FirstCreation_QueriesEngineOnce()
+    {
+        MatchServiceContext ctx = new();
+        ctx.SetupBot("bot-a", 800);
+        TimeFormatDocument tf = MatchServiceContext.TimeFormatForCategoryName("blitz");
+
+        await ctx.MatchService.CreateMatchAsync(
+            new PlayerDocument { BotId = "bot-a" },
+            new PlayerDocument { UserId = "alice" },
+            tf,
+            createdBy: null,
+            startFen: null,
+            ct: CancellationToken.None);
+
+        _ = ctx.Engine.Received(1).ListBotsAsync(
+            Arg.Any<Maichess.Engine.V1.ListBotsRequest>(),
+            Arg.Any<global::Grpc.Core.Metadata>(),
+            Arg.Any<DateTime?>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CreateMatch_Bot_SecondCreation_ServesFromCache_WithoutQueryingEngineAgain()
+    {
+        MatchServiceContext ctx = new();
+        ctx.SetupBot("bot-a", 800);
+        ctx.SetupBot("bot-b", 2200);
+        TimeFormatDocument tf = MatchServiceContext.TimeFormatForCategoryName("blitz");
+
+        await ctx.MatchService.CreateMatchAsync(
+            new PlayerDocument { BotId = "bot-a" },
+            new PlayerDocument { BotId = "bot-b" },
+            tf, createdBy: null, startFen: null, ct: CancellationToken.None);
+        await ctx.MatchService.CreateMatchAsync(
+            new PlayerDocument { BotId = "bot-a" },
+            new PlayerDocument { BotId = "bot-b" },
+            tf, createdBy: null, startFen: null, ct: CancellationToken.None);
+
+        // Two bot-vs-bot creations, but the static roster is fetched only once.
+        _ = ctx.Engine.Received(1).ListBotsAsync(
+            Arg.Any<Maichess.Engine.V1.ListBotsRequest>(),
+            Arg.Any<global::Grpc.Core.Metadata>(),
+            Arg.Any<DateTime?>(),
+            Arg.Any<CancellationToken>());
+
+        // The cached roster still produces the correct elo snapshot on the second event.
+        Assert.Equal(2, ctx.ProducedEvents.Count);
+        Assert.Equal(800, ctx.ProducedEvents[1].MatchCreated.WhiteBotElo);
+        Assert.Equal(2200, ctx.ProducedEvents[1].MatchCreated.BlackBotElo);
+    }
+
+    [Fact]
+    public async Task CreateMatch_Bot_AfterCacheExpiry_RefetchesFromEngine()
+    {
+        MatchServiceContext ctx = new();
+        ctx.SetupBot("bot-a", 800);
+        TimeFormatDocument tf = MatchServiceContext.TimeFormatForCategoryName("blitz");
+
+        await ctx.MatchService.CreateMatchAsync(
+            new PlayerDocument { BotId = "bot-a" },
+            new PlayerDocument { UserId = "alice" },
+            tf, createdBy: null, startFen: null, ct: CancellationToken.None);
+
+        // Evicting the entry stands in for the 10-minute TTL elapsing: either way the
+        // next creation sees a cache miss and re-queries the engine.
+        ctx.MemoryCache.Remove("engine:bots");
+
+        await ctx.MatchService.CreateMatchAsync(
+            new PlayerDocument { BotId = "bot-a" },
+            new PlayerDocument { UserId = "alice" },
+            tf, createdBy: null, startFen: null, ct: CancellationToken.None);
+
+        _ = ctx.Engine.Received(2).ListBotsAsync(
+            Arg.Any<Maichess.Engine.V1.ListBotsRequest>(),
+            Arg.Any<global::Grpc.Core.Metadata>(),
+            Arg.Any<DateTime?>(),
+            Arg.Any<CancellationToken>());
+    }
+
     [Fact]
     public async Task CreateMatch_WithCallerMintedId_UsesItAsAggregateId()
     {

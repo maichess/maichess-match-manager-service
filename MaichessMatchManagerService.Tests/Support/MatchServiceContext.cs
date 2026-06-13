@@ -8,6 +8,7 @@ using MaichessMatchManagerService.Entities;
 using MaichessMatchManagerService.Events;
 using MaichessMatchManagerService.Kafka;
 using MaichessMatchManagerService.Services;
+using Microsoft.Extensions.Caching.Memory;
 using NSubstitute;
 
 namespace MaichessMatchManagerService.Tests.Support;
@@ -41,6 +42,10 @@ internal sealed class MatchServiceContext
 
     internal ISocketBroadcaster SocketBroadcaster { get; } = Substitute.For<ISocketBroadcaster>();
 
+    // Real in-memory cache (per task 17) so the bot-roster cache hit/miss/expiry is
+    // exercised for real rather than mocked.
+    internal IMemoryCache MemoryCache { get; } = new MemoryCache(new MemoryCacheOptions());
+
     internal MatchService MatchService { get; }
 
     internal MatchDocument? CurrentMatch { get; set; }
@@ -68,7 +73,8 @@ internal sealed class MatchServiceContext
             UserService,
             Engine,
             SocketBroadcaster,
-            EventProducer);
+            EventProducer,
+            MemoryCache);
 
         // Capture produced match-events so command-side tests can assert what was emitted.
         EventProducer.ProduceAsync(Arg.Any<MatchEvent>(), Arg.Any<CancellationToken>())

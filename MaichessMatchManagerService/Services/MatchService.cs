@@ -7,6 +7,7 @@ using MaichessMatchManagerService.Data;
 using MaichessMatchManagerService.Entities;
 using MaichessMatchManagerService.Events;
 using MaichessMatchManagerService.Kafka;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace MaichessMatchManagerService.Services;
 
@@ -29,12 +30,19 @@ internal sealed class MatchService(
     Users.UsersClient userServiceClient,
     Bots.BotsClient engineClient,
     ISocketBroadcaster socketNotifier,
-    IMatchEventProducer eventProducer)
+    IMatchEventProducer eventProducer,
+    IMemoryCache memoryCache)
 {
     private const string InitialFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     private const int DefaultPageSize = 20;
     private const int MaxPageSize = 100;
     private const string Producer = "match-manager-service";
+
+    // The engine's bot roster is static between deploys (no runtime bot registration),
+    // so it is cached behind a long TTL to drop the per-match-creation ListBots gRPC
+    // roundtrip. See caching-and-read-models.md (ListBots cache).
+    private const string BotListCacheKey = "engine:bots";
+    private static readonly TimeSpan BotListCacheTtl = TimeSpan.FromMinutes(10);
 
     internal static bool IsAnalyzable(MatchDocument match) =>
         match.White.IsBot || match.Black.IsBot || match.Status != "ongoing";
@@ -116,14 +124,13 @@ internal sealed class MatchService(
         // the consumer falls back to its unknown-bot rating.
         if (white.IsBot || black.IsBot)
         {
-            ListBotsResponse bots = await engineClient.ListBotsAsync(
-                new ListBotsRequest(), cancellationToken: ct);
-            if (white.IsBot && bots.Bots.FirstOrDefault(b => b.Id == white.BotId) is { } whiteBot)
+            IReadOnlyList<Bot> bots = await GetBotListAsync(ct);
+            if (white.IsBot && bots.FirstOrDefault(b => b.Id == white.BotId) is { } whiteBot)
             {
                 payload.WhiteBotElo = whiteBot.Elo;
             }
 
-            if (black.IsBot && bots.Bots.FirstOrDefault(b => b.Id == black.BotId) is { } blackBot)
+            if (black.IsBot && bots.FirstOrDefault(b => b.Id == black.BotId) is { } blackBot)
             {
                 payload.BlackBotElo = blackBot.Elo;
             }
@@ -626,5 +633,21 @@ internal sealed class MatchService(
         {
             await cache.InvalidateUserPagesAsync(canonicalUserId, ct);
         }
+    }
+
+    // Returns the engine's bot roster, cached for BotListCacheTtl. The list is static
+    // until redeploy, so a hit skips the ListBots gRPC call on the match-creation hot path.
+    private async Task<IReadOnlyList<Bot>> GetBotListAsync(CancellationToken ct)
+    {
+        if (memoryCache.Get(BotListCacheKey) is IReadOnlyList<Bot> cached)
+        {
+            return cached;
+        }
+
+        ListBotsResponse response = await engineClient.ListBotsAsync(
+            new ListBotsRequest(), cancellationToken: ct);
+        IReadOnlyList<Bot> bots = [.. response.Bots];
+        memoryCache.Set(BotListCacheKey, bots, BotListCacheTtl);
+        return bots;
     }
 }

@@ -42,6 +42,13 @@ builder.Services.AddSingleton<IMatchCache, RedisMatchCache>();
 builder.Services.AddSingleton<IUserReplica, RedisUserReplica>();
 builder.Services.AddHostedService<UserReplicaConsumer>();
 
+// Rating leaderboard (leaderboard:rating ZSET), fed by the same Stage 3 rating
+// consumer above — one source of truth. Ranked reads are native ZSET ops; flagged
+// players are filtered and provisional ratings annotated at read time from the user
+// replica. Rebuildable by replaying user.events.v1. See caching-and-read-models.md (Part B).
+builder.Services.AddSingleton<ILeaderboard, RedisLeaderboard>();
+builder.Services.AddSingleton<LeaderboardService>();
+
 // Anti-cheat flag on the same replica (user:{id} flagged), fed by the compacted
 // cheat.events.v1 topic. Only PlayerFlagged/PlayerUnflagged touch the bit; the
 // advisory LiveSuspicionRaised is ignored by contract. See anticheat-service.md.
@@ -82,6 +89,7 @@ builder.Services.AddHostedService<MatchCommandConsumer>();
 builder.Services.AddSingleton<IMatchEventProducer, KafkaMatchEventProducer>();
 
 // Application services
+builder.Services.AddMemoryCache(); // backs MatchService's static bot-roster cache
 builder.Services.AddSingleton<MatchService>();
 builder.Services.AddHostedService<TimeoutWatchdog>();
 
@@ -142,5 +150,6 @@ app.UseAuthorization();
 
 app.MapGrpcService<MatchesGrpcService>();
 app.MapMatchesEndpoints();
+app.MapLeaderboardEndpoints();
 
 app.Run();

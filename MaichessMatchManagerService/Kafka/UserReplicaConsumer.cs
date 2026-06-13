@@ -21,12 +21,15 @@ internal sealed class UserReplicaConsumer : BackgroundService
     private const string GroupId = "match-manager-user-replica";
 
     private readonly IUserReplica replica;
+    private readonly ILeaderboard leaderboard;
     private readonly ILogger<UserReplicaConsumer> logger;
     private readonly IConsumer<string, UserEvent> consumer;
 
-    public UserReplicaConsumer(IUserReplica replica, ILogger<UserReplicaConsumer> logger)
+    public UserReplicaConsumer(
+        IUserReplica replica, ILeaderboard leaderboard, ILogger<UserReplicaConsumer> logger)
     {
         this.replica = replica;
+        this.leaderboard = leaderboard;
         this.logger = logger;
 
         string bootstrap = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP") ?? "kafka:9092";
@@ -93,6 +96,14 @@ internal sealed class UserReplicaConsumer : BackgroundService
         if (upsert is not null)
         {
             replica.UpsertAsync(upsert.UserId, upsert.Fields, ct).GetAwaiter().GetResult();
+        }
+
+        // Same fact, second read model: a rating change also updates the leaderboard
+        // ZSET. One consumer keeps both materialisations from a single source of truth.
+        LeaderboardUpsert? ranked = LeaderboardProjection.Project(envelope);
+        if (ranked is not null)
+        {
+            leaderboard.UpsertAsync(ranked.UserId, ranked.Rating, ct).GetAwaiter().GetResult();
         }
     }
 }
