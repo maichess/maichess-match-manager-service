@@ -7,3 +7,7 @@ riderModule.iml
 .env
 MaichessMatchManagerService/Load-Env.ps1
 /MaichessMatchManagerService.Tests/TestResults
+
+# Test/mutation artifacts
+coverage.json
+StrykerOutput/
