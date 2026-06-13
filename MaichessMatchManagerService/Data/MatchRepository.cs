@@ -175,10 +175,14 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
             ? Value.ForString(match.White.UserId) : Value.ForNull();
         s.Fields["white_bot_id"] = match.White.BotId is not null
             ? Value.ForString(match.White.BotId) : Value.ForNull();
+        s.Fields["white_external_name"] = match.White.ExternalName is not null
+            ? Value.ForString(match.White.ExternalName) : Value.ForNull();
         s.Fields["black_user_id"] = match.Black.UserId is not null
             ? Value.ForString(match.Black.UserId) : Value.ForNull();
         s.Fields["black_bot_id"] = match.Black.BotId is not null
             ? Value.ForString(match.Black.BotId) : Value.ForNull();
+        s.Fields["black_external_name"] = match.Black.ExternalName is not null
+            ? Value.ForString(match.Black.ExternalName) : Value.ForNull();
         s.Fields["current_fen"] = Value.ForString(match.CurrentFen);
         s.Fields["status"] = Value.ForString(match.Status);
         s.Fields["time_format_id"] = Value.ForString(match.TimeFormat.Id);
@@ -198,8 +202,11 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
             ? Value.ForString(match.CreatedBy.UserId) : Value.ForNull();
         s.Fields["created_by_bot_id"] = match.CreatedBy?.BotId is not null
             ? Value.ForString(match.CreatedBy.BotId) : Value.ForNull();
+        s.Fields["created_by_external_name"] = match.CreatedBy?.ExternalName is not null
+            ? Value.ForString(match.CreatedBy.ExternalName) : Value.ForNull();
         s.Fields["source"] = Value.ForString(match.Source);
         s.Fields["external_provider"] = Value.ForString(match.ExternalProvider);
+        s.Fields["external_ref"] = Value.ForString(match.ExternalRef);
         s.Fields["finished_at_ms"] = Value.ForNumber(match.FinishedAtMs);
         return s;
     }
@@ -214,11 +221,13 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
             {
                 UserId = StringOrNull(s, "white_user_id"),
                 BotId = StringOrNull(s, "white_bot_id"),
+                ExternalName = StringOrNull(s, "white_external_name"),
             },
             Black = new PlayerDocument
             {
                 UserId = StringOrNull(s, "black_user_id"),
                 BotId = StringOrNull(s, "black_bot_id"),
+                ExternalName = StringOrNull(s, "black_external_name"),
             },
             CurrentFen = s.Fields["current_fen"].StringValue,
             Status = s.Fields["status"].StringValue,
@@ -238,6 +247,8 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
                 src.KindCase == Value.KindOneofCase.StringValue ? src.StringValue : "native",
             ExternalProvider = s.Fields.TryGetValue("external_provider", out Value? ep) &&
                 ep.KindCase == Value.KindOneofCase.StringValue ? ep.StringValue : string.Empty,
+            ExternalRef = s.Fields.TryGetValue("external_ref", out Value? er) &&
+                er.KindCase == Value.KindOneofCase.StringValue ? er.StringValue : string.Empty,
             FinishedAtMs = s.Fields.TryGetValue("finished_at_ms", out Value? fa) &&
                 fa.KindCase == Value.KindOneofCase.NumberValue ? (long)fa.NumberValue : 0,
         };
@@ -247,9 +258,10 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
     {
         string? userId = StringOrNull(s, "created_by_user_id");
         string? botId = StringOrNull(s, "created_by_bot_id");
-        return userId is null && botId is null
+        string? externalName = StringOrNull(s, "created_by_external_name");
+        return userId is null && botId is null && externalName is null
             ? null
-            : new PlayerDocument { UserId = userId, BotId = botId };
+            : new PlayerDocument { UserId = userId, BotId = botId, ExternalName = externalName };
     }
 
     private static TimeFormatDocument ReadTimeFormat(Struct s)
