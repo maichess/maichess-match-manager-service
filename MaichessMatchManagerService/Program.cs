@@ -19,12 +19,24 @@ using StackExchange.Redis;
 DotNetEnv.Env.Load();
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// Database service client
+// Database service client.
+//
+// MaxReceiveMessageSize is lifted off its 4 MB default because the cross-user
+// "All games" browse (SearchMatches, no participant/initiator scope) lists the
+// whole `matches` collection in one ListResponse — by design it is the candidate
+// set the service then filters, orders by finished_at_ms, and pages in memory.
+// Once the platform accumulates a few hundred matches that response exceeds 4 MB
+// and the call fails with RESOURCE_EXHAUSTED, surfacing as "Failed to load games"
+// in the client. The match-db server already sends without a size cap; null here
+// removes the matching wall on the receive side. All other List callers are
+// status/category-filtered and DB-paged, so they never approached the limit.
 string dbServiceUrl = builder.Configuration["Services:DatabaseService"]
     ?? throw new InvalidOperationException("Services:DatabaseService is not configured");
 
 builder.Services.AddSingleton(
-    new Database.DatabaseClient(GrpcChannel.ForAddress(dbServiceUrl)));
+    new Database.DatabaseClient(GrpcChannel.ForAddress(
+        dbServiceUrl,
+        new GrpcChannelOptions { MaxReceiveMessageSize = null })));
 builder.Services.AddSingleton<IMatchRepository, MatchRepository>();
 
 // Redis cache for immutable finished-match reads (finished-match docs +
