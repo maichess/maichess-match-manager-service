@@ -46,6 +46,7 @@ internal static class MatchHistoryProjection
             BlackTimeMs = created.TimeFormat.BaseMs,
             LastMoveAt = DateTimeOffset.FromUnixTimeMilliseconds(ev.OccurredAt),
             FenHistory = [created.StartFen],
+            ClockHistory = [],
             CreatedBy = ToInitiator(created.CreatedBy),
             Source = created.Source == MatchSource.External ? "external" : "native",
             ExternalProvider = created.ExternalProvider,
@@ -63,6 +64,7 @@ internal static class MatchHistoryProjection
         doc.CurrentFen = applied.ResultingFen;
         doc.Moves.Add(applied.MoveUci);
         doc.FenHistory.Add(applied.ResultingFen);
+        doc.ClockHistory.Add(new ClockSnapshot(applied.WhiteTimeMs, applied.BlackTimeMs));
         doc.WhiteTimeMs = applied.WhiteTimeMs;
         doc.BlackTimeMs = applied.BlackTimeMs;
         doc.LastMoveAt = DateTimeOffset.FromUnixTimeMilliseconds(applied.AppliedAtMs);

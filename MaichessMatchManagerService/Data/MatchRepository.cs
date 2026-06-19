@@ -195,6 +195,7 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
             match.LastMoveAt.ToString("O", CultureInfo.InvariantCulture));
         s.Fields["moves"] = Value.ForList(match.Moves.Select(Value.ForString).ToArray());
         s.Fields["fen_history"] = Value.ForList(match.FenHistory.Select(Value.ForString).ToArray());
+        s.Fields["clock_history"] = Value.ForList(match.ClockHistory.Select(ClockToValue).ToArray());
         s.Fields["position_history"] = Value.ForList(match.PositionHistory.Select(Value.ForString).ToArray());
         s.Fields["pending_draw_offerer_user_id"] = match.PendingDrawOffererUserId is not null
             ? Value.ForString(match.PendingDrawOffererUserId) : Value.ForNull();
@@ -238,6 +239,7 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
                 s.Fields["last_move_at"].StringValue, CultureInfo.InvariantCulture),
             Moves = [.. s.Fields["moves"].ListValue.Values.Select(v => v.StringValue)],
             FenHistory = [.. s.Fields["fen_history"].ListValue.Values.Select(v => v.StringValue)],
+            ClockHistory = ReadClockHistory(s),
             PositionHistory = s.Fields.TryGetValue("position_history", out Value? ph)
                 ? [.. ph.ListValue.Values.Select(v => v.StringValue)]
                 : [],
@@ -253,6 +255,25 @@ internal sealed class MatchRepository(Database.DatabaseClient db) : IMatchReposi
                 fa.KindCase == Value.KindOneofCase.NumberValue ? (long)fa.NumberValue : 0,
         };
     }
+
+    private static Value ClockToValue(ClockSnapshot snapshot)
+    {
+        Struct s = new();
+        s.Fields["white_time_ms"] = Value.ForNumber(snapshot.WhiteTimeMs);
+        s.Fields["black_time_ms"] = Value.ForNumber(snapshot.BlackTimeMs);
+        return Value.ForStruct(s);
+    }
+
+    // Absent for matches written before clock_history existed; an empty list is the
+    // correct "no clock data" representation downstream.
+    private static List<ClockSnapshot> ReadClockHistory(Struct s) =>
+        s.Fields.TryGetValue("clock_history", out Value? ch) && ch.KindCase == Value.KindOneofCase.ListValue
+            ? [.. ch.ListValue.Values
+                .Where(v => v.KindCase == Value.KindOneofCase.StructValue)
+                .Select(v => new ClockSnapshot(
+                    (long)v.StructValue.Fields["white_time_ms"].NumberValue,
+                    (long)v.StructValue.Fields["black_time_ms"].NumberValue))]
+            : [];
 
     private static PlayerDocument? ReadCreatedBy(Struct s)
     {

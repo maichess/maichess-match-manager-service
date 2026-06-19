@@ -206,6 +206,24 @@ four pre-existing baseline files noted under task 05: `MatchesGrpcService`,
 
 ---
 
+## Per-move clock history on the match document (move-times task) — additive, no proto change
+
+The durable match document gains `clock_history`: a list of `{ white_time_ms, black_time_ms }`
+snapshots, one entry per applied move (`clock_history[i]` = the clocks **after** `moves[i]`), so
+the array runs parallel to `moves` (no starting-position entry; `clock_history.Count ==
+moves.Count`). It is materialised by the durable write-through fold (`MatchHistoryProjection`):
+seeded empty on `MatchCreated`, appended on each `MoveApplied` from the authoritative
+`white_time_ms`/`black_time_ms` the projector already stamps onto the event. `MatchRepository`
+round-trips it (each entry a sub-struct). **No proto/event change** — `MoveApplied` already
+carries the clocks; this only persists what was already computed. **No REST change** — the field
+is not surfaced via `GET /matches/{id}` (the live read model is unchanged and carries only the
+current clocks); the analysis-service reads it straight off the match document via
+`Database.Get(collection="matches")` to annotate exported PGNs and the analysis move list.
+
+Pre-existing match documents have an absent/empty `clock_history`; this is rebuildable from the
+event log (replay the `match-manager-projector` group) but no backfill is performed — old games
+simply show no per-move times, and every layer treats empty as "no clock data".
+
 ## SearchMatches — Dev "All games" browser (task 07) — pending publish (v0.9.0)
 
 `matches.proto` gains `rpc SearchMatches(SearchMatchesRequest) returns (SearchMatchesResponse)`

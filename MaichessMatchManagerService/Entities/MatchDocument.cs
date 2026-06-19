@@ -18,6 +18,12 @@ internal sealed class MatchDocument
     // Always has Moves.Count + 1 entries.
     public List<string> FenHistory { get; set; } = [];
 
+    // Per-move remaining-clock snapshots, parallel to Moves: ClockHistory[i] is the
+    // clocks after Moves[i]. One entry per applied move (no starting-position entry),
+    // so ClockHistory.Count == Moves.Count. Empty/absent for matches that predate this
+    // field — downstream code must treat an empty list as "no clock data".
+    public List<ClockSnapshot> ClockHistory { get; set; } = [];
+
     // Opaque list owned by the move validator. Passed to ValidateMoveRequest and
     // replaced with ValidateMoveResponse.PositionHistory on each valid move.
     // Cleared when the game ends. Never modified by match manager logic.

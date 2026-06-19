@@ -55,6 +55,7 @@ public sealed class MatchHistoryProjectionTests
         Assert.Equal(300_000, doc.BlackTimeMs);
         Assert.Equal(DateTimeOffset.FromUnixTimeMilliseconds(1_000), doc.LastMoveAt);
         Assert.Equal(new[] { StartFen }, doc.FenHistory);
+        Assert.Empty(doc.ClockHistory);
         Assert.Equal("native", doc.Source);
         Assert.Null(doc.CreatedBy);
     }
@@ -140,7 +141,39 @@ public sealed class MatchHistoryProjectionTests
         Assert.Equal(299_000, updated.WhiteTimeMs);
         Assert.Equal(300_000, updated.BlackTimeMs);
         Assert.Equal(DateTimeOffset.FromUnixTimeMilliseconds(5_000), updated.LastMoveAt);
+        Assert.Equal(new[] { new ClockSnapshot(299_000, 300_000) }, updated.ClockHistory);
     }
+
+    [Fact]
+    public void MoveApplied_AcrossMoves_AccumulatesClockHistoryParallelToMoves()
+    {
+        const string AfterE5 = "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2";
+        MatchDocument doc = MatchHistoryProjection.Apply(null, Created())!;
+
+        doc = MatchHistoryProjection.Apply(doc, Applied("e2e4", AfterE4, 1, 299_000, 300_000, 5_000))!;
+        doc = MatchHistoryProjection.Apply(doc, Applied("e7e5", AfterE5, 2, 299_000, 298_500, 7_000))!;
+
+        Assert.Equal(
+            new[] { new ClockSnapshot(299_000, 300_000), new ClockSnapshot(299_000, 298_500) },
+            doc.ClockHistory);
+        Assert.Equal(doc.Moves.Count, doc.ClockHistory.Count);
+    }
+
+    private static MatchEvent Applied(
+        string uci, string fen, int index, long whiteMs, long blackMs, long appliedAtMs) =>
+        new()
+        {
+            AggregateId = "m1",
+            MoveApplied = new MoveApplied
+            {
+                MoveUci = uci,
+                ResultingFen = fen,
+                Index = index,
+                WhiteTimeMs = whiteMs,
+                BlackTimeMs = blackMs,
+                AppliedAtMs = appliedAtMs,
+            },
+        };
 
     [Fact]
     public void MatchEnded_SetsTerminalStatusAndClearsHistory()
