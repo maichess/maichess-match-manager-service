@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Grpc.Core;
 using Maichess.Engine.V1;
 using Maichess.Events.V1;
 using Maichess.MoveValidator.V1;
@@ -491,6 +492,17 @@ internal sealed class MatchService(
     // Resolves a player's display username, replica-first with a GetUser fallback for a
     // cold miss. Used by the REST player-response mapping (a thin, excluded adapter), so
     // the replica-vs-RPC orchestration lives here where it is unit-tested.
+    //
+    // Name resolution is best-effort enrichment for a read: if neither the replica nor
+    // user-service can resolve the id, fall back to the raw id rather than throw. This
+    // matters most for the cross-user/all-history reads (the Dev "All games" browse),
+    // which are the only ones that resolve names for *every* user and *every* historical
+    // match. A single match whose white/black/created_by id no longer resolves — a
+    // deleted account, a legacy non-UUID id, or a replica miss for a user user-service
+    // has since dropped — would otherwise make GetUser throw an unhandled RpcException
+    // (NotFound/InvalidArgument) and 500 the entire page. Degrading to the id keeps the
+    // row identifiable and the rest of the browse loading; the scoped reads (ongoing
+    // /matches, a user's own Past Matches) never reference an unresolvable id anyway.
     internal async Task<string> ResolveUsernameAsync(string userId, CancellationToken ct)
     {
         UserReplicaRecord? replica = await userReplica.GetAsync(userId, ct);
@@ -499,10 +511,17 @@ internal sealed class MatchService(
             return username;
         }
 
-        GetUserResponse response = await userServiceClient.GetUserAsync(
-            new GetUserRequest { UserId = userId },
-            cancellationToken: ct);
-        return response.User.Username;
+        try
+        {
+            GetUserResponse response = await userServiceClient.GetUserAsync(
+                new GetUserRequest { UserId = userId },
+                cancellationToken: ct);
+            return response.User.Username;
+        }
+        catch (RpcException)
+        {
+            return userId;
+        }
     }
 
     private static char GetActiveColor(string fen)

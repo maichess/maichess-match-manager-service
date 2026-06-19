@@ -62,6 +62,30 @@ public sealed class UserReplicaResolutionTests
         Assert.Equal("rpc-u3", username);
     }
 
+    // A cross-user/all-history read (the Dev "All games" browse) resolves names for
+    // every referenced player. If the replica misses and user-service cannot resolve the
+    // id (deleted account, legacy non-UUID id, NotFound), resolution must degrade to the
+    // raw id rather than surface the RpcException — otherwise one stale reference 500s
+    // the whole page. The scoped reads never hit this because they only reference live ids.
+    [Theory]
+    [InlineData(StatusCode.NotFound)]
+    [InlineData(StatusCode.InvalidArgument)]
+    public async Task ResolveUsername_GetUserFails_FallsBackToId(StatusCode status)
+    {
+        var ctx = new MatchServiceContext();
+        ctx.UserService
+            .GetUserAsync(
+                Arg.Is<GetUserRequest>(r => r.UserId == "ghost"),
+                Arg.Any<Metadata>(),
+                Arg.Any<DateTime?>(),
+                Arg.Any<CancellationToken>())
+            .Returns(GrpcHelper.GrpcFault<GetUserResponse>(new RpcException(new Status(status, "gone"))));
+
+        string username = await ctx.MatchService.ResolveUsernameAsync("ghost", CancellationToken.None);
+
+        Assert.Equal("ghost", username);
+    }
+
     // Opponent-rating enrichment moved off the synchronous match-end path with the
     // RecordMatchResult retirement (Kafka task 06 removes the call; task 08 re-homes
     // rating updates onto user.events). The replica-first username resolution above is

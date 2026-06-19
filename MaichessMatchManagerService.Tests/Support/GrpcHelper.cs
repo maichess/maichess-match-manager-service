@@ -11,4 +11,12 @@ internal static class GrpcHelper
             () => Status.DefaultSuccess,
             () => Metadata.Empty,
             () => { });
+
+    internal static AsyncUnaryCall<T> GrpcFault<T>(RpcException error) =>
+        new(
+            Task.FromException<T>(error),
+            Task.FromResult(Metadata.Empty),
+            () => error.Status,
+            () => error.Trailers,
+            () => { });
 }
