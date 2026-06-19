@@ -444,7 +444,8 @@ internal static class MatchesEndpoints
             match.WhiteTimeMs,
             match.BlackTimeMs,
             match.LastMoveAt.ToUnixTimeMilliseconds(),
-            analyzable);
+            analyzable,
+            [.. match.ClockHistory.Select(c => new ClockSnapshotResponse(c.WhiteTimeMs, c.BlackTimeMs))]);
     }
 
     private static async Task<MatchSummaryResponse> ToMatchSummaryAsync(

@@ -215,10 +215,16 @@ moves.Count`). It is materialised by the durable write-through fold (`MatchHisto
 seeded empty on `MatchCreated`, appended on each `MoveApplied` from the authoritative
 `white_time_ms`/`black_time_ms` the projector already stamps onto the event. `MatchRepository`
 round-trips it (each entry a sub-struct). **No proto/event change** — `MoveApplied` already
-carries the clocks; this only persists what was already computed. **No REST change** — the field
-is not surfaced via `GET /matches/{id}` (the live read model is unchanged and carries only the
-current clocks); the analysis-service reads it straight off the match document via
-`Database.Get(collection="matches")` to annotate exported PGNs and the analysis move list.
+carries the clocks; this only persists what was already computed. The analysis-service also reads
+it straight off the match document via `Database.Get(collection="matches")` to annotate exported
+PGNs and the analysis move list.
+
+**REST (additive):** `GET /matches/{id}` (`MatchResponse`) now returns an optional `clock_history`
+array (`{ white_time_ms, black_time_ms }` per move, parallel to `moves`) alongside the existing
+*current*-clock scalars, so the Watch view can export a PGN with `{[%clk]}` annotations. It is
+sourced from the durable document (`GetMatchForReadAsync` overlays only the live fen/clocks/status,
+never `moves`/`clock_history`, so the two stay aligned); the live read model itself is unchanged.
+No existing field changes type or meaning; documented in `rest/match-manager.md`.
 
 Pre-existing match documents have an absent/empty `clock_history`; this is rebuildable from the
 event log (replay the `match-manager-projector` group) but no backfill is performed — old games

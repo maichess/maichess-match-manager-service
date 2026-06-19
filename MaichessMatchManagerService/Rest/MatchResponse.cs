@@ -15,4 +15,5 @@ internal sealed record MatchResponse(
     [property: JsonPropertyName("white_time_ms")] long WhiteTimeMs,
     [property: JsonPropertyName("black_time_ms")] long BlackTimeMs,
     [property: JsonPropertyName("last_move_at_ms")] long LastMoveAtMs,
-    [property: JsonPropertyName("analyzable")] bool Analyzable);
+    [property: JsonPropertyName("analyzable")] bool Analyzable,
+    [property: JsonPropertyName("clock_history")] IReadOnlyList<ClockSnapshotResponse> ClockHistory);
