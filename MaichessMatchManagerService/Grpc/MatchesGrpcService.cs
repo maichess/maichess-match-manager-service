@@ -101,7 +101,7 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
         ListMatchesResponse response = new()
         {
             Total = total,
-            Page = request.Page < 1 ? 1 : request.Page,
+            Page = Math.Max(1, request.Page),
             PageSize = request.PageSize <= 0 ? 20 : Math.Min(request.PageSize, 100),
         };
         response.Matches.AddRange(matches.Select(ToProtoMatch));
@@ -122,7 +122,7 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
         ListUserMatchesResponse response = new()
         {
             Total = total,
-            Page = request.Page < 1 ? 1 : request.Page,
+            Page = Math.Max(1, request.Page),
             PageSize = request.PageSize <= 0 ? 20 : Math.Min(request.PageSize, 100),
         };
         response.Matches.AddRange(matches.Select(ToProtoMatch));
@@ -150,7 +150,7 @@ internal sealed class MatchesGrpcService(MatchService matchService) : Matches.Ma
         SearchMatchesResponse response = new()
         {
             Total = total,
-            Page = request.Page < 1 ? 1 : request.Page,
+            Page = Math.Max(1, request.Page),
             PageSize = request.PageSize <= 0 ? 20 : Math.Min(request.PageSize, 100),
         };
         response.Matches.AddRange(matches.Select(ToProtoMatch));

@@ -291,4 +291,3 @@ public sealed class MatchServiceCommandTests
         Assert.Empty(ctx.ProducedEvents);
     }
 }
-</content>

@@ -113,6 +113,8 @@ public sealed class MatchProjectorCommandEventTests
         OutboundEvent push = Assert.Single(outcome.Pushes);
         Assert.Equal("draw_offered", push.Push.EventName);
         Assert.Equal("m1", Field(push, "match_id"));
+        JsonElement payload = JsonDocument.Parse(push.Push.PayloadJson).RootElement;
+        Assert.Equal("white", payload.GetProperty("player").GetProperty("user_id").GetString());
     }
 
     [Fact]

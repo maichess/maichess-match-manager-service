@@ -253,7 +253,7 @@ internal sealed class MatchService(
         int pageSize,
         CancellationToken ct)
     {
-        int normalizedPage = page < 1 ? 1 : page;
+        int normalizedPage = Math.Max(1, page);
         int normalizedSize = pageSize <= 0 ? DefaultPageSize : Math.Min(pageSize, MaxPageSize);
         string? normalizedCategory = string.IsNullOrEmpty(category) ? null : category;
         return await repository.ListAsync(status, normalizedCategory, normalizedPage, normalizedSize, ct);
@@ -266,7 +266,7 @@ internal sealed class MatchService(
         int pageSize,
         CancellationToken ct)
     {
-        int normalizedPage = page < 1 ? 1 : page;
+        int normalizedPage = Math.Max(1, page);
         int normalizedSize = pageSize <= 0 ? DefaultPageSize : Math.Min(pageSize, MaxPageSize);
 
         // Query and filter on the canonical id form so a user whose id differs
@@ -327,7 +327,7 @@ internal sealed class MatchService(
         int pageSize,
         CancellationToken ct)
     {
-        int normalizedPage = page < 1 ? 1 : page;
+        int normalizedPage = Math.Max(1, page);
         int normalizedSize = pageSize <= 0 ? DefaultPageSize : Math.Min(pageSize, MaxPageSize);
 
         // Filter on the canonical id form so an id that differs only in

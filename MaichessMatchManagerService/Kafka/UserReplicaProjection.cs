@@ -49,8 +49,10 @@ internal static class UserReplicaProjection
         };
     }
 
+    // Protobuf string fields are never null (an unset field reads as ""), so the
+    // value is stored as-is, mirroring the Bool/Dbl/Int helpers.
     private static KeyValuePair<string, string> Str(string field, string value) =>
-        new(field, value ?? string.Empty);
+        new(field, value);
 
     private static KeyValuePair<string, string> Bool(string field, bool value) =>
         new(field, value ? "true" : "false");

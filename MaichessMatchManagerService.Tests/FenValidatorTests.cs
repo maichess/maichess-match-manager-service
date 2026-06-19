@@ -9,6 +9,10 @@ public sealed class FenValidatorTests
     [InlineData("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")]
     [InlineData("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2")]
     [InlineData("k6K/8/8/8/8/8/8/8 b - - 5 30")]
+    [InlineData("k6K/8/8/8/8/8/8/8 w - a3 0 1")]                          // en-passant file at lower bound 'a'
+    [InlineData("k6K/8/8/8/8/8/8/8 w - h6 0 1")]                          // en-passant file at upper bound 'h'
+    [InlineData("k6K/8/8/8/8/8/8/8 w - a1 0 1")]                          // en-passant rank at lower bound '1'
+    [InlineData("k6K/8/8/8/8/8/8/8 w - a8 0 1")]                          // en-passant rank at upper bound '8'
     public void IsValid_WellFormedFen_ReturnsTrue(string fen) =>
         Assert.True(FenValidator.IsValid(fen));
 
@@ -18,6 +22,7 @@ public sealed class FenValidatorTests
     [InlineData("8/8/8/8/8/8/8/8 w - -")]                              // wrong field count (5)
     [InlineData("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP w KQkq - 0 1")]    // 7 ranks
     [InlineData("44/8/8/8/8/8/8/8 w - - 0 1")]                         // consecutive digits
+    [InlineData("k34/8/8/8/8/8/8/3K4 w - - 0 1")]                      // consecutive digits, kings present
     [InlineData("k6K/8/8/8/8/8/8/0 w - - 0 1")]                        // placement digit below '1'
     [InlineData("X7/8/8/8/8/8/8/8 w - - 0 1")]                         // invalid piece char
     [InlineData("ppppppp/8/8/8/8/8/8/8 w - - 0 1")]                    // rank squares != 8
@@ -28,6 +33,7 @@ public sealed class FenValidatorTests
     [InlineData("k6K/8/8/8/8/8/8/8 w X - 0 1")]                        // bad castling char
     [InlineData("k6K/8/8/8/8/8/8/8 w KQkqK - 0 1")]                    // castling too long
     [InlineData("k6K/8/8/8/8/8/8/8 w - z9 0 1")]                       // en-passant file above 'h'
+    [InlineData("k6K/8/8/8/8/8/8/8 w - i3 0 1")]                       // en-passant file above 'h', valid rank
     [InlineData("k6K/8/8/8/8/8/8/8 w - 19 0 1")]                       // en-passant file below 'a'
     [InlineData("k6K/8/8/8/8/8/8/8 w - a9 0 1")]                       // en-passant rank above '8'
     [InlineData("k6K/8/8/8/8/8/8/8 w - a0 0 1")]                       // en-passant rank below '1'

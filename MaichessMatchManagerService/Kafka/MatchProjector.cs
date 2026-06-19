@@ -92,13 +92,17 @@ internal static class MatchProjector
             return new ProjectorOutcome(state, [], []);
         }
 
+        // Equivalent mutants: at creation both clocks equal TimeFormat.BaseMs, so the
+        // colour-conditioned clock selection is indistinguishable from either branch.
+        // Stryker disable once all
+        long timeLimitMs = toMove == 'w' ? state.WhiteTimeMs : state.BlackTimeMs;
         MatchEvent requested = BotRequest(
             consumed,
             nowMs,
             newId,
             state.CurrentFen,
             mover.BotId,
-            toMove == 'w' ? state.WhiteTimeMs : state.BlackTimeMs,
+            timeLimitMs,
             consumed.Sequence + 1);
         return new ProjectorOutcome(state, [requested], []);
     }

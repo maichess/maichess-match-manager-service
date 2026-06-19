@@ -36,8 +36,10 @@ public sealed class MatchCommandReaderTests
         Assert.Equal("match-1", input.Id);
         Assert.Equal("white-user", input.White.UserId);
         Assert.Null(input.White.BotId);
+        Assert.Null(input.White.ExternalName);
         Assert.Equal("bot-7", input.Black.BotId);
         Assert.Null(input.Black.UserId);
+        Assert.Null(input.Black.ExternalName);
         Assert.Equal("3+2", input.TimeFormat.Id);
         Assert.Equal(180_000, input.TimeFormat.BaseMs);
         Assert.Equal(2_000, input.TimeFormat.IncrementMs);
@@ -102,6 +104,25 @@ public sealed class MatchCommandReaderTests
 
         Assert.True(MatchCommandReader.TryReadCreateMatch(envelope, out CreateMatchInput input));
         Assert.Null(input.Id);
+    }
+
+    [Fact]
+    public void MissingTimeFormat_CoalescesToEmptyDefaults()
+    {
+        // CreateMatch with no time_format set (proto3 null message): every field
+        // falls back to its empty default rather than throwing.
+        MatchCommand envelope = ProtoEnvelope(new CreateMatchCommand
+        {
+            White = new Player { UserId = "w" },
+            Black = new Player { UserId = "b" },
+            // TimeFormat left unset.
+        });
+
+        Assert.True(MatchCommandReader.TryReadCreateMatch(envelope, out CreateMatchInput input));
+        Assert.Equal(string.Empty, input.TimeFormat.Id);
+        Assert.Equal(0, input.TimeFormat.BaseMs);
+        Assert.Equal(0, input.TimeFormat.IncrementMs);
+        Assert.Equal(string.Empty, input.TimeFormat.Category);
     }
 
     [Fact]

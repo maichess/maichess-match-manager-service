@@ -86,6 +86,13 @@ helpers) are also excluded from mutation. Run via `dotnet tool restore` then
 details. Mutation testing is not required to pass on every change, but use it
 when investigating whether tests genuinely exercise behaviour.
 
+Survivers that are all genuinely equivalent, unreachable, or timing-nondeterministic mutants:
+- GrpcService L19/L225/L232 — "native"/"all" strings that collapse to the same behavior downstream
+- MatchProjector L130, MatchService L174/L359 — > 0 → >= 0 where the +0/no-op is unobservable
+- MatchService L458 — < → <= on an elapsed-time comparison (can't deterministically hit exact equality)
+- UserReplicaProjection L53 (unreachable proto null)
+
 ## Entity Framework Rules
 
 N/A — this service delegates all persistence to the database service via gRPC.
+

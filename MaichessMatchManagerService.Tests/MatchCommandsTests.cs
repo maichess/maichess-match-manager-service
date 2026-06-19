@@ -93,6 +93,15 @@ public sealed class MatchCommandsTests
         Assert.Equal(White, ev.MoveSubmitted.By.UserId);
     }
 
+    [Fact]
+    public void SubmitMove_TwoFieldFenBlackToMove_ReadsActiveColorFromSecondField()
+    {
+        // A two-field FEN ("<board> b") is the boundary the active-color parser guards
+        // with parts.Length >= 2: black is on turn, so black's move is accepted.
+        MatchEvent ev = MatchCommands.SubmitMove(State(fen: "8 b"), Black, "a7a6", 0, NextId);
+        Assert.Equal(Black, ev.MoveSubmitted.By.UserId);
+    }
+
     // ── Resign ──────────────────────────────────────────────────────────────--
 
     [Fact]
@@ -148,6 +157,15 @@ public sealed class MatchCommandsTests
     }
 
     [Fact]
+    public void OfferDraw_ByBlack_WhiteOpponentIsBot_Throws()
+    {
+        // Black offers, so the opponent resolves to the *white* side; a bot there is
+        // not a valid draw recipient. Pins down the isWhite ? Black : White selector.
+        LiveMatchState state = State(white: new PlayerRef(null, "stockfish-3"));
+        Assert.Throws<NotParticipantException>(() => MatchCommands.OfferDraw(state, Black, 0, NextId));
+    }
+
+    [Fact]
     public void OfferDraw_AlreadyPending_Throws() =>
         Assert.Throws<DrawOfferAlreadyPendingException>(
             () => MatchCommands.OfferDraw(State(pendingDrawOfferer: Black), White, 0, NextId));
@@ -168,6 +186,7 @@ public sealed class MatchCommandsTests
     {
         MatchEvent ev = MatchCommands.AcceptDraw(State(pendingDrawOfferer: White), Black, 3_000, NextId);
 
+        Assert.Equal("match.MatchEnded", ev.EventType);
         Assert.Equal(MatchStatus.Draw, ev.MatchEnded.Status);
         Assert.Equal(EndReason.DrawAgreement, ev.MatchEnded.EndReason);
         Assert.Equal(3_000, ev.MatchEnded.FinishedAtMs);
@@ -199,6 +218,7 @@ public sealed class MatchCommandsTests
     {
         MatchEvent ev = MatchCommands.DeclineDraw(State(pendingDrawOfferer: White), Black, 0, NextId);
 
+        Assert.Equal("match.DrawDeclined", ev.EventType);
         Assert.Equal(MatchEvent.PayloadOneofCase.DrawDeclined, ev.PayloadCase);
         Assert.Equal(Black, ev.DrawDeclined.By.UserId);
     }
@@ -223,6 +243,7 @@ public sealed class MatchCommandsTests
     {
         MatchEvent ev = MatchCommands.Timeout(State(), whiteFlagged: true, 4_000, NextId);
 
+        Assert.Equal("match.MatchEnded", ev.EventType);
         Assert.Equal(MatchStatus.BlackWon, ev.MatchEnded.Status);
         Assert.Equal(EndReason.Timeout, ev.MatchEnded.EndReason);
         Assert.Equal(8, ev.Sequence);

@@ -155,6 +155,9 @@ public sealed class MatchServiceCommandTests
 
         MatchEvent ev = Assert.Single(ctx.ProducedEvents);
         Assert.Equal(MatchEvent.PayloadOneofCase.MatchCreated, ev.PayloadCase);
+        Assert.Equal("match.MatchCreated", ev.EventType);
+        Assert.Equal("match-manager-service", ev.Producer);
+        Assert.Empty(ev.CausationId);
         Assert.Equal(doc.Id, ev.AggregateId);
         Assert.Equal(0, ev.Sequence);
         Assert.Equal("alice", ev.MatchCreated.White.UserId);
@@ -367,6 +370,26 @@ public sealed class MatchServiceCommandTests
     }
 
     [Fact]
+    public async Task CreateMatch_BotWhiteHumanBlack_DerivesBlackAsInitiator()
+    {
+        // White is a bot, so the human black side is the derived initiator: the
+        // bot-vs-human branch of DeriveInitiator must fall through to black, not null.
+        MatchServiceContext ctx = new();
+        TimeFormatDocument tf = MatchServiceContext.TimeFormatForCategoryName("blitz");
+
+        await ctx.MatchService.CreateMatchAsync(
+            new PlayerDocument { BotId = "bot-a" },
+            new PlayerDocument { UserId = "bob" },
+            tf,
+            createdBy: null,
+            startFen: null,
+            ct: CancellationToken.None);
+
+        MatchEvent ev = Assert.Single(ctx.ProducedEvents);
+        Assert.Equal("bob", ev.MatchCreated.CreatedBy.UserId);
+    }
+
+    [Fact]
     public async Task CreateMatch_External_InsertsDirectlyAndProducesNothing()
     {
         MatchServiceContext ctx = new();
@@ -471,5 +494,45 @@ public sealed class MatchServiceCommandTests
         await ctx.MatchService.EnforceTimeoutsAsync(CancellationToken.None);
 
         Assert.Empty(ctx.ProducedEvents);
+    }
+
+    // The clock that is checked must be the *active* side's: with a recent last-move
+    // time and one side's clock far above the elapsed time, only the side genuinely on
+    // turn flags. These pin down the active-side clock selection and the active-colour
+    // parse against mutations that would read the wrong clock (and never time out).
+
+    [Fact]
+    public async Task EnforceTimeouts_WhiteToMove_ChecksWhiteClockNotBlack()
+    {
+        MatchServiceContext ctx = new();
+        long recentMoveMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - 5_000;
+        MatchDocument doc = MatchServiceContext.BuildHumanMatch("m1", "white", "black", "ongoing");
+        ctx.SetupOngoingMatches([doc]);
+        ctx.SetupLiveState(Live(
+            whiteTimeMs: 1_000, blackTimeMs: 10_000_000, lastMoveAtMs: recentMoveMs));
+
+        await ctx.MatchService.EnforceTimeoutsAsync(CancellationToken.None);
+
+        // ~5s elapsed exceeds white's 1s but not black's huge clock: white flags.
+        MatchEvent ev = Assert.Single(ctx.ProducedEvents);
+        Assert.Equal(MatchStatus.BlackWon, ev.MatchEnded.Status);
+    }
+
+    [Fact]
+    public async Task EnforceTimeouts_BlackToMoveViaTwoFieldFen_ChecksBlackClockNotWhite()
+    {
+        MatchServiceContext ctx = new();
+        long recentMoveMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - 5_000;
+        MatchDocument doc = MatchServiceContext.BuildHumanMatch("m1", "white", "black", "ongoing");
+        ctx.SetupOngoingMatches([doc]);
+        // Two-field FEN ("<board> b") exercises the parts.Length >= 2 active-colour parse.
+        ctx.SetupLiveState(Live(
+            fen: "8 b", whiteTimeMs: 10_000_000, blackTimeMs: 1_000, lastMoveAtMs: recentMoveMs));
+
+        await ctx.MatchService.EnforceTimeoutsAsync(CancellationToken.None);
+
+        // ~5s elapsed exceeds black's 1s but not white's huge clock: black flags.
+        MatchEvent ev = Assert.Single(ctx.ProducedEvents);
+        Assert.Equal(MatchStatus.WhiteWon, ev.MatchEnded.Status);
     }
 }

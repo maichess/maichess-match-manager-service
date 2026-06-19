@@ -45,6 +45,7 @@ public sealed class MatchHistoryProjectionTests
 
         Assert.Equal("m1", doc.Id);
         Assert.Equal("w", doc.White.UserId);
+        Assert.Null(doc.White.ExternalName);
         Assert.Equal("bot-1", doc.Black.BotId);
         Assert.Equal(StartFen, doc.CurrentFen);
         Assert.Equal("ongoing", doc.Status);

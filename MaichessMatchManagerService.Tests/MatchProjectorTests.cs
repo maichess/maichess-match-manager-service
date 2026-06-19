@@ -100,10 +100,12 @@ public sealed class MatchProjectorTests
         Assert.Equal("m1", push.Push.TargetMatchId);
         Assert.Equal("move_made", push.Push.EventName);
         JsonElement body = Payload(push);
+        Assert.Equal("m1", body.GetProperty("match_id").GetString());
         Assert.Equal("e2e4", body.GetProperty("move").GetString());
         Assert.Equal(BlackToMove, body.GetProperty("resulting_fen").GetString());
         Assert.Equal(1, body.GetProperty("index").GetInt32());
         Assert.Equal(178_000, body.GetProperty("white_time_ms").GetInt64());
+        Assert.Equal(180_000, body.GetProperty("black_time_ms").GetInt64());
         Assert.Equal("w", body.GetProperty("player").GetProperty("user_id").GetString());
 
         LiveMatchState next = outcome.State!;
@@ -164,6 +166,8 @@ public sealed class MatchProjectorTests
         OutboundEvent endedPush = Assert.Single(outcome.Pushes, p => p.Push.EventName == "match_ended");
         Assert.Equal("id4", endedPush.EventId);
         JsonElement body = Payload(endedPush);
+        Assert.Equal("m1", body.GetProperty("match_id").GetString());
+        Assert.Equal(MatchProjection.StatusToString(expectedStatus), body.GetProperty("status").GetString());
         Assert.Equal(expectedReason, body.GetProperty("reason").GetString());
 
         // The read model carries the terminal status and clears history.
@@ -197,6 +201,9 @@ public sealed class MatchProjectorTests
             Validated(resultingFen: WhiteToMove), nowMs: 5_000, Ids());
 
         Assert.Equal(MatchStatus.WhiteWon, outcome.Events[1].MatchEnded.Status);
+        // Black's clock hit exactly zero, so the reason is the flagged-clock timeout
+        // (pins down the black <= 0 boundary in ResolveEndReason).
+        Assert.Equal(EndReason.Timeout, outcome.Events[1].MatchEnded.EndReason);
     }
 
     [Fact]
@@ -241,6 +248,29 @@ public sealed class MatchProjectorTests
             State(fen: "startpos"), Validated(resultingFen: "startpos"), nowMs: 3_000, Ids());
 
         Assert.Equal(178_000, outcome.Events[0].MoveApplied.WhiteTimeMs);
+    }
+
+    [Fact]
+    public void MoveValidated_GameEndingMove_DoesNotCreditIncrement()
+    {
+        // A move that ends the game earns no increment, even with a non-zero increment
+        // configured: the mover's clock shows only the elapsed-time decrement. Pins down
+        // the ongoing && increment > 0 guard against a logical-OR mutation.
+        ProjectorOutcome outcome = MatchProjector.Decide(
+            State(incrementMs: 2_000), Validated(result: GameResult.WhiteWon), nowMs: 3_000, Ids());
+
+        Assert.Equal(178_000, outcome.Events[0].MoveApplied.WhiteTimeMs);
+    }
+
+    [Fact]
+    public void MoveValidated_TwoFieldFen_ReadsActiveColorFromSecondField()
+    {
+        // "<board> b" is the parts.Length >= 2 boundary: black is the mover, so the
+        // applied move is attributed to black's side.
+        ProjectorOutcome outcome = MatchProjector.Decide(
+            State(fen: "8 b"), Validated(resultingFen: WhiteToMove), nowMs: 3_000, Ids());
+
+        Assert.Equal("b", outcome.Events[0].MoveApplied.Player.UserId);
     }
 
     [Fact]

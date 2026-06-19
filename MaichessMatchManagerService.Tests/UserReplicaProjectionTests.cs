@@ -75,6 +75,18 @@ public sealed class UserReplicaProjectionTests
     }
 
     [Fact]
+    public void RatingUpdated_SerialisesDoublesAtFullPrecision()
+    {
+        // A double that needs all 17 significant digits round-trips without loss: the
+        // replica stores the exact value the rating consumer reads back.
+        UserEvent env = Envelope("user.RatingUpdated");
+        env.RatingUpdated = new RatingUpdated { UserId = "u1", Volatility = 0.1 + 0.2 };
+
+        Assert.Contains(
+            Pair("volatility", "0.30000000000000004"), UserReplicaProjection.Project(env)!.Fields);
+    }
+
+    [Fact]
     public void UserRegistered_MissingUsername_ProjectsEmptyString()
     {
         // username left unset on the payload — the projection coalesces it to "".

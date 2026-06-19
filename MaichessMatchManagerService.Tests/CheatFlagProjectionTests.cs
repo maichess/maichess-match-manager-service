@@ -42,6 +42,7 @@ public sealed class CheatFlagProjectionTests
 
         Assert.NotNull(upsert);
         KeyValuePair<string, string> field = Assert.Single(upsert.Fields);
+        Assert.Equal("flagged", field.Key);
         Assert.Equal("false", field.Value);
     }
 
